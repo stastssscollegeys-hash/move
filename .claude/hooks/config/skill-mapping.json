@@ -272,6 +272,15 @@
       "required_skills": ["book-pdf-analyzer-ss"],
       "priority": 85,
       "strict": false
+    },
+    {
+      "name": "スライド・プレゼン資料作成",
+      "description": "プレゼンスライド（PPTX）と原稿（DOCX）をセールストーク型で一括生成",
+      "when_contains_all": [],
+      "when_contains_any": ["スライド", "プレゼン", "PPTX", "パワポ", "PowerPoint", "プレゼン資料", "発表資料", "slide-creator-ss"],
+      "required_skills": ["slide-creator-ss"],
+      "priority": 80,
+      "strict": false
     }
   ],
 

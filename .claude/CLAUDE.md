@@ -86,6 +86,7 @@
 | note + 画像 + 記事 / note記事を一発で | note-article-creator-ss |
 | 漫画 + 一括 + 生成 / 漫画を作って / マンガ一括 | manga-creator-ss |
 | メルマガ / メールマガジン / 配信メール | merumaga-ss |
+| スライド / プレゼン / PPTX / パワポ / 発表資料 | slide-creator-ss |
 
 設定ファイル: `.claude/hooks/config/skill-mapping.json`
 
@@ -100,7 +101,7 @@ AIエージェント、MCPツール、マーケティングスキルを完全統
 | Component | Count | Active | Description |
 |-----------|-------|--------|-------------|
 | **Agents** | 82 | 11 | AIT42 + Taiyou統合エージェント |
-| **Skills** | 68 | 57 | マーケティング・クリエイティブ・インフラ |
+| **Skills** | 69 | 58 | マーケティング・クリエイティブ・インフラ |
 | **Commands** | 84 | 51 | ショートカットコマンド |
 | **MCP Servers** | 36 | - | 外部サービス連携 |
 | **MCP Tools** | 227 | - | 自動化ツール群 |
@@ -182,7 +183,7 @@ taisun_v2/.claude/
 ### Specialized Tools (16+)
 - Data analyst, Researcher, Automation architect, etc.
 
-## Skill Categories (67 Skills)
+## Skill Categories (68 Skills)
 
 ### Marketing & Sales (12)
 | Skill | Description |
@@ -217,6 +218,11 @@ taisun_v2/.claude/
 | `diagram-illustration` | 図解作成 |
 | `custom-character` | キャラクター設定 |
 | `sns-marketing` | SNSマーケティング |
+
+### Ideation & Strategy (1)
+| Skill | Description |
+|-------|-------------|
+| `debate-ss` | AIディベート（3ペルソナ×3ラウンド） |
 
 ### AI Image & Video (5)
 | Skill | Description |

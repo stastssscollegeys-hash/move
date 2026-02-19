@@ -290,56 +290,74 @@ def check_authenticated():
     except Exception:
         return False
 
-def upload_attach_image(page, image_path: str) -> bool:
+def upload_attach_images(page, image_paths: list, max_attempts: int = 3) -> bool:
     """
-    Upload an image to Gemini chat as attachment (for character consistency etc).
-    Adapted from prompt_extractor.py upload mechanism.
+    Upload multiple images to Gemini chat at once via a single file chooser dialog.
+    This avoids the overlay/menu issue that occurs with consecutive single uploads.
 
     Args:
         page: Playwright page object
-        image_path: Absolute path to image file
+        image_paths: List of absolute paths to image files
+        max_attempts: Max retry attempts (default: 3)
 
     Returns:
         bool: True if upload successful
     """
-    image_file = Path(image_path)
-    if not image_file.exists():
-        print(f"   [WARN] Attach image not found: {image_path}")
+    # Validate all files exist
+    valid_files = []
+    for img_path in image_paths:
+        f = Path(img_path)
+        if f.exists():
+            valid_files.append(str(f.absolute()))
+        else:
+            print(f"   [WARN] Attach image not found: {img_path}")
+
+    if not valid_files:
+        print("   [WARN] No valid image files to attach")
         return False
 
-    print(f"   → Attaching image: {image_file.name}...")
+    file_names = [Path(f).name for f in valid_files]
+    print(f"   → Attaching {len(valid_files)} images: {', '.join(file_names)}")
 
-    # Step 1: Find and click add/attach button
-    add_button_selectors = [
-        'button[aria-label*="その他のオプション"]',
-        'button[aria-label*="Add"]',
-        'button[aria-label*="追加"]',
-        'button[aria-label*="添付"]',
-        'button[aria-label*="ファイル"]',
-        'button[aria-label*="画像を追加"]',
-        'button[aria-label*="Insert"]',
-        '[class*="add-content"]',
-        '[class*="upload"]',
-        'button:has(mat-icon:has-text("add"))',
-        'button:has(mat-icon:has-text("attach_file"))',
-        'button:has(mat-icon:has-text("image"))',
-    ]
+    for attempt in range(1, max_attempts + 1):
+        if attempt > 1:
+            print(f"   [RETRY] Upload attempt {attempt}/{max_attempts}...")
+            page.wait_for_timeout(2000)
 
-    button_clicked = False
-    for selector in add_button_selectors:
-        try:
-            btn = page.locator(selector).first
-            if btn.is_visible():
-                btn.click()
-                page.wait_for_timeout(2000)
-                button_clicked = True
-                print(f"   [OK] Found add button: {selector}")
-                break
-        except:
+        # Step 1: Find and click add/attach button
+        add_button_selectors = [
+            'button[aria-label*="その他のオプション"]',
+            'button[aria-label*="Add"]',
+            'button[aria-label*="追加"]',
+            'button[aria-label*="添付"]',
+            'button[aria-label*="ファイル"]',
+            'button[aria-label*="画像を追加"]',
+            'button[aria-label*="Insert"]',
+            '[class*="add-content"]',
+            '[class*="upload"]',
+            'button:has(mat-icon:has-text("add"))',
+            'button:has(mat-icon:has-text("attach_file"))',
+            'button:has(mat-icon:has-text("image"))',
+        ]
+
+        button_clicked = False
+        for selector in add_button_selectors:
+            try:
+                btn = page.locator(selector).first
+                if btn.is_visible():
+                    btn.click()
+                    page.wait_for_timeout(2000)
+                    button_clicked = True
+                    print(f"   [OK] Found add button: {selector}")
+                    break
+            except:
+                continue
+
+        if not button_clicked:
+            print("   [WARN] Could not find add button")
             continue
 
-    # Step 2: Click "ファイルをアップロード" in menu
-    if button_clicked:
+        # Step 2: Click "ファイルをアップロード" and set multiple files at once
         upload_menu_selectors = [
             'text="ファイルをアップロード"',
             'text="画像をアップロード"',
@@ -350,27 +368,42 @@ def upload_attach_image(page, image_path: str) -> bool:
             '[class*="menu"] *:has-text("アップロード")',
         ]
 
+        uploaded = False
         for selector in upload_menu_selectors:
             try:
                 item = page.locator(selector).first
                 if item.is_visible():
-                    item.click()
-                    page.wait_for_timeout(1500)
-                    print(f"   [OK] Found upload menu: {selector}")
-                    break
+                    try:
+                        with page.expect_file_chooser(timeout=5000) as fc_info:
+                            item.click()
+                        file_chooser = fc_info.value
+                        # Upload ALL files at once via single file chooser
+                        file_chooser.set_files(valid_files)
+                        print(f"   [OK] Found upload menu: {selector}")
+                        print(f"   [OK] {len(valid_files)} images attached via file chooser")
+                        # Wait for all uploads to process
+                        page.wait_for_timeout(3000 + len(valid_files) * 2000)
+                        print("   [OK] All images upload complete")
+                        uploaded = True
+                        break
+                    except Exception as e:
+                        print(f"   [WARN] File chooser failed: {e}")
+                        # Try to dismiss any leftover menu
+                        try:
+                            page.keyboard.press("Escape")
+                            page.wait_for_timeout(500)
+                        except:
+                            pass
+                        continue
             except:
                 continue
 
-    # Step 3: Find file input element
-    file_input = None
-    file_input_selectors = [
-        'input[type="file"]',
-        'input[accept*="image"]',
-        'input[accept*="*"]',
-    ]
+        if uploaded:
+            return True
 
-    for attempt in range(3):
-        for selector in file_input_selectors:
+        # Fallback: try file input element
+        file_input = None
+        for selector in ['input[type="file"]', 'input[accept*="image"]', 'input[accept*="*"]']:
             try:
                 locator = page.locator(selector)
                 if locator.count() > 0:
@@ -378,36 +411,32 @@ def upload_attach_image(page, image_path: str) -> bool:
                     break
             except:
                 continue
+
         if file_input:
-            break
-        page.wait_for_timeout(1000)
+            try:
+                with page.expect_file_chooser(timeout=10000) as fc_info:
+                    file_input.dispatch_event('click')
+                file_chooser = fc_info.value
+                file_chooser.set_files(valid_files)
+                print(f"   [OK] {len(valid_files)} images attached via file input fallback")
+                page.wait_for_timeout(3000 + len(valid_files) * 2000)
+                print("   [OK] All images upload complete")
+                return True
+            except Exception as e:
+                print(f"   [WARN] File input fallback failed: {e}")
 
-    if not file_input:
-        print("   [WARN] Could not find file input for attach-image")
-        return False
-
-    # Step 4: Upload the file
-    try:
-        with page.expect_file_chooser(timeout=10000) as fc_info:
-            file_input.dispatch_event('click')
-        file_chooser = fc_info.value
-        file_chooser.set_files(str(image_file.absolute()))
-        print("   [OK] Image attached via file chooser")
-    except Exception:
+        # Dismiss overlays before retry
         try:
-            file_input.set_input_files(str(image_file.absolute()))
-            print("   [OK] Image attached via set_input_files")
-        except Exception as e2:
-            print(f"   [WARN] Attach upload failed: {e2}")
-            return False
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(500)
+        except:
+            pass
 
-    # Wait for upload to complete
-    page.wait_for_timeout(3000)
-    print("   [OK] Attach image upload complete")
-    return True
+    print(f"   [WARN] All {max_attempts} upload attempts failed")
+    return False
 
 
-def generate_image(prompt: str, output_path: str, show_browser: bool = False, timeout: int = 180, max_retries: int = 3, attach_image: str = None):
+def generate_image(prompt: str, output_path: str, show_browser: bool = False, timeout: int = 180, max_retries: int = 3, attach_image=None):
     """
     Generate image using Gemini with persistent browser context.
 
@@ -417,7 +446,7 @@ def generate_image(prompt: str, output_path: str, show_browser: bool = False, ti
         show_browser: Whether to show browser window
         timeout: Maximum wait time in seconds (default: 180)
         max_retries: Maximum number of retry attempts on timeout (default: 3)
-        attach_image: Path to image to attach to Gemini chat before prompt (optional)
+        attach_image: Path(s) to image(s) to attach to Gemini chat before prompt (str, list, or None)
 
     Returns:
         bool: True if successful
@@ -499,11 +528,12 @@ def generate_image(prompt: str, output_path: str, show_browser: bool = False, ti
 
             print("   → NanoBanana (画像の作成) activated")
 
-            # Step 2.5: Attach image if provided (for character consistency)
+            # Step 2.5: Attach image(s) if provided (for character consistency + template)
             if attach_image:
-                attach_success = upload_attach_image(page, attach_image)
+                images = attach_image if isinstance(attach_image, list) else [attach_image]
+                attach_success = upload_attach_images(page, images)
                 if not attach_success:
-                    print("   [WARN] Attach image failed, continuing without it...")
+                    print("   [WARN] Attach images failed, continuing without images...")
 
             # Step 3: Find input field (now in NanoBanana mode)
             print("   → Finding input field...")
@@ -764,7 +794,8 @@ def main():
     )
     parser.add_argument(
         "--attach-image",
-        help="Image to attach to Gemini chat before prompt (for character consistency)"
+        action="append",
+        help="Image to attach to Gemini chat before prompt (for character consistency). Can be specified multiple times."
     )
     parser.add_argument(
         "--yaml-output",

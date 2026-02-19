@@ -1,11 +1,11 @@
 ---
-name: manga-produce-creator-ss
-description: 電子書籍を漫画化することに特化したスキル。章構成を解析し、各章3-5ページの漫画を生成。重要ポイントを抽出して漫画化し、章の主旨を分かりやすく伝える。
+name: comicle-ss
+description: 電子書籍を漫画化することに特化したスキル。章構成を解析し、各章3-5ページの漫画を生成。キャラごとに個別シートを作成し、最終出力はCSV形式で一括出力する。
 ---
 
-# Manga Produce Creator - 書籍漫画化特化スキル
+# Comicle - 書籍漫画化特化スキル
 
-電子書籍 → 章ごと解析 → 重要ポイント抽出 → 漫画化（各章3-5ページ）。
+電子書籍 → 章ごと解析 → 重要ポイント抽出 → キャラ個別シート作成 → CSV形式で漫画プロンプト一括出力。
 
 ## When to Use This Skill
 
@@ -77,22 +77,25 @@ Step 1: ストーリー構成案の作成
    │  ユーザーから原稿/文章を受け取る（必須）
    │  神話の法則で感情曲線設計
    │  書籍の長さに合わせたコマ数で細かいカット割り台本作成
-   │  → 確認なしで即Step 2へ
+   │  → ユーザーに確認してからStep 2へ
    ▼
-Step 2: キャラクター設計画
+Step 2: キャラクター設計画（個別シート方式）
    │  2回以上登場する全キャラの設計画プロンプトを作成
-   │  全キャラを1枚に並べた画像を nanobanana-pro で生成
-   │  各キャラの外見プロンプトテキストをDBとして保存（後のStep 3で毎回使用）
-   │  → 確認なしで即Step 3へ
+   │  ★ キャラ1人につき1枚の個別シート画像を生成
+   │  ★ ファイル名はキャラのカタカナ名（例: ケイコ.png）
+   │  各キャラの外見プロンプトテキストをDBとして保存
+   │  → ユーザーに確認してからStep 3へ
    ▼
-Step 3: ページ別プロンプト生成
-   │  各ページのNanoBanana用プロンプトを英語で作成（セリフ部分のみ日本語）
-   │  ★ 毎回キャラの外見詳細テキストを埋め込む（一貫性確保）
+Step 3: CSV形式でプロンプト一括出力
+   │  各ページの漫画作成プロンプトをCSV形式で出力
+   │  ★ キャラ参照は「添付の{カタカナ名}.pngと同一」方式
+   │  ヘッダー: ページ番号,使用するコマ割りテンプレ,漫画作成のプロンプト
    │  全ページ分を一括出力
    │  → 確認なしで画像一括生成へ
    ▼
 画像一括生成:
    │  nanobanana-pro で全ページ順次生成
+   │  各ページで登場キャラの個別シート画像を --attach-image で添付
    │  生成後 896x1200px にリサイズ
    │  進捗トラッキング + 中断再開対応
    ▼
@@ -101,17 +104,17 @@ Step 3: ページ別プロンプト生成
 
 ### キャラクター一貫性の確保方法
 
-**2つの方法を併用して一貫性を最大化する:**
+**個別キャラシート + テキスト参照の併用で一貫性を最大化する:**
 
-#### 1. テキスト埋め込み（必須）
-- Step 2で各キャラの外見プロンプト（英語テキスト）を定義する
-- Step 3の英語プロンプト（Part B）で、登場キャラの外見テキストを毎回埋め込む
-- 「Character name & details」フィールドに毎回同じ外見定義を記述する
-
-#### 2. キャラクターシート画像の添付（`--attach-image`）
-- nanobanana-pro の `--attach-image` を使い、キャラクターシート画像をGeminiチャットに添付する
+#### 1. 個別キャラシート画像の添付（`--attach-image`）
+- Step 2でキャラ1人につき1枚のキャラクターシート画像を生成する
+- ファイル名はカタカナ名（例: `ケイコ.png`, `アカリ.png`）
+- 画像生成時に、そのページに登場するキャラの個別シート画像を `--attach-image` で添付する
 - テキストだけでは回を重ねるうちにキャラの外見がブレるため、画像参照で補強する
-- Step 2で生成した `all_characters.png` を毎回添付する
+
+#### 2. テキスト参照（必須）
+- Step 3のCSVプロンプト内で、登場キャラごとに `添付の{カタカナ名}.pngと同一` と記載する
+- 複数キャラが登場する場合は `、` で区切る（例: `ケイコ: 添付のケイコ.pngと同一、アカリ: 添付のアカリ.pngと同一`）
 
 **注意:** `--reference-image` はスタイル抽出用（YAML分析→メタプロンプト生成）であり、キャラクター一貫性には使えない。`--attach-image` を使うこと。
 
@@ -242,165 +245,193 @@ Step 3: ページ別プロンプト生成
 
 ---
 
-## Step 2: キャラクター設計画
+## Step 2: キャラクター設計画（個別シート方式）
 
 ### 概要
 
 2回以上登場する**全キャラクター**について:
-1. 全員を1枚に並べたキャラクターシート画像を生成する
-2. 各キャラの外見プロンプトテキスト（英語）をDBとして保存する（Step 3で使用）
+1. **キャラ1人につき1枚**のキャラクターシート画像を生成する
+2. ファイル名は**カタカナ名**（例: `ケイコ.png`, `アカリ.png`）
+3. **サイズは896x1200px**（漫画ページと同じサイズ）
+4. 各キャラの外見プロンプトテキスト（英語）をDBとして保存する（Step 3で使用）
+5. キャラクター名は毎回新規で考えること
 
-### キャラクターシート画像プロンプト
+### 個別キャラクターシート画像プロンプト
 
-全キャラを1枚に横並びにした設計画:
+キャラクター1人につき1枚のシートを作成する。
+内容: 全身の立ち姿で正面、側面、背面からみたキャラクター。キャラクターの足元に対応する名前（カタカナ）が記載されている。
 
 ```
-(best quality, masterpiece:1.2), anime style, webtoon style, character sheet,
-{N} people standing side by side, white background, full body, flat color, clean lines,
-with text labels in katakana below each character identifying them,
-({キャラ1カタカナ名}): {キャラ1の外見詳細を英語で}, text label below feet reads "{キャラ1カタカナ名}",
-({キャラ2カタカナ名}): {キャラ2の外見詳細を英語で}, text label below feet reads "{キャラ2カタカナ名}",
-...
+({カタカナ名}): (best quality, masterpiece:1.2), anime style, character sheet,
+multiple views, full body, front view, side view, back view,
+white background, flat color, resolution 896x1200px,
+{性別・年齢・外見詳細を英語で},
+katakana name "{カタカナ名}" written at feet
+```
+
+**プロンプト例:**
+
+```
+(ケイコ): (best quality, masterpiece:1.2), anime style, character sheet,
+multiple views, full body, front view, side view, back view,
+white background, flat color, resolution 896x1200px,
+1woman, Japanese, 49 years old, soft facial features, black hair in a low bun,
+wearing a simple mint green cardigan over a white blouse, long brown skirt,
+gentle and warm smile, modest housewife,
+katakana name "ケイコ" written at feet
+```
+
+```
+(アカリ): (best quality, masterpiece:1.2), anime style, character sheet,
+multiple views, full body, front view, side view, back view,
+white background, flat color, resolution 896x1200px,
+1girl, Japanese, 20 years old, cheerful expression, shoulder-length brown hair with bangs,
+wearing a casual hoodie and jeans, energetic and youthful appearance,
+katakana name "アカリ" written at feet
 ```
 
 ### キャラクター外見プロンプトDB
 
 各キャラの外見テキスト（英語）を `character_prompts.md` に保存する。
-これがStep 3で毎回プロンプトに埋め込まれるマスターデータになる。
+これがStep 3のCSV出力で毎回参照されるマスターデータになる。
 
 **注意: 以下はフォーマット例です。実際のキャラクターは書籍のテーマ・世界観に合わせて毎回新しく設計してください。前回のプロジェクトのキャラを引き継がないこと。**
 
 ```markdown
 # キャラクター外見プロンプトDB
 
-## {主人公名}（主人公）
-{性別, 国籍, 年齢, 髪型・色, 目の色, 体型, 服装, アクセサリー, 全体の印象}
-例: 1girl, Japanese, late 20s, medium-length straight black hair, large dark brown eyes, average build, wearing casual office clothes, warm approachable appearance
+## ケイコ（主人公）
+1woman, Japanese, 49 years old, soft facial features, black hair in a low bun,
+wearing a simple mint green cardigan over a white blouse, long brown skirt,
+gentle and warm smile, modest housewife
+→ ファイル名: ケイコ.png
 
-## {先生名}（先輩/メンター）
-{性別, 国籍, 年齢, 髪型・色, 目の色, 体型, 服装, 全体の印象}
-例: 1boy, Japanese, early 30s, neat dark hair, intelligent eyes, casual smart style, friendly and knowledgeable demeanor
+## アカリ（主人公の娘）
+1girl, Japanese, 20 years old, cheerful expression, shoulder-length brown hair with bangs,
+wearing a casual hoodie and jeans, energetic and youthful appearance
+→ ファイル名: アカリ.png
 
 ## {マスコット名}（マスコット）
 {テーマに合ったマスコットの外見。書籍の題材に関連するデザインにする}
-例: cute small mascot character, round body, big friendly eyes, chibi proportions, kawaii style, theme-related design elements
+→ ファイル名: {マスコット名}.png
 ```
 
-### キャラクターシートプロンプトのルール
-
-プロンプトの末尾に `--ar 16:9` を入れて横長で生成する。
-横長にすることで全キャラが余裕を持って並び、Geminiがキャラの特徴を読み取りやすくなる。
-
-### 画像生成
+### 画像生成（キャラごとに1回ずつ実行）
 
 **重要：相対パスは `../../../` で開発フォルダのルートに戻ること。**
 nanobanana-proは `開発1/.claude/skills/nanobanana-pro/` にあるので、`../../` だと `.claude/` で止まる。`../../../` で正しく `開発1/` に到達する。
 
+**キャラごとに個別に実行する:**
+
 ```bash
 cd "C:\Users\baseb\dev\開発1\.claude\skills\nanobanana-pro"
 
+# キャラ1: ケイコ
 PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
-  --prompt "{キャラクターシートプロンプト}, --ar 16:9" \
-  --output "../../../output/manga-{slug}/characters/all_characters.png" \
+  --prompt "{ケイコのキャラクターシートプロンプト}" \
+  --output "../../../output/manga-{slug}/characters/ケイコ.png" \
   --timeout 240
+
+# キャラ2: アカリ
+PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
+  --prompt "{アカリのキャラクターシートプロンプト}" \
+  --output "../../../output/manga-{slug}/characters/アカリ.png" \
+  --timeout 240
+
+# ... 全キャラ分繰り返す
 ```
 
 ### リサイズ（生成後必須）
 
 リサイズはファイルのある場所にcdしてから実行する（日本語パスの文字化け回避）。
+**各キャラシートを896x1200pxにリサイズする。**
 
 ```bash
 cd "{開発フォルダ}/output/manga-{slug}/characters"
 
-PYTHONUTF8=1 PYTHONIOENCODING=utf-8 \
-  "../../../.claude/skills/nanobanana-pro/.venv/Scripts/python.exe" -c "
+# キャラごとにリサイズ
+for charfile in ケイコ.png アカリ.png; do
+  PYTHONUTF8=1 PYTHONIOENCODING=utf-8 \
+    "../../../.claude/skills/nanobanana-pro/.venv/Scripts/python.exe" -c "
 from PIL import Image
-img = Image.open('all_characters.png')
-img = img.resize((1600, 900), Image.LANCZOS)
-img.save('all_characters.png')
+img = Image.open('$charfile')
+img = img.resize((896, 1200), Image.LANCZOS)
+img.save('$charfile')
+print('Resized $charfile to 896x1200')
 "
+done
 ```
 
 ---
 
-## Step 3: ページ別プロンプト生成
+## Step 3: CSV形式でプロンプト一括出力
 
 ### 概要
 
-Step 1のストーリーを元に、各ページのNanoBanana用プロンプトを作成する。
-プロンプトは**英語**で記述し、**セリフ・文字入れ部分のみ日本語**を含める。
-**★ キャラの外見テキストはStep 2のDBから毎回同じものを埋め込む（一貫性確保の要）。**
+Step 1のストーリーを元に、各ページの漫画作成プロンプトを**CSV形式**で出力する。
+**★ キャラの外見参照は「添付の{カタカナ名}.pngと同一」方式で統一する。**
 
-**📚 書籍漫画化の重要ルール:**
-- **全ページ分のプロンプトを必ず最後まで作成する**
+**重要ルール:**
+- **全ページ分のCSVを必ず最後まで作成する**
 - サンプルだけで終わらない（「残りも作成しますか？」と聞かない）
-- Step 1で決めたページ数（15〜25ページ）すべてを完成させる
+- Step 1で決めたページ数すべてを完成させる
 - 途中で確認を求めず、一気に全ページ分を出力する
+- Step 1で作成したコマ数は維持すること
 
-全ページ分を `output/manga-{slug}/page_prompts.md` に一括出力する。
+全ページ分を `output/manga-{slug}/page_prompts.csv` に一括出力する。
 
-### プロンプトテンプレート
+### CSV仕様
 
-```markdown
-### Page {N}
-
-**Page layout**
-{ページ全体のシーン・感情の流れを英語で自然な文章で表現。
-各コマがどのように展開・対比・連続しているかを簡潔かつ詳細にまとめる。}
-**Reading order: Right-to-left (Japanese manga style)** ← 必須記載
-Template: {テンプレ1〜10から選択}
-
----
-重要: Panel番号は読む順番（1→2→3→4）。
-横並びコマの場合、Panel1=右側、Panel2=左側。
----
-
-**Panel1** ← 読む順番の1番目（横並びなら右側のコマ）
-**Description** {シーンの説明を英語で}
-**panel shape and size** {horizontal-large / vertical-medium / square-small 等}
-**panel position** {top / middle-right / middle-left / bottom 等、コマの位置を明記}
-**Character name & details** {キャラ名} — {★Step 2のDBの外見テキストをそのまま埋め込む}, (MUST match the character labeled '{キャラのカタカナ名}' in attached 'all_characters.png')
-**Character expression** {表情を英語で}
-**Character facing** {facing left / facing right / front}
-**Character pose** {ポーズを英語で}
-**Background** {背景を英語で}
-**speech bubble** 「{日本語セリフそのまま}」
-  ⚠️  1コマに複数の吹き出しがある場合の順序（厳守）:
-  - 右側の吹き出しが最初（speech bubble 1）
-  - 左側の吹き出しが次（speech bubble 2）
-  - 例: speech bubble 1 (right side): 「右のセリフ」, speech bubble 2 (left side): 「左のセリフ」
-  - 2人の会話の場合: 右側のキャラのセリフ → 左側のキャラのセリフ
-**camera angle** {eye-level / top-down / low-angle / side view}
-**art style** anime-style, modern manga illustration, soft light and smooth shading, delicate linework, expressive eyes, clean and bright overall tone, --ar 3:4
-**color theme** {配色を英語で}
-
-**Panel2** ← 読む順番の2番目（横並びなら左側のコマ）
-**panel position** {位置を明記}
-...
+**ヘッダー（3カラム）:**
+```
+ページ番号,使用するコマ割りテンプレ,漫画作成のプロンプト
 ```
 
-**注意（縦長生成の保証 — 必須）:**
-- プロンプトの**先頭**に以下のブロックを必ず挿入すること：
-  ```
-  --ar 3:4 MUST generate in PORTRAIT orientation (taller than wide, 3:4 ratio). DO NOT use landscape.
-  ```
-- プロンプトの**末尾**にも `--ar 3:4` を含めること（二重保証）
-- キャラクターシート（16:9横長）を添付するため、明示的にPORTRAIT指定しないと横長で出力されるリスクがある
+**基本ルール:**
+- カンマで各フィールドを区切り、各行を改行で区切る
+- 引用符が必要なフィールド（コンマを含むテキストなど）は二重引用符で囲む
+- ページ情報は改行や空白を入れずカンマ区切りで1行で出力
+- カラムを区切る以外にプロンプト内にカンマは使用しない（`、`で代替）
 
-**注意（キャラクター一貫性 + アートスタイル統一の保証 — 必須）:**
-- プロンプトの**先頭**（`--ar 3:4` の直後）に以下のブロックを必ず挿入すること：
-  ```
-  CRITICAL CHARACTER REFERENCE: The attached image 'all_characters.png' is the official character reference sheet. You MUST faithfully reproduce each character's appearance exactly as shown in the reference.
+### プロンプトカラムの記述ルール
 
-  ART STYLE CONSISTENCY: You MUST also match the art style, color palette, line quality, shading technique, and overall visual touch of the attached 'all_characters.png'. All panels must look like they belong to the same manga series with the same illustrator.
-  ```
-- 各コマの `**Character name & details**` フィールドで `(MUST match the character labeled '{キャラカタカナ名}' in attached 'all_characters.png')` を記載し、どのキャラを参照するか明示する
-- プロンプトの**末尾**に以下を追加する：
-  ```
-  anime-style, modern manga illustration, soft light and smooth shading, delicate linework, expressive eyes, clean and bright overall tone, full color manga page
+各ページのプロンプトは以下の構造で、改行せずに1行で記載する:
 
-  IMPORTANT: All characters MUST exactly match their appearance in the attached 'all_characters.png' reference sheet. The art style, line quality, coloring, and shading must also match the attached reference. --ar 3:4
-  ```
+```
+◆【絶対最優先】キャラクター外見: {このページに登場するキャラの外見定義}◆【出力サイズ】896×1200px◆【コマ構成】{テンプレ名}: {具体的な配置指示}◆【作画】ビジネス漫画向け、清潔感重視、整った線画、現代的でクリアなアニメ調◆【ストーリー】1コマ目 ({位置}): {ト書き・行動}。オノマトペ「{擬音}」。背景は{雰囲気・漫符}。 + {キャラ名}「{セリフ原文}」 {吹き出しの形} {吹き出しの尻尾を向けるキャラ} 2コマ目 ({位置}): ...
+```
+
+### キャラクター外見定義の書き方
+
+**必ず「添付の{カタカナ名}.pngと同一」方式を使用する。**
+
+1人の場合:
+```
+ケイコ: 添付のケイコ.pngと同一
+```
+
+2人以上の場合（`、`で区切る）:
+```
+ケイコ: 添付のケイコ.pngと同一、アカリ: 添付のアカリ.pngと同一
+```
+
+### CSV出力例
+
+```csv
+ページ番号,使用するコマ割りテンプレ,漫画作成のプロンプト
+1,テンプレ5,"◆【絶対最優先】キャラクター外見: ケイコ: 添付のケイコ.pngと同一◆【出力サイズ】896×1200px◆【コマ構成】テンプレ5: 上・中・下の3段構成（上→中→下）◆【作画】ビジネス漫画向け、清潔感重視、整った線画、現代的でクリアなアニメ調◆【ストーリー】1コマ目 (上段): 夕暮れのキッチン。オレンジ色の光が差し込むが寂しい雰囲気。背景は夕焼け色グラデーション。 2コマ目 (中段): 溜息をつきながら山積みの皿を洗うケイコ。オノマトペ「はぁ…」。背景は暗いトーン。 3コマ目 (下段): ケイコの背後に「老後の不安」「親の介護」「物価高」という文字が重い鎖のようにまとわりつく。背景はフラッシュエフェクト。"
+2,テンプレ7,"◆【絶対最優先】キャラクター外見: ケイコ: 添付のケイコ.pngと同一、アカリ: 添付のアカリ.pngと同一◆【出力サイズ】896×1200px◆【コマ構成】テンプレ7: 上段左右2コマ+下段1コマ。配置順: 1コマ目(上段右側)→2コマ目(上段左側)→3コマ目(下段)◆【作画】ビジネス漫画向け、清潔感重視、整った線画、現代的でクリアなアニメ調◆【ストーリー】1コマ目 (上段右側): リビングで楽しそうに友人とスマホで通話するアカリ。 + アカリ「うん、また明日ね！」 丸い吹き出し 吹き出しの尻尾をアカリへ 2コマ目 (上段左側): アカリがキッチンに来てケイコの顔を覗き込む。 + アカリ「お母さん、また暗い顔。何か新しいことでも始めれば？」 丸い吹き出し 吹き出しの尻尾をアカリへ 3コマ目 (下段): ケイコが力なく笑う。 + ケイコ「私には、人に誇れるような特別な資格もスキルもないわよ…」 丸い吹き出し 吹き出しの尻尾をケイコへ"
+```
+
+### 絶対遵守ルール
+
+1. **セリフ完全維持**: 原稿のセリフは一文字も要約・省略・変更しない
+2. **サイズ**: 896x1200px
+3. **必ずフルカラー**: 白黒漫画は絶対に禁止
+4. **（）の中の言葉**は吹き出しに記載しない
+5. **同じ言葉を二回以上**吹き出しに記載しない
+6. **1コマ内の吹き出し順序**: 右側の吹き出しが1番目、左側の吹き出しが2番目（右→左読み）
+7. **コマ数維持**: Step 1で決めたコマ数・ページ数をそのまま維持する
 
 ### コマ割りテンプレート選択ルール
 
@@ -528,85 +559,18 @@ Template: {テンプレ1〜10から選択}
 
 ---
 
-## 画像生成
-
-### 生成方法
-
-各ページの英語プロンプト（Part B）全体を1つのテキストとしてnanobanana-proに送信する。
-
-**重要：相対パスは `../../../` でプロジェクトルートに戻ること。**
-
-```bash
-cd "C:\Users\baseb\dev\開発1\.claude\skills\nanobanana-pro"
-
-PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
-  --prompt "--ar 3:4 MUST generate in PORTRAIT orientation (taller than wide, 3:4 ratio). DO NOT use landscape. CRITICAL CHARACTER REFERENCE: The attached image 'all_characters.png' is the official character reference sheet. You MUST faithfully reproduce each character's appearance exactly as shown in the reference. ART STYLE CONSISTENCY: You MUST also match the art style, color palette, line quality, shading technique, and overall visual touch of the attached 'all_characters.png'. All panels must look like they belong to the same manga series with the same illustrator. {ページNの英語プロンプト全文} anime-style, modern manga illustration, soft light and smooth shading, delicate linework, expressive eyes, clean and bright overall tone, full color manga page. IMPORTANT: All characters MUST exactly match their appearance in the attached 'all_characters.png' reference sheet. The art style, line quality, coloring, and shading must also match the attached reference. --ar 3:4" \
-  --attach-image "../../../output/manga-{slug}/characters/all_characters.png" \
-  --output "../../../output/manga-{slug}/panels/page_NNN.png" \
-  --timeout 240
-```
-
-**プロンプト構造（必須）:**
-```
-[HEAD] --ar 3:4 MUST generate in PORTRAIT orientation... + CRITICAL CHARACTER REFERENCE... + ART STYLE CONSISTENCY...
-[BODY] ページNの英語プロンプト全文（各コマのキャラ詳細含む）
-[TAIL] IMPORTANT: All characters must match... + art style must match... + --ar 3:4
-```
-
-`--attach-image` でキャラクターシート画像（`all_characters.png`）を毎回Geminiに添付することで、キャラの外見一貫性を確保する。テキスト埋め込み + 画像添付の二重方式でブレを最小化する。
-
-### 生成後の検証（必須）
-
-生成された画像が**縦長（portrait）**であることを必ず検証する。
-横長で出力された場合はリサイズせず、**再生成する**。
-
-```bash
-cd "{開発フォルダ}/output/manga-{slug}/panels"
-
-PYTHONUTF8=1 PYTHONIOENCODING=utf-8 \
-  "../../../.claude/skills/nanobanana-pro/.venv/Scripts/python.exe" -c "
-from PIL import Image
-img = Image.open('page_NNN.png')
-w, h = img.size
-print(f'Size: {w}x{h}')
-if w > h:
-    print('ERROR: LANDSCAPE detected. Must regenerate this page.')
-elif (w, h) != (896, 1200):
-    img = img.resize((896, 1200), Image.LANCZOS)
-    img.save('page_NNN.png')
-    print('Resized to 896x1200')
-else:
-    print('OK: Already 896x1200')
-"
-```
-
-**ルール:**
-- 横長（width > height）→ **リサイズ禁止、再生成する**
-- 縦長だがサイズが違う（例: 765x1024）→ 896x1200にリサイズOK
-- すでに896x1200 → そのまま
-
-### 出力ファイル名
-
-- `panels/page_001.png`, `panels/page_002.png`, ... `panels/page_NNN.png`
-
-### バッチ生成
-
-全ページを順次生成。10枚ごとに進捗報告。
-中断後はまだ生成されていないページから再開可能。
-横長で出力されたページは自動検出し、再生成キューに追加する。
-
----
-
 ## 出力先
 
 ```
 output/manga-{slug}/
 ├── story_structure.md          # ストーリー構成案（全コマ詳細）
 ├── character_prompts.md        # キャラクター外見プロンプトDB
-├── page_prompts.md             # 全ページのプロンプト（英語、セリフ部分のみ日本語）
-├── characters/
-│   └── all_characters.png      # 全キャラ並んだ設計画（1600x900px, 16:9横長）
-├── panels/                     # 各ページ画像（896x1200px）
+├── page_prompts.csv            # 全ページのプロンプト（CSV形式）
+├── characters/                 # キャラ個別シート画像（896x1200px）
+│   ├── ケイコ.png
+│   ├── アカリ.png
+│   └── ...（キャラ数分）
+├── panels/                     # 各ページ画像（896x1200px）※別途生成
 │   ├── page_001.png
 │   ├── page_002.png
 │   └── ...
@@ -634,7 +598,7 @@ output/manga-{slug}/
 # ebook-creator-ss との連携
 /ebook-creator-ss でテーマの書籍作成
   ↓
-/manga-produce-creator-ss で書籍を漫画化
+/comicle-ss で書籍を漫画化（CSV出力）
 ```
 
 ## 📖 書籍漫画化の実行例
@@ -642,12 +606,12 @@ output/manga-{slug}/
 ```
 ユーザー: 「書籍を作った後に漫画作りたい」
 
-AI: manga-produce-creator-ss スキルを起動
+AI: comicle-ss スキルを起動
   1. 原稿ファイルを読み込む（manuscript.md）
   2. 章構成を解析（## 第1章、## 第2章...）
   3. 各章の重要ポイントを抽出
-  4. 各章3-5ページの漫画ストーリーを構成
-  5. キャラクター設計
-  6. ページ別プロンプト生成
-  7. 画像一括生成（15-25ページ）
+  4. 各章3-5ページの漫画ストーリーを構成（Step 1）
+  5. キャラごとに個別シート画像を生成（Step 2）
+  6. CSV形式でプロンプト一括出力（Step 3）
+  7. 個別キャラシートを添付しながら画像一括生成
 ```
