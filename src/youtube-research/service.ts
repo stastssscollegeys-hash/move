@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { YoutubeTranscript } from 'youtube-transcript';
 import {
   VideoInput, VideoMeta, FilterParams,
   BuzzResult, TrendResult, AudienceProfile, KeywordEntry,
@@ -175,8 +176,11 @@ export class YouTubeResearchService {
         return { success: false, error: 'Anthropic APIキーが設定されていません' };
       }
 
-      const audience = await this.analyzeAudience(videos);
-      const keywords = await this.extractKeywords(videos);
+      // 字幕（文字起こし）を取得して動画データに追加
+      const enrichedVideos = await this.enrichWithTranscripts(videos);
+
+      const audience = await this.analyzeAudience(enrichedVideos);
+      const keywords = await this.extractKeywords(enrichedVideos);
 
       const recsRaw = await this.callClaude(buildRecommendationsPrompt(
         'バズ動画の共通パターン分析',
@@ -193,7 +197,7 @@ export class YouTubeResearchService {
         recommendations = ['分析データを元にコンテンツ企画を検討してください'];
       }
 
-      const fullReport = this.buildReport(videos, [], [], audience, keywords, recommendations, { lengthCategory: 'all', uploadPeriod: 'all' });
+      const fullReport = this.buildReport(enrichedVideos, [], [], audience, keywords, recommendations, { lengthCategory: 'all', uploadPeriod: 'all' });
 
       return { success: true, data: { audience, keywords, recommendations, fullReport } };
     } catch (err) {
@@ -411,6 +415,44 @@ export class YouTubeResearchService {
       const message = err instanceof Error ? err.message : 'Unknown error';
       return { success: false, error: message };
     }
+  }
+
+  // --- Transcript Fetching ---
+
+  private async enrichWithTranscripts(videos: VideoMeta[]): Promise<VideoMeta[]> {
+    const enriched: VideoMeta[] = [];
+
+    for (const video of videos) {
+      // URLから動画IDを抽出
+      const videoId = video.url ? this.extractVideoId(video.url) : video.id;
+
+      if (videoId && !video.transcriptOrSummary) {
+        try {
+          const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'ja' });
+          const transcript = transcriptItems.map((item: any) => item.text).join(' ');
+          enriched.push({ ...video, transcriptOrSummary: transcript.slice(0, 5000) });
+        } catch {
+          // 日本語字幕がない場合、英語を試す
+          try {
+            const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+            const transcript = transcriptItems.map((item: any) => item.text).join(' ');
+            enriched.push({ ...video, transcriptOrSummary: transcript.slice(0, 5000) });
+          } catch {
+            // 字幕がない動画はタイトル＋説明文で代用
+            enriched.push({ ...video, transcriptOrSummary: `${video.title} ${video.description}` });
+          }
+        }
+      } else {
+        enriched.push(video);
+      }
+    }
+
+    return enriched;
+  }
+
+  private extractVideoId(url: string): string | null {
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    return match ? match[1] : null;
   }
 
   // --- Helpers ---

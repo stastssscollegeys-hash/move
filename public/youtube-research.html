@@ -203,7 +203,7 @@
         <span id="result-video-count" class="badge badge-avg"></span>
       </div>
 
-      <p class="inline-help">各動画の「分析」ボタンでターゲット＆キーワードを分析できます。トレンド判定はチェックを入れてまとめて実行できます。</p>
+      <p class="inline-help">チェックを入れてトレンド判定やターゲット分析をまとめて実行できます。各動画の「分析」ボタンで1本ずつの分析も可能です。</p>
 
       <div class="action-bar">
         <button id="btn-select-all" class="btn-secondary btn-sm">全選択</button>
@@ -211,8 +211,12 @@
         <button id="btn-select-buzz" class="btn-secondary btn-sm">バズ動画のみ選択</button>
         <span class="action-separator">|</span>
         <button id="btn-trend-selected" class="btn-action btn-trend-action" disabled>
-          トレンド判定（選択した動画）
+          トレンド判定
           <span class="btn-cost">約1〜3円</span>
+        </button>
+        <button id="btn-analyze-selected" class="btn-action btn-analyze-action" disabled>
+          ターゲット＆キーワード分析
+          <span class="btn-cost">約3〜5円</span>
         </button>
         <span id="selected-count" class="hint" style="margin-left:8px">0件選択中</span>
       </div>
@@ -228,7 +232,6 @@
             <th>登録者数</th>
             <th>バズ比率 <span class="th-help" title="再生数÷登録者数の倍率。高いほどバズっている">?</span></th>
             <th>判定</th>
-            <th>分析</th>
           </tr>
         </thead>
         <tbody id="video-table-body"></tbody>
