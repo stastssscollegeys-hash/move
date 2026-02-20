@@ -202,6 +202,7 @@ function renderSearchResults(data, query) {
     <td>${r.video.subscribers != null ? r.video.subscribers.toLocaleString() : '-'}</td>
     <td class="buzz-ratio">${r.buzzRatio != null ? r.buzzRatio.toFixed(1) + 'x' : '-'}</td>
     <td>${buzzBadge(r.buzzLevel)}</td>
+    <td><button class="btn-analyze-single btn-action btn-analyze-action btn-sm" data-video-index="${i}">分析<span class="btn-cost">約3〜5円</span></button></td>
   </tr>`).join('');
 
   // Attach checkbox listeners
@@ -210,6 +211,15 @@ function renderSearchResults(data, query) {
   });
   document.getElementById('check-all').checked = true;
   updateSelectionCount();
+
+  // Attach per-video analyze buttons
+  document.querySelectorAll('.btn-analyze-single').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.videoIndex, 10);
+      const video = searchBuzzRanking[idx]?.video;
+      if (video) doAnalyzeSingle(video);
+    });
+  });
 
   container.scrollIntoView({ behavior: 'smooth' });
 }
@@ -296,14 +306,10 @@ function renderTrendResults(data) {
 }
 
 // ========================================
-// Step 3: Analyze Selected (Target + Keywords)
+// Step 3: Analyze Single Video (Target + Keywords)
 // ========================================
-document.getElementById('btn-analyze-selected').addEventListener('click', doAnalyzeSelected);
 
-async function doAnalyzeSelected() {
-  const selected = getSelectedVideos();
-  if (selected.length === 0) { alert('動画を選択してください'); return; }
-
+async function doAnalyzeSingle(video) {
   let anKey = document.getElementById('anthropic-api-key').value.trim();
   if (!anKey) anKey = getApiKeys().anthropicApiKey;
 
@@ -315,15 +321,15 @@ async function doAnalyzeSelected() {
   }
 
   showLoading(
-    'ターゲット＆キーワード分析中...',
-    selected.length + '件の動画からターゲット層とキーワードを抽出しています（1〜2分）'
+    '「' + video.title.slice(0, 30) + '」を分析中...',
+    'ターゲット層とキーワードを抽出しています（30秒〜1分）'
   );
 
   try {
     const res = await fetch(API_BASE + '/analyze-selected', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videos: selected, anthropicApiKey: anKey })
+      body: JSON.stringify({ videos: [video], anthropicApiKey: anKey })
     });
     const data = await res.json();
     hideLoading();
@@ -333,16 +339,21 @@ async function doAnalyzeSelected() {
       return;
     }
 
-    renderAnalysisResults(data.data);
+    renderAnalysisResults(data.data, video.title);
   } catch (err) {
     hideLoading();
     alert('通信エラー: ' + err.message);
   }
 }
 
-function renderAnalysisResults(data) {
+function renderAnalysisResults(data, videoTitle) {
   const container = document.getElementById('analysis-results');
   container.classList.remove('hidden');
+
+  // Show which video was analyzed
+  document.getElementById('analysis-title').textContent = videoTitle
+    ? '「' + videoTitle + '」の分析結果'
+    : 'ターゲット＆キーワード分析結果';
 
   // Target Audience
   const audience = data.audience;

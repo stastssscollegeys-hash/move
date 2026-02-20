@@ -71,7 +71,8 @@
 
             <div class="guide-card">
               <h4>ターゲット＆キーワード分析とは？</h4>
-              <p>選んだ動画を元に<strong>「誰に届くか」</strong>と<strong>「使うべきキーワード」</strong>をAIが分析します。</p>
+              <p>動画1本ずつ、その動画を元に<strong>「誰に届くか」</strong>と<strong>「使うべきキーワード」</strong>をAIが分析します。</p>
+              <p>検索結果の各動画にある「分析」ボタンを押すだけでOKです。</p>
               <div class="guide-sub">
                 <p><strong>ターゲット層</strong> … この動画を見ている人はどんな人？</p>
                 <p>年齢・性別・職業・興味・悩み・購買行動が分かります。本や記事を書くときの「想定読者」になります。</p>
@@ -202,7 +203,7 @@
         <span id="result-video-count" class="badge badge-avg"></span>
       </div>
 
-      <p class="inline-help">Step 2: 分析したい動画にチェックを入れて、下のボタンを押してください</p>
+      <p class="inline-help">各動画の「分析」ボタンでターゲット＆キーワードを分析できます。トレンド判定はチェックを入れてまとめて実行できます。</p>
 
       <div class="action-bar">
         <button id="btn-select-all" class="btn-secondary btn-sm">全選択</button>
@@ -210,12 +211,8 @@
         <button id="btn-select-buzz" class="btn-secondary btn-sm">バズ動画のみ選択</button>
         <span class="action-separator">|</span>
         <button id="btn-trend-selected" class="btn-action btn-trend-action" disabled>
-          Step 3: トレンド判定
+          トレンド判定（選択した動画）
           <span class="btn-cost">約1〜3円</span>
-        </button>
-        <button id="btn-analyze-selected" class="btn-action btn-analyze-action" disabled>
-          Step 3: ターゲット＆キーワード分析
-          <span class="btn-cost">約3〜5円</span>
         </button>
         <span id="selected-count" class="hint" style="margin-left:8px">0件選択中</span>
       </div>
@@ -231,6 +228,7 @@
             <th>登録者数</th>
             <th>バズ比率 <span class="th-help" title="再生数÷登録者数の倍率。高いほどバズっている">?</span></th>
             <th>判定</th>
+            <th>分析</th>
           </tr>
         </thead>
         <tbody id="video-table-body"></tbody>
@@ -246,8 +244,8 @@
 
     <!-- Analysis Results -->
     <section id="analysis-results" class="results hidden">
-      <h3 style="margin-bottom:4px">ターゲット＆キーワード分析結果</h3>
-      <p class="inline-help">選んだ動画を元に「誰に届くか」「使うべきキーワード」を分析しました</p>
+      <h3 id="analysis-title" style="margin-bottom:4px">ターゲット＆キーワード分析結果</h3>
+      <p class="inline-help">この動画を見ている人のターゲット像と、コンテンツに使えるキーワードを分析しました</p>
 
       <div class="result-tabs">
         <button class="result-tab active" data-result="target">ターゲット層</button>
