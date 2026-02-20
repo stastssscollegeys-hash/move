@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APIキー取得ガイド - YouTube動画リサーチツール</title>
+  <link rel="stylesheet" href="/css/youtube-research.css">
+  <style>
+    .guide-container { max-width: 760px; margin: 0 auto; padding: 32px 16px; }
+    .guide-container h1 { font-size: 24px; margin-bottom: 8px; }
+    .guide-container h2 { font-size: 20px; margin-top: 32px; margin-bottom: 12px; color: var(--primary); }
+    .guide-container h3 { font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+    .step { background: var(--bg-card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+    .step-number { display: inline-block; background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 14px; margin-right: 8px; }
+    .step p { color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin-top: 8px; }
+    .step a { color: var(--accent-blue); }
+    .note { background: var(--bg-input); border-left: 3px solid var(--accent-yellow); padding: 12px 16px; border-radius: 4px; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+    .back-link { display: inline-block; color: var(--accent-blue); text-decoration: none; margin-bottom: 24px; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    code { background: var(--bg-input); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .cost-table { margin-top: 12px; }
+    .cost-table td, .cost-table th { padding: 8px 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+    <a href="/youtube-research" class="back-link">&larr; ツールに戻る</a>
+    <h1>APIキー取得ガイド</h1>
+    <p class="hint">このツールを使うには、YouTube Data API キーとAnthropic API キーが必要です。</p>
+
+    <!-- YouTube Data API -->
+    <h2>1. YouTube Data API キーの取得</h2>
+
+    <div class="step">
+      <h3><span class="step-number">1</span>Google Cloud Consoleにアクセス</h3>
+      <p><a href="https://console.cloud.google.com/" target="_blank">https://console.cloud.google.com/</a> にアクセスし、Googleアカウントでログインします。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">2</span>新しいプロジェクトを作成</h3>
+      <p>画面上部のプロジェクト選択メニューから「新しいプロジェクト」をクリックします。</p>
+      <p>プロジェクト名は任意（例: <code>youtube-research</code>）で作成します。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">3</span>YouTube Data API v3 を有効化</h3>
+      <p>左メニュー「APIとサービス」→「ライブラリ」を開きます。</p>
+      <p>検索バーに <code>YouTube Data API v3</code> と入力し、表示された項目をクリックします。</p>
+      <p>「有効にする」ボタンをクリックします。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">4</span>APIキーを作成</h3>
+      <p>左メニュー「APIとサービス」→「認証情報」を開きます。</p>
+      <p>「+ 認証情報を作成」→「APIキー」をクリックします。</p>
+      <p>作成されたAPIキーをコピーします（<code>AIza...</code> で始まる文字列）。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">5</span>（推奨）APIキーを制限</h3>
+      <p>作成したキーの「キーを制限」をクリックします。</p>
+      <p>「APIの制限」→「キーを制限」→ <code>YouTube Data API v3</code> のみ選択して保存します。</p>
+      <div class="note">
+        キーを制限すると、万が一キーが漏洩しても他のGoogleサービスへの不正利用を防げます。
+      </div>
+    </div>
+
+    <h3>料金について</h3>
+    <table class="cost-table">
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>無料枠</td><td>1日あたり 10,000 ユニット</td></tr>
+        <tr><td>動画検索</td><td>1回 = 100 ユニット</td></tr>
+        <tr><td>動画詳細取得</td><td>1回 = 1 ユニット/動画</td></tr>
+        <tr><td>チャンネル情報</td><td>1回 = 1 ユニット/チャンネル</td></tr>
+        <tr><td>1回の分析</td><td>約 120〜200 ユニット</td></tr>
+        <tr><td>1日の分析回数目安</td><td>約 50〜80回（無料枠内）</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      通常の個人利用であれば無料枠で十分です。クレジットカードの登録は不要です。
+    </div>
+
+    <!-- Anthropic API -->
+    <h2>2. Anthropic API キーの取得</h2>
+
+    <div class="step">
+      <h3><span class="step-number">1</span>Anthropic Consoleにアクセス</h3>
+      <p><a href="https://console.anthropic.com/" target="_blank">https://console.anthropic.com/</a> にアクセスし、アカウントを作成またはログインします。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">2</span>APIキーを作成</h3>
+      <p>ダッシュボードの「Settings」→「API Keys」を開きます。</p>
+      <p>「Create Key」をクリックし、名前（例: <code>youtube-research</code>）を入力して作成します。</p>
+      <p>表示されたキーをコピーします（<code>sk-ant-...</code> で始まる文字列）。</p>
+      <div class="note">
+        キーは作成時の1回しか表示されません。必ずコピーして安全な場所に保存してください。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">3</span>クレジットを追加</h3>
+      <p>「Settings」→「Billing」でクレジットカードを登録し、APIクレジットを追加します。</p>
+      <p>最初は $5〜10 程度でOKです。</p>
+    </div>
+
+    <h3>料金について</h3>
+    <table class="cost-table">
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>使用モデル</td><td>Claude Sonnet（高速・低コスト）</td></tr>
+        <tr><td>入力</td><td>$3 / 100万トークン</td></tr>
+        <tr><td>出力</td><td>$15 / 100万トークン</td></tr>
+        <tr><td>1回の分析</td><td>約 $0.01〜0.05（1〜5円程度）</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      1回の分析は数円程度です。$5のクレジットで100回以上分析できます。
+    </div>
+
+    <h2>3. キーの設定方法</h2>
+    <div class="step">
+      <p>ツール画面上部の「APIキー設定」を開き、取得した2つのキーを入力して「キーを保存」をクリックします。</p>
+      <p>キーはブラウザのローカルストレージに保存されます。サーバー側には保存されません。</p>
+    </div>
+
+    <div style="margin-top:32px">
+      <a href="/youtube-research" class="btn-primary" style="text-decoration:none;display:inline-block">ツールに戻る</a>
+    </div>
+  </div>
+</body>
+</html>

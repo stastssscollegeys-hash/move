@@ -281,6 +281,15 @@
       "required_skills": ["slide-creator-ss"],
       "priority": 80,
       "strict": false
+    },
+    {
+      "name": "YouTube動画リサーチ・バズ検知",
+      "description": "YouTube動画のバズ検知・トレンド分析・ターゲット層分析・キーワード抽出",
+      "when_contains_all": [],
+      "when_contains_any": ["YouTube分析", "動画リサーチ", "バズ検知", "ターゲット分析", "動画分析", "動画キーワード", "youtube-research-ss"],
+      "required_skills": ["youtube-research-ss"],
+      "priority": 80,
+      "strict": false
     }
   ],
 

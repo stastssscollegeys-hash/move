@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube動画リサーチツール</title>
+  <link rel="stylesheet" href="/css/youtube-research.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>YouTube動画リサーチツール</h1>
+      <p class="subtitle">キーワードでYouTube検索 → バズ検知 → トレンド判定 → ターゲット&キーワード抽出</p>
+    </header>
+
+    <!-- How to Use Guide -->
+    <section class="guide-section">
+      <details id="guide-toggle">
+        <summary>使い方ガイド</summary>
+        <div class="guide-body">
+
+          <div class="guide-flow">
+            <div class="guide-flow-step">
+              <div class="guide-flow-num">1</div>
+              <div class="guide-flow-label">検索</div>
+              <div class="guide-flow-desc">キーワードやジャンルでYouTube動画を検索</div>
+            </div>
+            <div class="guide-flow-arrow">→</div>
+            <div class="guide-flow-step">
+              <div class="guide-flow-num">2</div>
+              <div class="guide-flow-label">選択</div>
+              <div class="guide-flow-desc">気になる動画にチェックを入れる</div>
+            </div>
+            <div class="guide-flow-arrow">→</div>
+            <div class="guide-flow-step">
+              <div class="guide-flow-num">3</div>
+              <div class="guide-flow-label">分析</div>
+              <div class="guide-flow-desc">トレンド判定やターゲット分析を実行</div>
+            </div>
+          </div>
+
+          <div class="guide-cards">
+            <div class="guide-card">
+              <h4>バズ比率とは？</h4>
+              <p><strong>再生数 ÷ チャンネル登録者数</strong> の倍率です。</p>
+              <p>例: 登録者1,000人 × 再生数100,000回 = <strong>100倍</strong></p>
+              <p>この数値が高いほど「登録者が少ないのにやたら再生されている」＝ バズっている動画です。</p>
+              <table class="guide-table">
+                <tr><td><span class="badge badge-super">超バズ</span></td><td>10倍以上</td><td>かなりバズっている！</td></tr>
+                <tr><td><span class="badge badge-buzz">バズ</span></td><td>5〜10倍</td><td>バズっている</td></tr>
+                <tr><td><span class="badge badge-good">好調</span></td><td>2〜5倍</td><td>普通より良い</td></tr>
+                <tr><td><span class="badge badge-avg">平均</span></td><td>1〜2倍</td><td>普通</td></tr>
+                <tr><td><span class="badge badge-low">低調</span></td><td>1倍以下</td><td>登録者ほど見られていない</td></tr>
+              </table>
+            </div>
+
+            <div class="guide-card">
+              <h4>トレンド判定とは？</h4>
+              <p>選んだ動画のテーマについて<strong>「今から発信しても間に合うか？」</strong>をAIが判定します。</p>
+              <table class="guide-table">
+                <tr><td>Google Trends</td><td>↑上昇 / →横ばい / ↓下降</td></tr>
+                <tr><td>YouTube検索</td><td>↑上昇 / →横ばい / ↓下降</td></tr>
+                <tr><td>競合の多さ</td><td>少○ / 普通△ / 多×</td></tr>
+              </table>
+              <p style="margin-top:8px"><span class="badge badge-go">今すぐ出すべき!</span> → トレンド上昇＋競合少ない＝最高のタイミング</p>
+              <p><span class="badge badge-go">先行者優位を取れる</span> → ライバルが少ない＝早く出せば有利</p>
+              <p><span class="badge badge-maybe">チャンスだが競争激しい</span> → 需要はあるがライバル多い＝差別化が必要</p>
+              <p><span class="badge badge-late">タイミング遅い</span> → 別のテーマを検討しましょう</p>
+              <p class="guide-cost">※ Anthropic APIを使用（1回 約1〜3円）</p>
+            </div>
+
+            <div class="guide-card">
+              <h4>ターゲット＆キーワード分析とは？</h4>
+              <p>選んだ動画を元に<strong>「誰に届くか」</strong>と<strong>「使うべきキーワード」</strong>をAIが分析します。</p>
+              <div class="guide-sub">
+                <p><strong>ターゲット層</strong> … この動画を見ている人はどんな人？</p>
+                <p>年齢・性別・職業・興味・悩み・購買行動が分かります。本や記事を書くときの「想定読者」になります。</p>
+              </div>
+              <div class="guide-sub">
+                <p><strong>キーワード</strong> … コンテンツに使えるキーワード一覧</p>
+                <ul>
+                  <li>メイン: 分野の中心キーワード（タイトル向き）</li>
+                  <li>ロングテール: 具体的で競合少ない（ブログ・SEO向き）</li>
+                  <li>購買意図: 商品を買いたい人が検索する言葉</li>
+                  <li>質問系: 「〜って何？」系（YouTube動画タイトル向き）</li>
+                </ul>
+              </div>
+              <p class="guide-cost">※ Anthropic APIを使用（1回 約3〜5円）</p>
+            </div>
+
+            <div class="guide-card">
+              <h4>活用例</h4>
+              <div class="guide-sub">
+                <p><strong>本を出したい</strong></p>
+                <p>① テーマで検索 → ② トレンド判定で「今出すべき！」を確認 → ③ ターゲット層＝想定読者、キーワード＝タイトル候補</p>
+              </div>
+              <div class="guide-sub">
+                <p><strong>YouTube動画を作りたい</strong></p>
+                <p>① ジャンルで検索 → ② バズ動画を参考にする → ③ キーワードで動画タイトルを決める</p>
+              </div>
+              <div class="guide-sub">
+                <p><strong>ブログ・note記事を書きたい</strong></p>
+                <p>① テーマで検索 → ② ターゲット層＝読者像 → ③ ロングテールキーワードで記事タイトルを決める</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-card" style="background:var(--bg-card);border-left:3px solid var(--accent-yellow)">
+            <h4>料金について</h4>
+            <table class="guide-table">
+              <tr><td>YouTube検索（Step 1）</td><td><strong>無料</strong>（1日50〜80回）</td></tr>
+              <tr><td>トレンド判定</td><td>1回 約1〜3円（Anthropic API）</td></tr>
+              <tr><td>ターゲット＆キーワード分析</td><td>1回 約3〜5円（Anthropic API）</td></tr>
+            </table>
+            <p style="margin-top:8px">$5（約750円）チャージすれば100回以上分析できます。</p>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- API Key Setup -->
+    <section class="api-key-section">
+      <details id="api-key-toggle">
+        <summary>APIキー設定 <span id="api-key-status" class="badge badge-low">未設定</span></summary>
+        <div class="api-key-form">
+          <div class="filter-group">
+            <label>YouTube Data API キー <a href="/youtube-research/api-key-guide" target="_blank" class="help-link">取得方法</a></label>
+            <input type="password" id="youtube-api-key" placeholder="AIza...">
+          </div>
+          <div class="filter-group">
+            <label>Anthropic API キー <a href="https://console.anthropic.com/settings/keys" target="_blank" class="help-link">取得ページ</a></label>
+            <input type="password" id="anthropic-api-key" placeholder="sk-ant-...">
+          </div>
+          <button id="btn-save-keys" class="btn-secondary">キーを保存（ブラウザのみ）</button>
+          <p class="hint" style="margin-top:8px">キーはブラウザのローカルストレージに保存されます。サーバーには送信時のみ使用します。</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- Step 1: Search -->
+    <section class="step-section">
+      <div class="input-section">
+        <h2>Step 1: YouTubeを検索 <span class="step-badge-free">無料・すぐ出る</span></h2>
+        <p class="hint">キーワードやジャンルで動画を検索します。バズ比率も自動で計算されます。</p>
+
+        <div class="search-box">
+          <input type="text" id="search-query" placeholder="検索キーワード（例: AI副業、プログラミング独学）">
+          <button id="btn-search" class="btn-primary">検索</button>
+        </div>
+
+        <div class="filter-group" style="margin-bottom:12px">
+          <label>ジャンル（キーワードと併用可・単独でもOK）</label>
+          <select id="filter-genre">
+            <option value="">指定なし</option>
+            <option value="education">教育</option>
+            <option value="tech">テック</option>
+            <option value="business">ビジネス</option>
+            <option value="lifestyle">ライフスタイル</option>
+            <option value="entertainment">エンタメ</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+
+        <p class="hint" style="margin-bottom:8px">▼ 絞り込み条件</p>
+        <div class="filters">
+          <div class="filter-group">
+            <label>動画の長さ</label>
+            <select id="filter-length">
+              <option value="all">すべて</option>
+              <option value="short">ショート(〜4分)</option>
+              <option value="medium">ミディアム(4〜20分)</option>
+              <option value="long">ロング(20分〜)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>投稿期間</label>
+            <select id="filter-period">
+              <option value="all">すべて</option>
+              <option value="week">1週間以内</option>
+              <option value="month">1ヶ月以内</option>
+              <option value="3months">3ヶ月以内</option>
+              <option value="year">1年以内</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>取得件数</label>
+            <select id="filter-max-results">
+              <option value="10">10件</option>
+              <option value="20" selected>20件</option>
+              <option value="30">30件</option>
+              <option value="50">50件</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Results (Video List + Buzz) -->
+    <section id="search-results" class="results hidden">
+      <div class="result-header">
+        <h3 id="result-query-title"></h3>
+        <span id="result-video-count" class="badge badge-avg"></span>
+      </div>
+
+      <p class="inline-help">Step 2: 分析したい動画にチェックを入れて、下のボタンを押してください</p>
+
+      <div class="action-bar">
+        <button id="btn-select-all" class="btn-secondary btn-sm">全選択</button>
+        <button id="btn-select-none" class="btn-secondary btn-sm">選択解除</button>
+        <button id="btn-select-buzz" class="btn-secondary btn-sm">バズ動画のみ選択</button>
+        <span class="action-separator">|</span>
+        <button id="btn-trend-selected" class="btn-action btn-trend-action" disabled>
+          Step 3: トレンド判定
+          <span class="btn-cost">約1〜3円</span>
+        </button>
+        <button id="btn-analyze-selected" class="btn-action btn-analyze-action" disabled>
+          Step 3: ターゲット＆キーワード分析
+          <span class="btn-cost">約3〜5円</span>
+        </button>
+        <span id="selected-count" class="hint" style="margin-left:8px">0件選択中</span>
+      </div>
+
+      <table id="video-table">
+        <thead>
+          <tr>
+            <th style="width:30px"><input type="checkbox" id="check-all"></th>
+            <th>#</th>
+            <th>タイトル</th>
+            <th>チャンネル</th>
+            <th>再生数</th>
+            <th>登録者数</th>
+            <th>バズ比率 <span class="th-help" title="再生数÷登録者数の倍率。高いほどバズっている">?</span></th>
+            <th>判定</th>
+          </tr>
+        </thead>
+        <tbody id="video-table-body"></tbody>
+      </table>
+    </section>
+
+    <!-- Trend Results -->
+    <section id="trend-results" class="results hidden">
+      <h3 style="margin-bottom:4px">トレンド判定結果</h3>
+      <p class="inline-help">「今このテーマで発信して間に合うか？」の判定です</p>
+      <div id="trend-results-body"></div>
+    </section>
+
+    <!-- Analysis Results -->
+    <section id="analysis-results" class="results hidden">
+      <h3 style="margin-bottom:4px">ターゲット＆キーワード分析結果</h3>
+      <p class="inline-help">選んだ動画を元に「誰に届くか」「使うべきキーワード」を分析しました</p>
+
+      <div class="result-tabs">
+        <button class="result-tab active" data-result="target">ターゲット層</button>
+        <button class="result-tab" data-result="keywords">キーワード</button>
+        <button class="result-tab" data-result="recommendations">次のアクション</button>
+        <button class="result-tab" data-result="full-report">フルレポート</button>
+      </div>
+
+      <div id="result-target" class="result-content active"></div>
+      <div id="result-keywords" class="result-content"></div>
+      <div id="result-recommendations" class="result-content"></div>
+      <div id="result-full-report" class="result-content"></div>
+    </section>
+
+    <!-- Loading -->
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p id="loading-text">検索中...</p>
+      <p id="loading-sub" class="hint" style="margin-top:8px"></p>
+    </div>
+  </div>
+
+  <script src="/js/youtube-research.js"></script>
+</body>
+</html>
