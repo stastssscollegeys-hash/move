@@ -406,4 +406,79 @@ dev/youtube-research-admin-mcp/
 
 ---
 
+## 9. Web版 本番デプロイガイド（依頼者向け）
+
+### 背景
+
+- このツールは依頼者のために作っている
+- 現在は自分のRender無料枠でデモ用に公開中（スリープあり）
+- 依頼者がGOを出したら、**依頼者のアカウント**で本番デプロイする
+
+### 推奨: Render Starter（$7/月 = 約¥1,050/月）
+
+| 比較項目 | Render | Vercel | Cloudflare Workers | Railway |
+|---------|--------|--------|-------------------|---------|
+| Express.js対応 | そのまま動く | 要改造 | 未対応 | そのまま動く |
+| タイムアウト | 100分 | 10秒（無料）/ 60秒（Pro） | CPU時間制限 | 制限なし |
+| Claude API 10〜20秒待ち | 問題なし | 無料枠はNG | 壁時計は問題なし | 問題なし |
+| コード変更 | 不要 | 必要 | 必要 | 不要 |
+| 月額 | $7 | $0〜$20 | $5 | $5 |
+| スリープ | なし | なし | なし | なし |
+
+**Vercel・Cloudflare Workersは非推奨**: Express.jsアプリには不向き（Vercel無料枠はタイムアウト10秒でClaude APIが待てない、Cloudflare WorkersのExpress対応は未完成）。
+
+### 本番デプロイ手順（依頼者のアカウントで）
+
+```
+ステップ1: Renderアカウント作成
+  → https://render.com でアカウント作成
+  → クレジットカード登録
+
+ステップ2: GitHubリポジトリを接続
+  → 依頼者のGitHubにリポジトリをfork or transfer
+  → Renderダッシュボード → New → Web Service → リポジトリ選択
+
+ステップ3: ビルド設定
+  → Build Command: npm install && npx tsc
+  → Start Command: npx tsx src/server.ts
+  → Environment: Node.js
+  → Plan: Starter ($7/月)
+
+ステップ4: 環境変数
+  → PORT: 自動設定
+  → ANTHROPIC_API_KEY: 依頼者のキー（オプション）
+
+ステップ5: 独自ドメイン設定（オプション）
+  → Settings → Custom Domain → ドメイン設定
+  → DNS設定を案内
+
+ステップ6: 動作確認
+  → URLにアクセス → YouTube検索 → トレンド判定 → ターゲット分析
+```
+
+### 他の選択肢
+
+| 選択肢 | 月額 | 備考 |
+|--------|------|------|
+| Railway | $5〜 | Renderと同等。コード変更不要 |
+| VPS（自前サーバー） | $5〜$20 | 依頼者がVPSを持っている場合 |
+| Google Cloud Run | $0〜 | 無料枠あり。GCPセットアップが複雑 |
+
+### VPSで運用する場合
+
+```bash
+# 1. Node.js 18以上をインストール
+# 2. リポジトリをclone
+git clone https://github.com/subaru-blip/kaihatu1.git
+cd kaihatu1 && npm install
+
+# 3. pm2でプロセス管理
+npm install -g pm2
+pm2 start "npx tsx src/server.ts" --name youtube-research
+
+# 4. nginx でリバースプロキシ + Let's Encrypt でSSL
+```
+
+---
+
 *このドキュメントは設計の原本です。セッションをまたいで参照・更新してください。*
