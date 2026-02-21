@@ -543,5 +543,7 @@ taisun_v2/.claude/
 
 - **事業者販売版（現行）**: ユーザーが自分でYouTube API / Anthropic APIキーを取得・設定して使う
 - このバージョンのソースコード（`src/youtube-research/`, `public/youtube-research*`）は上書き禁止
-- 将来、別バージョン（運営者がAPI負担する会員制版など）を作る場合は、別ディレクトリ or 別ブランチで作成する
-- デプロイ先: Render（無料枠）→ 本格運用時にCloudflareへ移行検討
+- Web版デプロイ先: Render（無料枠）
+- **会員制版**: `dev/youtube-research-members/` で新規作成（Next.js + Clerk + Supabase + Vercel）
+- **管理用MCP**: `dev/youtube-research-admin-mcp/` で新規作成（AI会員管理）
+- 設計原本: `docs/youtube-research-design.md`
