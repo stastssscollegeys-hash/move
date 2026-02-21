@@ -108,9 +108,7 @@
     "express": "^5.2.1",
     "supertest": "^7.1.4",
     "xlsx": "^0.18.5",
-    "yaml": "^2.3.4",
-    "youtube-caption-extractor": "^1.9.1",
-    "youtube-transcript": "^1.2.1"
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

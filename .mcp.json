@@ -221,6 +221,23 @@
       "search_keywords": ["競合", "ad library", "広告ライブラリ", "競合分析"],
       "description": "Facebook Ad Library - 競合広告分析",
       "category": "marketing"
+    },
+
+    "_comment_youtube_research": "=== YouTube動画リサーチ ===",
+
+    "youtube-research": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:/Users/baseb/dev/youtube-research-mcp/dist/server.js"],
+      "env": {
+        "YOUTUBE_API_KEY": "${YOUTUBE_API_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      },
+      "disabled": false,
+      "defer_loading": true,
+      "search_keywords": ["youtube", "動画", "リサーチ", "バズ", "トレンド", "キーワード分析", "企画判定"],
+      "description": "YouTube動画リサーチ（検索+バズ+トレンド+ターゲット分析）",
+      "category": "research"
     }
   }
 }

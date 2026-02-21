@@ -60,13 +60,13 @@ export async function handleTrend(req: Request, res: Response): Promise<void> {
   try {
     const body = req.body as TrendRequest & { anthropicApiKey?: string };
 
-    if (!body.keywords || body.keywords.length === 0) {
-      res.status(400).json({ success: false, error: 'キーワードを1つ以上入力してください' });
+    if (!body.titles || body.titles.length === 0) {
+      res.status(400).json({ success: false, error: '動画タイトルが必要です' });
       return;
     }
 
     const service = new YouTubeResearchService(body.anthropicApiKey);
-    const result = await service.checkTrend(body.keywords.slice(0, 10));
+    const result = await service.checkTrend(body.titles.slice(0, 10));
     res.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';

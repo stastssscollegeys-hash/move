@@ -151,7 +151,8 @@ async function doSearch() {
   const filters = {
     genre: genre || undefined,
     lengthCategory: document.getElementById('filter-length').value,
-    uploadPeriod: document.getElementById('filter-period').value
+    uploadPeriod: document.getElementById('filter-period').value,
+    regionCode: document.getElementById('filter-region').value
   };
   const maxResults = parseInt(document.getElementById('filter-max-results').value, 10);
 
@@ -196,6 +197,7 @@ function renderSearchResults(data, query) {
   tbody.innerHTML = buzz.map((r, i) => `<tr class="buzz-row buzz-${r.buzzLevel}">
     <td><input type="checkbox" class="video-checkbox" data-video-id="${escapeAttr(r.video.id)}" data-buzz-level="${r.buzzLevel}" checked></td>
     <td>${i + 1}</td>
+    <td class="td-thumb">${r.video.thumbnail ? '<a href="' + escapeAttr(r.video.url) + '" target="_blank"><img src="' + escapeAttr(r.video.thumbnail) + '" alt="" class="video-thumb"></a>' : ''}</td>
     <td>${r.video.url ? '<a href="' + escapeAttr(r.video.url) + '" target="_blank" class="video-link">' + escapeHtml(r.video.title) + '</a>' : escapeHtml(r.video.title)}</td>
     <td class="channel-name">${escapeHtml(r.video.channel)}</td>
     <td>${r.video.views != null ? r.video.views.toLocaleString() : '-'}</td>
@@ -233,21 +235,18 @@ async function doTrendCheck() {
     return;
   }
 
-  // Extract keywords from video titles
-  const keywords = selected.slice(0, 10).map(v => {
-    // Use first meaningful part of title as keyword
-    return v.title.replace(/【.*?】/g, '').replace(/\[.*?\]/g, '').trim().split(/[|｜\-ー]/)[0].trim();
-  }).filter(k => k.length > 0 && k.length < 50);
+  // Send video titles directly - Claude will extract the core "企画" from each
+  const titles = selected.slice(0, 10).map(v => v.title).filter(t => t && t.length > 0);
 
-  if (keywords.length === 0) { alert('キーワードを抽出できませんでした'); return; }
+  if (titles.length === 0) { alert('動画タイトルが取得できませんでした'); return; }
 
-  showLoading('トレンド判定中...', selected.length + '件の動画からトレンドを分析しています（30秒〜1分）');
+  showLoading('企画トレンド判定中...', selected.length + '件の動画の企画を分析しています（30秒〜1分）');
 
   try {
     const res = await fetch(API_BASE + '/trend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keywords: keywords.slice(0, 5), anthropicApiKey: anKey })
+      body: JSON.stringify({ titles, anthropicApiKey: anKey })
     });
     const data = await res.json();
     hideLoading();
@@ -272,20 +271,24 @@ function renderTrendResults(data) {
     <table>
       <thead>
         <tr>
-          <th>キーワード</th>
-          <th>Google Trends</th>
-          <th>YouTube検索</th>
+          <th>動画タイトル</th>
+          <th>企画テーマ</th>
+          <th>検索トレンド</th>
+          <th>YouTube上の動向</th>
           <th>競合度</th>
           <th>総合判定</th>
+          <th>判定理由</th>
         </tr>
       </thead>
       <tbody>
         ${data.results.map(r => `<tr>
-          <td><strong>${escapeHtml(r.keyword)}</strong></td>
+          <td style="font-size:12px;max-width:200px">${escapeHtml(r.originalTitle || '')}</td>
+          <td><strong>${escapeHtml(r.topic)}</strong></td>
           <td class="${trendClass(r.googleTrends)}">${trendLabel(r.googleTrends)}</td>
           <td class="${trendClass(r.youtubeSearch)}">${trendLabel(r.youtubeSearch)}</td>
           <td>${compLabel(r.competition)}</td>
           <td>${verdictBadge(r.verdict)}</td>
+          <td class="hint" style="font-size:12px;max-width:250px">${escapeHtml(r.reasoning || '')}</td>
         </tr>`).join('')}
       </tbody>
     </table>
@@ -316,7 +319,7 @@ document.getElementById('btn-analyze-selected').addEventListener('click', async 
 
   showLoading(
     selected.length + '件の動画を分析中...',
-    '字幕（文字起こし）を取得し、ターゲット層とキーワードを抽出しています（1〜3分）'
+    'タイトル・概要欄・タグからターゲット層とキーワードを抽出しています（30秒〜1分）'
   );
 
   try {

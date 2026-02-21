@@ -121,6 +121,7 @@ function createVideo(id: string, title: string, views: number | null, subscriber
     uploadDate: null,
     duration: null,
     description: '',
+    tags: [],
     transcriptOrSummary: '',
     url: null
   };

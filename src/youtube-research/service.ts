@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { YoutubeTranscript } from 'youtube-transcript';
 import {
   VideoInput, VideoMeta, FilterParams,
   BuzzResult, TrendResult, AudienceProfile, KeywordEntry,
@@ -44,6 +43,18 @@ export class YouTubeResearchService {
     if (filters.lengthCategory === 'short') searchParams.set('videoDuration', 'short');
     else if (filters.lengthCategory === 'medium') searchParams.set('videoDuration', 'medium');
     else if (filters.lengthCategory === 'long') searchParams.set('videoDuration', 'long');
+
+    // Region + language filter
+    if (filters.regionCode && filters.regionCode !== 'all') {
+      searchParams.set('regionCode', filters.regionCode);
+      // Map region to primary language for relevance filtering
+      const regionLangMap: Record<string, string> = {
+        JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
+        GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
+      };
+      const lang = regionLangMap[filters.regionCode];
+      if (lang) searchParams.set('relevanceLanguage', lang);
+    }
 
     // Upload date filter
     if (filters.uploadPeriod !== 'all') {
@@ -97,7 +108,7 @@ export class YouTubeResearchService {
     }
 
     // Step 4: Build VideoMeta array
-    return (detailData.items || []).map((item: any, i: number) => {
+    const allVideos: VideoMeta[] = (detailData.items || []).map((item: any) => {
       const stats = item.statistics || {};
       const snippet = item.snippet || {};
       return {
@@ -110,10 +121,38 @@ export class YouTubeResearchService {
         uploadDate: snippet.publishedAt || null,
         duration: item.contentDetails?.duration || null,
         description: snippet.description || '',
+        tags: Array.isArray(snippet.tags) ? snippet.tags : [],
         transcriptOrSummary: '',
         url: `https://youtube.com/watch?v=${item.id}`,
+        thumbnail: snippet.thumbnails?.medium?.url || snippet.thumbnails?.default?.url || '',
+        _lang: snippet.defaultAudioLanguage || snippet.defaultLanguage || '',
       };
     });
+
+    // Step 5: Post-filter by language if region is specified
+    if (filters.regionCode && filters.regionCode !== 'all') {
+      const regionLangMap: Record<string, { lang: string; script: RegExp }> = {
+        JP: { lang: 'ja', script: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/ },
+        KR: { lang: 'ko', script: /[\uAC00-\uD7AF\u1100-\u11FF]/ },
+        TW: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
+        CN: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
+      };
+      const mapping = regionLangMap[filters.regionCode];
+      if (mapping) {
+        const filtered = allVideos.filter((v: any) => {
+          // 1. API言語フィールドが一致
+          if (v._lang && v._lang.startsWith(mapping.lang)) return true;
+          // 2. 言語フィールド未設定 → タイトルの文字種で判定
+          if (!v._lang && mapping.script.test(v.title)) return true;
+          return false;
+        });
+        // フィルタ後の結果が少なすぎる場合はフィルタ前を返す
+        const result = filtered.length >= 3 ? filtered : allVideos;
+        return result.map(({ _lang, ...rest }: any) => rest);
+      }
+    }
+
+    return allVideos.map(({ _lang, ...rest }: any) => rest);
   }
 
   // Step 1: YouTube検索 + バズ比率算出（Claude不要・高速）
@@ -176,11 +215,9 @@ export class YouTubeResearchService {
         return { success: false, error: 'Anthropic APIキーが設定されていません' };
       }
 
-      // 字幕（文字起こし）を取得して動画データに追加
-      const enrichedVideos = await this.enrichWithTranscripts(videos);
-
-      const audience = await this.analyzeAudience(enrichedVideos);
-      const keywords = await this.extractKeywords(enrichedVideos);
+      // タイトル+概要欄+タグから分析（字幕は使わない）
+      const audience = await this.analyzeAudience(videos);
+      const keywords = await this.extractKeywords(videos);
 
       const recsRaw = await this.callClaude(buildRecommendationsPrompt(
         'バズ動画の共通パターン分析',
@@ -193,15 +230,17 @@ export class YouTubeResearchService {
       try {
         const parsed = JSON.parse(recsRaw);
         recommendations = parsed.recommendations || [];
-      } catch {
+      } catch (e) {
+        console.error('[analyzeSelected] Recommendations JSON parse failed:', recsRaw.slice(0, 300));
         recommendations = ['分析データを元にコンテンツ企画を検討してください'];
       }
 
-      const fullReport = this.buildReport(enrichedVideos, [], [], audience, keywords, recommendations, { lengthCategory: 'all', uploadPeriod: 'all' });
+      const fullReport = this.buildReport(videos, [], [], audience, keywords, recommendations, { lengthCategory: 'all', uploadPeriod: 'all' });
 
       return { success: true, data: { audience, keywords, recommendations, fullReport } };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[analyzeSelected] Error:', message);
       return { success: false, error: message };
     }
   }
@@ -221,6 +260,7 @@ export class YouTubeResearchService {
         uploadDate: null,
         duration: null,
         description: '',
+        tags: [],
         transcriptOrSummary: isUrl ? '' : input.rawText,
         url: isUrl ? input.rawText.trim() : null
       };
@@ -277,26 +317,28 @@ export class YouTubeResearchService {
 
   // --- Phase 4: Trend Check ---
 
-  async checkTrend(keywords: string[]): Promise<TrendResponse> {
+  async checkTrend(titles: string[]): Promise<TrendResponse> {
     const results: TrendResult[] = [];
 
-    for (const keyword of keywords) {
-      // Use AI to assess trend based on general knowledge
-      const prompt = buildTrendCheckPrompt(keyword, `キーワード「${keyword}」について、現在のGoogle Trends、YouTube検索トレンド、競合状況を推定してください。`);
+    for (const title of titles) {
+      const prompt = buildTrendCheckPrompt(title);
       const raw = await this.callClaude(prompt);
 
       try {
         const parsed = JSON.parse(raw);
         results.push({
-          keyword,
-          googleTrends: parsed.googleTrends || 'unknown',
-          youtubeSearch: parsed.youtubeSearch || 'unknown',
-          competition: parsed.competition || 'unknown',
-          verdict: parsed.verdict || 'unknown'
+          originalTitle: title,
+          topic: parsed.topic || title,
+          googleTrends: parsed.googleTrends || 'stable',
+          youtubeSearch: parsed.youtubeSearch || 'stable',
+          competition: parsed.competition || 'medium',
+          verdict: parsed.verdict || 'niche-stable',
+          reasoning: parsed.reasoning || ''
         });
       } catch {
         results.push({
-          keyword,
+          originalTitle: title,
+          topic: title,
           googleTrends: 'unknown',
           youtubeSearch: 'unknown',
           competition: 'unknown',
@@ -306,7 +348,7 @@ export class YouTubeResearchService {
     }
 
     const summary = results
-      .map(r => `${r.keyword}: ${this.verdictLabel(r.verdict)}`)
+      .map(r => `${r.topic}: ${this.verdictLabel(r.verdict)}${r.reasoning ? '（' + r.reasoning + '）' : ''}`)
       .join('\n');
 
     return { success: true, data: { results, summary } };
@@ -316,17 +358,30 @@ export class YouTubeResearchService {
 
   async analyzeAudience(videos: VideoMeta[]): Promise<AudienceProfile> {
     const content = videos
-      .map(v => `タイトル: ${v.title}\nチャンネル: ${v.channel}\n説明: ${v.description}\n内容: ${v.transcriptOrSummary.slice(0, 2000)}`)
+      .map(v => {
+        const lines = [
+          `タイトル: ${v.title}`,
+          `チャンネル: ${v.channel}`,
+          v.views !== null ? `再生数: ${v.views.toLocaleString()}回` : null,
+          v.subscribers !== null ? `チャンネル登録者数: ${v.subscribers.toLocaleString()}人` : null,
+          v.likes !== null ? `高評価数: ${v.likes.toLocaleString()}` : null,
+          `説明文: ${v.description}`,
+          v.tags && v.tags.length > 0 ? `タグ: ${v.tags.join(', ')}` : null,
+        ];
+        return lines.filter(Boolean).join('\n');
+      })
       .join('\n---\n');
 
     const raw = await this.callClaude(buildAudiencePrompt(content));
 
     try {
       return JSON.parse(raw);
-    } catch {
+    } catch (e) {
+      console.error('[analyzeAudience] JSON parse failed. Raw response:', raw.slice(0, 500));
+      console.error('[analyzeAudience] Parse error:', e instanceof Error ? e.message : e);
       return {
-        demographics: { ageRange: '不明', gender: '不明', occupation: '不明' },
-        psychographics: { interests: [], values: [], lifestyle: '不明' },
+        demographics: { ageRange: '分析失敗', gender: '分析失敗', occupation: '分析失敗' },
+        psychographics: { interests: ['JSON解析エラー - APIレスポンスを確認してください'], values: [], lifestyle: '' },
         painPoints: [],
         viewingMotivation: [],
         purchaseBehavior: [],
@@ -339,7 +394,17 @@ export class YouTubeResearchService {
 
   async extractKeywords(videos: VideoMeta[]): Promise<KeywordEntry[]> {
     const content = videos
-      .map(v => `タイトル: ${v.title}\n説明: ${v.description}\n内容: ${v.transcriptOrSummary.slice(0, 2000)}`)
+      .map(v => {
+        const lines = [
+          `タイトル: ${v.title}`,
+          `チャンネル: ${v.channel}`,
+          v.views !== null ? `再生数: ${v.views.toLocaleString()}回` : null,
+          v.subscribers !== null ? `チャンネル登録者数: ${v.subscribers.toLocaleString()}人` : null,
+          `説明文: ${v.description}`,
+          v.tags && v.tags.length > 0 ? `タグ: ${v.tags.join(', ')}` : null,
+        ];
+        return lines.filter(Boolean).join('\n');
+      })
       .join('\n---\n');
 
     const raw = await this.callClaude(buildKeywordPrompt(content));
@@ -347,7 +412,9 @@ export class YouTubeResearchService {
     try {
       const parsed = JSON.parse(raw);
       return parsed.keywords || [];
-    } catch {
+    } catch (e) {
+      console.error('[extractKeywords] JSON parse failed. Raw response:', raw.slice(0, 500));
+      console.error('[extractKeywords] Parse error:', e instanceof Error ? e.message : e);
       return [];
     }
   }
@@ -417,44 +484,6 @@ export class YouTubeResearchService {
     }
   }
 
-  // --- Transcript Fetching ---
-
-  private async enrichWithTranscripts(videos: VideoMeta[]): Promise<VideoMeta[]> {
-    const enriched: VideoMeta[] = [];
-
-    for (const video of videos) {
-      // URLから動画IDを抽出
-      const videoId = video.url ? this.extractVideoId(video.url) : video.id;
-
-      if (videoId && !video.transcriptOrSummary) {
-        try {
-          const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, { lang: 'ja' });
-          const transcript = transcriptItems.map((item: any) => item.text).join(' ');
-          enriched.push({ ...video, transcriptOrSummary: transcript.slice(0, 5000) });
-        } catch {
-          // 日本語字幕がない場合、英語を試す
-          try {
-            const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
-            const transcript = transcriptItems.map((item: any) => item.text).join(' ');
-            enriched.push({ ...video, transcriptOrSummary: transcript.slice(0, 5000) });
-          } catch {
-            // 字幕がない動画はタイトル＋説明文で代用
-            enriched.push({ ...video, transcriptOrSummary: `${video.title} ${video.description}` });
-          }
-        }
-      } else {
-        enriched.push(video);
-      }
-    }
-
-    return enriched;
-  }
-
-  private extractVideoId(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-    return match ? match[1] : null;
-  }
-
   // --- Helpers ---
 
   private async callClaude(userPrompt: string): Promise<string> {
@@ -469,7 +498,41 @@ export class YouTubeResearchService {
     });
 
     const block = response.content[0];
-    return block.type === 'text' ? block.text : '';
+    const raw = block.type === 'text' ? block.text : '';
+    return this.extractJson(raw);
+  }
+
+  /** Strip markdown code fences and extract JSON from Claude response */
+  private extractJson(raw: string): string {
+    let text = raw.trim();
+
+    // Remove ```json ... ``` or ``` ... ``` fences
+    const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+    if (fenceMatch) {
+      text = fenceMatch[1].trim();
+    }
+
+    // If still not starting with { or [, try to find JSON object/array
+    if (!text.startsWith('{') && !text.startsWith('[')) {
+      const jsonStart = text.search(/[\{\\[]/);
+      if (jsonStart >= 0) {
+        text = text.slice(jsonStart);
+        // Find matching closing bracket
+        const opener = text[0];
+        const closer = opener === '{' ? '}' : ']';
+        let depth = 0;
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === opener) depth++;
+          else if (text[i] === closer) depth--;
+          if (depth === 0) {
+            text = text.slice(0, i + 1);
+            break;
+          }
+        }
+      }
+    }
+
+    return text;
   }
 
   private verdictLabel(verdict: string): string {
@@ -506,7 +569,7 @@ export class YouTubeResearchService {
       .join('\n');
 
     const trendTable = trendCheck
-      .map(r => `| ${r.keyword} | ${this.trendArrow(r.googleTrends)} | ${this.trendArrow(r.youtubeSearch)} | ${this.compLabel(r.competition)} | ${this.verdictLabel(r.verdict)} |`)
+      .map(r => `| ${r.topic} | ${this.trendArrow(r.googleTrends)} | ${this.trendArrow(r.youtubeSearch)} | ${this.compLabel(r.competition)} | ${this.verdictLabel(r.verdict)} |`)
       .join('\n');
 
     const kwTable = keywords

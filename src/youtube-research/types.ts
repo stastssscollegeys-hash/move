@@ -10,6 +10,7 @@ export interface FilterParams {
   genre?: 'education' | 'tech' | 'business' | 'lifestyle' | 'entertainment' | 'other';
   lengthCategory: 'short' | 'medium' | 'long' | 'all';
   uploadPeriod: 'week' | 'month' | '3months' | 'year' | 'all';
+  regionCode?: string;
 }
 
 export interface VideoMeta {
@@ -22,8 +23,10 @@ export interface VideoMeta {
   uploadDate: string | null;
   duration: string | null;
   description: string;
+  tags: string[];
   transcriptOrSummary: string;
   url: string | null;
+  thumbnail?: string;
 }
 
 export interface BuzzResult {
@@ -33,11 +36,13 @@ export interface BuzzResult {
 }
 
 export interface TrendResult {
-  keyword: string;
+  originalTitle: string;
+  topic: string;
   googleTrends: 'rising' | 'stable' | 'declining' | 'unknown';
   youtubeSearch: 'rising' | 'stable' | 'declining' | 'unknown';
   competition: 'low' | 'medium' | 'high' | 'unknown';
   verdict: 'go-now' | 'chance-but-competitive' | 'first-mover' | 'niche-stable' | 'too-late' | 'unknown';
+  reasoning?: string;
 }
 
 export interface AudienceProfile {
@@ -105,7 +110,7 @@ export interface BuzzRequest {
 }
 
 export interface TrendRequest {
-  keywords: string[];
+  titles: string[];
 }
 
 export interface AnalyzeResponse {
