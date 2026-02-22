@@ -119,7 +119,7 @@ document.getElementById('btn-search').addEventListener('click', doSearch);
 document.getElementById('search-query').addEventListener('compositionstart', () => { isComposing = true; });
 document.getElementById('search-query').addEventListener('compositionend', () => { isComposing = false; });
 document.getElementById('search-query').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !isComposing) doSearch();
+  if (e.key === 'Enter' && !isComposing && !e.isComposing && e.keyCode !== 229) doSearch();
 });
 
 async function doSearch() {
