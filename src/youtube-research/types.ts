@@ -7,7 +7,7 @@ export interface VideoInput {
 
 export interface FilterParams {
   keyword?: string;
-  genre?: 'education' | 'tech' | 'business' | 'lifestyle' | 'entertainment' | 'other';
+  genre?: 'education' | 'tech' | 'business' | 'lifestyle' | 'entertainment' | 'cooking' | 'beauty' | 'fitness' | 'gaming' | 'music' | 'travel' | 'pets' | 'parenting' | 'spiritual' | 'fortune' | 'healing' | 'mental' | 'other';
   lengthCategory: 'short' | 'medium' | 'long' | 'all';
   uploadPeriod: 'week' | 'month' | '3months' | 'year' | 'all';
   regionCode?: string;

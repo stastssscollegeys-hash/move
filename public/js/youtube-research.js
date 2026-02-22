@@ -5,6 +5,7 @@ const API_BASE = '/youtube-research/api';
 // --- State ---
 let searchResultVideos = []; // VideoMeta[] from search
 let searchBuzzRanking = [];  // BuzzResult[] from search
+let isComposing = false;     // IME composition state
 
 // --- API Key Management ---
 function getApiKeys() {
@@ -115,8 +116,10 @@ document.getElementById('check-all').addEventListener('change', (e) => {
 // Step 1: YouTube Search + Buzz
 // ========================================
 document.getElementById('btn-search').addEventListener('click', doSearch);
+document.getElementById('search-query').addEventListener('compositionstart', () => { isComposing = true; });
+document.getElementById('search-query').addEventListener('compositionend', () => { isComposing = false; });
 document.getElementById('search-query').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') doSearch();
+  if (e.key === 'Enter' && !isComposing) doSearch();
 });
 
 async function doSearch() {
@@ -130,7 +133,14 @@ async function doSearch() {
 
   const genreLabels = {
     education: '教育', tech: 'テクノロジー', business: 'ビジネス',
-    lifestyle: 'ライフスタイル', entertainment: 'エンタメ', other: ''
+    lifestyle: 'ライフスタイル', entertainment: 'エンタメ',
+    cooking: '料理 レシピ グルメ', beauty: '美容 コスメ メイク スキンケア',
+    fitness: '筋トレ ダイエット フィットネス', gaming: 'ゲーム実況 ゲーム',
+    music: '音楽 歌ってみた MV', travel: '旅行 観光 キャンプ アウトドア',
+    pets: 'ペット 犬 猫 動物', parenting: '子育て 育児 ママ',
+    spiritual: 'スピリチュアル 引き寄せ 潜在意識', fortune: '占い タロット 星座 数秘術',
+    healing: 'ヒーリング 瞑想 周波数 睡眠', mental: 'メンタルヘルス HSP 自己肯定感',
+    other: ''
   };
 
   let query = keyword;
@@ -148,10 +158,27 @@ async function doSearch() {
     return;
   }
 
+  // Period checkboxes: get checked values
+  const periodChecks = Array.from(document.querySelectorAll('input[name="filter-period"]:checked')).map(cb => cb.value);
+
+  // Period priority order (narrowest to widest)
+  const periodOrder = ['week', '2weeks', 'month', '3months', '6months', 'year'];
+  const periodDaysMap = { week: 7, '2weeks': 14, month: 30, '3months': 90, '6months': 180, year: 365 };
+
+  // Use widest checked period for API call, or 'all' if none checked
+  let uploadPeriod = 'all';
+  if (periodChecks.length > 0) {
+    const sorted = periodChecks.sort((a, b) => periodOrder.indexOf(a) - periodOrder.indexOf(b));
+    const widest = sorted[sorted.length - 1];
+    // Map to backend-compatible values
+    const backendMap = { week: 'week', '2weeks': 'month', month: 'month', '3months': '3months', '6months': 'year', year: 'year' };
+    uploadPeriod = backendMap[widest] || 'all';
+  }
+
   const filters = {
     genre: genre || undefined,
     lengthCategory: document.getElementById('filter-length').value,
-    uploadPeriod: document.getElementById('filter-period').value,
+    uploadPeriod: uploadPeriod,
     regionCode: document.getElementById('filter-region').value
   };
   const maxResults = parseInt(document.getElementById('filter-max-results').value, 10);
@@ -174,6 +201,33 @@ async function doSearch() {
     if (!data.success) {
       alert('エラー: ' + (data.error || '不明なエラー'));
       return;
+    }
+
+    // Apply period priority sorting if multiple periods checked
+    if (periodChecks.length > 1 && data.data.buzzRanking) {
+      const now = new Date();
+      data.data.buzzRanking.sort((a, b) => {
+        const aDate = a.video.uploadDate ? new Date(a.video.uploadDate) : null;
+        const bDate = b.video.uploadDate ? new Date(b.video.uploadDate) : null;
+        const aDays = aDate ? Math.floor((now - aDate) / (1000 * 60 * 60 * 24)) : 99999;
+        const bDays = bDate ? Math.floor((now - bDate) / (1000 * 60 * 60 * 24)) : 99999;
+
+        // Find which period group each video falls into (narrowest matching)
+        const sortedPeriods = periodChecks.sort((x, y) => periodOrder.indexOf(x) - periodOrder.indexOf(y));
+        let aGroup = sortedPeriods.length;
+        let bGroup = sortedPeriods.length;
+        for (let i = 0; i < sortedPeriods.length; i++) {
+          const days = periodDaysMap[sortedPeriods[i]];
+          if (aGroup === sortedPeriods.length && aDays <= days) aGroup = i;
+          if (bGroup === sortedPeriods.length && bDays <= days) bGroup = i;
+        }
+
+        // Sort by group first (narrower period = higher priority), then by buzz ratio within group
+        if (aGroup !== bGroup) return aGroup - bGroup;
+        const aBuzz = a.buzzRatio || 0;
+        const bBuzz = b.buzzRatio || 0;
+        return bBuzz - aBuzz;
+      });
     }
 
     searchResultVideos = data.data.videos;
@@ -200,6 +254,8 @@ function renderSearchResults(data, query) {
     <td class="td-thumb">${r.video.thumbnail ? '<a href="' + escapeAttr(r.video.url) + '" target="_blank"><img src="' + escapeAttr(r.video.thumbnail) + '" alt="" class="video-thumb"></a>' : ''}</td>
     <td>${r.video.url ? '<a href="' + escapeAttr(r.video.url) + '" target="_blank" class="video-link">' + escapeHtml(r.video.title) + '</a>' : escapeHtml(r.video.title)}</td>
     <td class="channel-name">${escapeHtml(r.video.channel)}</td>
+    <td class="td-upload-date">${formatUploadDate(r.video.uploadDate)}</td>
+    <td class="td-elapsed">${formatElapsed(r.video.uploadDate)}</td>
     <td>${r.video.views != null ? r.video.views.toLocaleString() : '-'}</td>
     <td>${r.video.subscribers != null ? r.video.subscribers.toLocaleString() : '-'}</td>
     <td class="buzz-ratio">${r.buzzRatio != null ? r.buzzRatio.toFixed(1) + 'x' : '-'}</td>
@@ -489,6 +545,31 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatUploadDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '-';
+  return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+}
+
+function formatElapsed(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '-';
+  const now = new Date();
+  const diffMs = now - d;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 1) return '今日';
+  if (diffDays === 1) return '1日前';
+  if (diffDays < 7) return diffDays + '日前';
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 4) return diffWeeks + '週間前';
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return diffMonths + 'ヶ月前';
+  const diffYears = Math.floor(diffDays / 365);
+  return diffYears + '年前';
 }
 
 function copyReport() {

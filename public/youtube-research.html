@@ -153,11 +153,23 @@
           <label>ジャンル（キーワードと併用可・単独でもOK）</label>
           <select id="filter-genre">
             <option value="">指定なし</option>
-            <option value="education">教育</option>
-            <option value="tech">テック</option>
-            <option value="business">ビジネス</option>
+            <option value="education">教育・学習</option>
+            <option value="tech">テクノロジー</option>
+            <option value="business">ビジネス・副業</option>
             <option value="lifestyle">ライフスタイル</option>
             <option value="entertainment">エンタメ</option>
+            <option value="cooking">料理・グルメ</option>
+            <option value="beauty">美容・コスメ</option>
+            <option value="fitness">フィットネス・健康</option>
+            <option value="gaming">ゲーム</option>
+            <option value="music">音楽</option>
+            <option value="travel">旅行・アウトドア</option>
+            <option value="pets">ペット・動物</option>
+            <option value="parenting">子育て・育児</option>
+            <option value="spiritual">スピリチュアル</option>
+            <option value="fortune">占い・鑑定</option>
+            <option value="healing">ヒーリング・瞑想</option>
+            <option value="mental">メンタルヘルス</option>
             <option value="other">その他</option>
           </select>
         </div>
@@ -173,15 +185,16 @@
               <option value="long">ロング(20分〜)</option>
             </select>
           </div>
-          <div class="filter-group">
-            <label>投稿期間</label>
-            <select id="filter-period">
-              <option value="all">すべて</option>
-              <option value="week">1週間以内</option>
-              <option value="month">1ヶ月以内</option>
-              <option value="3months">3ヶ月以内</option>
-              <option value="year">1年以内</option>
-            </select>
+          <div class="filter-group filter-period-group">
+            <label>投稿期間（複数選択で短い期間を優先表示）</label>
+            <div class="period-checkboxes">
+              <label class="period-check"><input type="checkbox" name="filter-period" value="week"> 1週間以内</label>
+              <label class="period-check"><input type="checkbox" name="filter-period" value="2weeks"> 2週間以内</label>
+              <label class="period-check"><input type="checkbox" name="filter-period" value="month"> 1ヶ月以内</label>
+              <label class="period-check"><input type="checkbox" name="filter-period" value="3months"> 3ヶ月以内</label>
+              <label class="period-check"><input type="checkbox" name="filter-period" value="6months"> 半年以内</label>
+              <label class="period-check"><input type="checkbox" name="filter-period" value="year"> 1年以内</label>
+            </div>
           </div>
           <div class="filter-group">
             <label>取得件数</label>
@@ -245,6 +258,8 @@
             <th style="width:120px"></th>
             <th>タイトル</th>
             <th>チャンネル</th>
+            <th>投稿日</th>
+            <th>経過</th>
             <th>再生数</th>
             <th>登録者数</th>
             <th>バズ比率 <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">再生数÷登録者数の倍率。<br>10倍以上＝超バズ、5〜10倍＝バズ、2〜5倍＝好調、1〜2倍＝平均、1倍以下＝低調。<br>高いほど「登録者以外にも見られている」人気動画です。</span></span></th>

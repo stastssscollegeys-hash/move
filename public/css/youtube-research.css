@@ -910,3 +910,58 @@ tr:hover td {
   cursor: pointer;
   accent-color: var(--primary);
 }
+
+/* Period Checkboxes */
+.filter-period-group {
+  grid-column: span 2;
+}
+
+.period-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.period-check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.period-check:hover {
+  border-color: var(--primary);
+}
+
+.period-check input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.period-check:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(255, 0, 51, 0.1);
+}
+
+/* Upload date & elapsed columns */
+.td-upload-date {
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.td-elapsed {
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--accent-blue);
+}
