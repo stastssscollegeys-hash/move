@@ -104,6 +104,7 @@
     "@langchain/langgraph": "^1.0.7",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@types/supertest": "^6.0.3",
+    "docx": "^9.5.3",
     "dotenv": "^16.3.1",
     "express": "^5.2.1",
     "supertest": "^7.1.4",
