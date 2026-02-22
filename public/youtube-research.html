@@ -149,29 +149,27 @@
           <button id="btn-search" class="btn-primary">検索</button>
         </div>
 
-        <div class="filter-group" style="margin-bottom:12px">
-          <label>ジャンル（キーワードと併用可・単独でもOK）</label>
-          <select id="filter-genre">
-            <option value="">指定なし</option>
-            <option value="education">教育・学習</option>
-            <option value="tech">テクノロジー</option>
-            <option value="business">ビジネス・副業</option>
-            <option value="lifestyle">ライフスタイル</option>
-            <option value="entertainment">エンタメ</option>
-            <option value="cooking">料理・グルメ</option>
-            <option value="beauty">美容・コスメ</option>
-            <option value="fitness">フィットネス・健康</option>
-            <option value="gaming">ゲーム</option>
-            <option value="music">音楽</option>
-            <option value="travel">旅行・アウトドア</option>
-            <option value="pets">ペット・動物</option>
-            <option value="parenting">子育て・育児</option>
-            <option value="spiritual">スピリチュアル</option>
-            <option value="fortune">占い・鑑定</option>
-            <option value="healing">ヒーリング・瞑想</option>
-            <option value="mental">メンタルヘルス</option>
-            <option value="other">その他</option>
-          </select>
+        <div class="filter-group filter-genre-group" style="margin-bottom:12px">
+          <label>ジャンル（複数選択可・キーワードと併用OK）</label>
+          <div class="genre-checkboxes">
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="education"> 教育・学習</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="tech"> テクノロジー</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="business"> ビジネス・副業</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="lifestyle"> ライフスタイル</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="entertainment"> エンタメ</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="cooking"> 料理・グルメ</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="beauty"> 美容・コスメ</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="fitness"> フィットネス・健康</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="gaming"> ゲーム</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="music"> 音楽</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="travel"> 旅行・アウトドア</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="pets"> ペット・動物</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="parenting"> 子育て・育児</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="spiritual"> スピリチュアル</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="fortune"> 占い・鑑定</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="healing"> ヒーリング・瞑想</label>
+            <label class="genre-check"><input type="checkbox" name="filter-genre" value="mental"> メンタルヘルス</label>
+          </div>
         </div>
 
         <p class="hint" style="margin-bottom:8px">▼ 絞り込み条件</p>

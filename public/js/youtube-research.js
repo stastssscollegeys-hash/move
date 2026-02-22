@@ -124,28 +124,29 @@ document.getElementById('search-query').addEventListener('keydown', (e) => {
 
 async function doSearch() {
   const keyword = document.getElementById('search-query').value.trim();
-  const genre = document.getElementById('filter-genre').value;
+  const selectedGenres = Array.from(document.querySelectorAll('input[name="filter-genre"]:checked')).map(cb => cb.value);
 
-  if (!keyword && !genre) {
+  if (!keyword && selectedGenres.length === 0) {
     alert('検索キーワードまたはジャンルを選択してください');
     return;
   }
 
-  const genreLabels = {
+  // Each genre maps to its primary keyword (first word) for multi-genre queries
+  const genreKeywords = {
     education: '教育', tech: 'テクノロジー', business: 'ビジネス',
     lifestyle: 'ライフスタイル', entertainment: 'エンタメ',
-    cooking: '料理 レシピ グルメ', beauty: '美容 コスメ メイク スキンケア',
-    fitness: '筋トレ ダイエット フィットネス', gaming: 'ゲーム実況 ゲーム',
-    music: '音楽 歌ってみた MV', travel: '旅行 観光 キャンプ アウトドア',
-    pets: 'ペット 犬 猫 動物', parenting: '子育て 育児 ママ',
-    spiritual: 'スピリチュアル 引き寄せ 潜在意識', fortune: '占い タロット 星座 数秘術',
-    healing: 'ヒーリング 瞑想 周波数 睡眠', mental: 'メンタルヘルス HSP 自己肯定感',
-    other: ''
+    cooking: '料理', beauty: '美容',
+    fitness: '筋トレ', gaming: 'ゲーム',
+    music: '音楽', travel: '旅行',
+    pets: 'ペット', parenting: '子育て',
+    spiritual: 'スピリチュアル', fortune: '占い',
+    healing: 'ヒーリング', mental: 'メンタルヘルス'
   };
 
   let query = keyword;
-  if (genre && genreLabels[genre]) {
-    query = keyword ? keyword + ' ' + genreLabels[genre] : genreLabels[genre];
+  if (selectedGenres.length > 0) {
+    const genreWords = selectedGenres.map(g => genreKeywords[g]).filter(Boolean).join(' ');
+    query = keyword ? keyword + ' ' + genreWords : genreWords;
   }
 
   let ytKey = document.getElementById('youtube-api-key').value.trim();
@@ -176,7 +177,7 @@ async function doSearch() {
   }
 
   const filters = {
-    genre: genre || undefined,
+    genre: selectedGenres.length > 0 ? selectedGenres[0] : undefined,
     lengthCategory: document.getElementById('filter-length').value,
     uploadPeriod: uploadPeriod,
     regionCode: document.getElementById('filter-region').value
