@@ -2,6 +2,7 @@ node_modules/
 nul
 .env
 .env.*
+.DS_Store
 
 # 成果物フォルダ（同期しない）
 output/
