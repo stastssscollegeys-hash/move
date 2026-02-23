@@ -9,3 +9,4 @@ output/
 # バイナリ・一時ファイル
 yt-dlp.exe
 *.vtt
+~$*
