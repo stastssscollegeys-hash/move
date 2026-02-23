@@ -1,14 +1,12 @@
 ---
 name: skill-validator
-description: |
-  Validates skill structure against Anthropic best practices.
-  Use when: (1) creating new skills, (2) user says「スキルを検証」「skill audit」,
-  (3) reviewing skill quality, (4) user asks「このスキルは正しい？」.
-  Do NOT use for: running skills, creating content, or non-skill files.
+description: Validate skill file structure
 metadata:
   version: "1.0.0"
   author: TAISUN
   based-on: Anthropic Complete Guide to Building Skills for Claude (Jan 2026)
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Skill Validator

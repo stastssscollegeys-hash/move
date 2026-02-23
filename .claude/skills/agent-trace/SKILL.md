@@ -1,6 +1,8 @@
 ---
 name: agent-trace
-description: Agent Trace仕様に基づくAI生成コードの帰属追跡・統計・管理スキル。編集履歴の確認、AI/人間の貢献率分析、コンプライアンス対応レポート生成。
+description: AI code attribution tracking
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Agent Trace - AI生成コード帰属追跡スキル

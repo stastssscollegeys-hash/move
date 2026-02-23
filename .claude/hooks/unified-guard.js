@@ -21,6 +21,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readStdin } = require('./utils/read-stdin');
 
 // === キャッシュシステム ===
 const CACHE = {
@@ -57,6 +58,180 @@ const INJECTION_PATTERNS = [
   /eval\s/                     // eval command
 ];
 
+// === Phase 1: Intent Parser Integration ===
+
+/**
+ * Tool の入力から自然言語の Intent を構築
+ */
+function buildUserInputFromContext(toolName, toolInput) {
+  switch (toolName) {
+    case 'Edit':
+      const oldPreview = (toolInput.old_string || '').split('\n')[0]?.substring(0, 50) || '';
+      return `edit file ${toolInput.file_path} line ${oldPreview}...`;
+
+    case 'Write':
+      return `write file ${toolInput.file_path}`;
+
+    case 'Bash':
+      const cmd = (toolInput.command || '').substring(0, 100);
+      return `run bash command: ${cmd}`;
+
+    case 'Read':
+      return `read file ${toolInput.file_path}`;
+
+    case 'Glob':
+      return `search files with pattern ${toolInput.pattern}`;
+
+    case 'Grep':
+      return `search content with pattern ${toolInput.pattern} in ${toolInput.path || 'cwd'}`;
+
+    case 'Skill':
+      return `invoke skill ${toolInput.skill}`;
+
+    default:
+      const keys = Object.keys(toolInput).join(', ');
+      return `tool ${toolName} with input keys: ${keys}`;
+  }
+}
+
+/**
+ * Intent 検出を実行 (Phase 2: EXISTING_FILE_REFERENCE 対応)
+ */
+async function performIntentCheck(toolName, toolInput) {
+  const startTime = Date.now();
+
+  try {
+    // Skill tool の場合は高確信度で SKILL_INVOCATION
+    if (toolName === 'Skill') {
+      return {
+        shouldSkip: true,
+        intent: 'SKILL_INVOCATION',
+        confidence: 95,
+        skipLayers: [2, 3, 4, 6], // Permission/Read-before-Write/Baseline/Deviation
+        riskLevel: 'low',
+        processingTimeMs: Date.now() - startTime,
+      };
+    }
+
+    // SESSION_HANDOFF.md の読み込みは SESSION_CONTINUATION
+    if (toolName === 'Read' && toolInput.file_path?.includes('SESSION_HANDOFF.md')) {
+      return {
+        shouldSkip: true,
+        intent: 'SESSION_CONTINUATION',
+        confidence: 92,
+        skipLayers: [1], // SessionStart Injector
+        riskLevel: 'low',
+        processingTimeMs: Date.now() - startTime,
+      };
+    }
+
+    // .workflow_state.json の読み込みもセッション継続
+    if (toolName === 'Read' && toolInput.file_path?.includes('.workflow_state.json')) {
+      return {
+        shouldSkip: true,
+        intent: 'SESSION_CONTINUATION',
+        confidence: 90,
+        skipLayers: [1],
+        riskLevel: 'low',
+        processingTimeMs: Date.now() - startTime,
+      };
+    }
+
+    // ===== Phase 2: EXISTING_FILE_REFERENCE 検出 =====
+
+    // Read tool: 既存ファイルの読み込み
+    if (toolName === 'Read' && toolInput.file_path) {
+      const filePath = toolInput.file_path;
+      const isExisting = fs.existsSync(filePath);
+
+      if (isExisting) {
+        return {
+          shouldSkip: true,
+          intent: 'EXISTING_FILE_REFERENCE',
+          confidence: 98,
+          skipLayers: [3, 4], // Read-before-Write, Baseline Lock
+          riskLevel: 'low',
+          filePath: filePath,
+          processingTimeMs: Date.now() - startTime,
+        };
+      }
+    }
+
+    // Edit tool: 既存ファイルの編集
+    if (toolName === 'Edit' && toolInput.file_path) {
+      const filePath = toolInput.file_path;
+      const isExisting = fs.existsSync(filePath);
+
+      if (isExisting) {
+        return {
+          shouldSkip: true,
+          intent: 'EXISTING_FILE_EDIT',
+          confidence: 98,
+          skipLayers: [3, 4], // Read-before-Write, Baseline Lock
+          riskLevel: 'low',
+          filePath: filePath,
+          operation: 'edit',
+          processingTimeMs: Date.now() - startTime,
+        };
+      }
+    }
+
+    // Write tool: 新規作成 or 上書き
+    if (toolName === 'Write' && toolInput.file_path) {
+      const filePath = toolInput.file_path;
+      const isExisting = fs.existsSync(filePath);
+
+      if (isExisting) {
+        // 既存ファイルの上書き（高リスク）
+        return {
+          shouldSkip: true,
+          intent: 'EXISTING_FILE_OVERWRITE',
+          confidence: 95,
+          skipLayers: [4], // Baseline Lock のみスキップ（Read-before-Write は必要）
+          riskLevel: 'high',
+          filePath: filePath,
+          operation: 'write',
+          isNew: false,
+          processingTimeMs: Date.now() - startTime,
+        };
+      } else {
+        // 新規ファイル作成
+        return {
+          shouldSkip: true,
+          intent: 'NEW_FILE_CREATION',
+          confidence: 95,
+          skipLayers: [4], // Baseline Lock（新規ファイルはベースラインに存在しない）
+          riskLevel: 'low',
+          filePath: filePath,
+          operation: 'write',
+          isNew: true,
+          processingTimeMs: Date.now() - startTime,
+        };
+      }
+    }
+
+    // その他は低確信度
+    return {
+      shouldSkip: false,
+      intent: 'UNKNOWN',
+      confidence: 0,
+      skipLayers: [],
+      riskLevel: 'medium',
+      processingTimeMs: Date.now() - startTime,
+    };
+  } catch (error) {
+    return {
+      shouldSkip: false,
+      intent: 'ERROR',
+      confidence: 0,
+      skipLayers: [],
+      riskLevel: 'high',
+      error: error.message,
+      processingTimeMs: Date.now() - startTime,
+    };
+  }
+}
+
 // === メイン処理 ===
 async function main() {
   const startTime = Date.now();
@@ -76,7 +251,43 @@ async function main() {
   const toolInput = input.tool_input || {};
   const cwd = input.cwd || process.cwd();
 
-  // 高速チェック: 危険パターンのみ検査
+  // === Bootstrap Safe Mode ===
+  // .workflow_state.json が存在しない = ワークフロー未開始（新規インストール等）
+  // → 危険パターン検出のみ実行し、ワークフロー系チェックはスキップ
+  const workflowStateExists = fs.existsSync(path.join(cwd, '.workflow_state.json'));
+  if (!workflowStateExists) {
+    // 最低限の安全チェック（rm -rf等）のみ実行
+    const quickResult = performQuickChecks(toolName, toolInput);
+    if (quickResult.blocked) {
+      outputBlock(quickResult);
+      process.exit(2);
+    }
+    process.exit(0);
+    return;
+  }
+
+  // PHASE 1: Intent Parser チェック (confidence >= 85% で layer skip)
+  const intentCheck = await performIntentCheck(toolName, toolInput);
+
+  if (intentCheck.shouldSkip && intentCheck.confidence >= 85 && intentCheck.skipLayers.length > 0) {
+    // Intent が検出され、高確信度の場合は許可
+    const output = {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: `\n[Intent Parser] ${intentCheck.intent} を検出しました（信頼度: ${intentCheck.confidence}%）\nLayer Skip: ${intentCheck.skipLayers.join(', ')}\n`,
+      },
+    };
+    console.log(JSON.stringify(output));
+
+    if (process.env.TAISUN_HOOK_DEBUG) {
+      console.error(`[unified-guard] Intent detected in ${Date.now() - startTime}ms`);
+    }
+
+    process.exit(0);
+    return;
+  }
+
+  // PHASE 2: 既存の高速チェック（危険パターン検査）
   const result = performQuickChecks(toolName, toolInput);
 
   if (result.blocked) {
@@ -187,26 +398,14 @@ function outputWarning(result) {
   console.log(JSON.stringify(output));
 }
 
-// === ユーティリティ ===
-function readStdin(timeout = 500) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
+// CLI として実行された場合のみ main() を呼ぶ
+if (require.main === module) {
+  main().catch(() => process.exit(0));
 }
 
-main().catch(() => process.exit(0));
+// テスト用の export（CommonJS 形式）
+module.exports = {
+  buildUserInputFromContext,
+  performIntentCheck,
+  performQuickChecks,
+};

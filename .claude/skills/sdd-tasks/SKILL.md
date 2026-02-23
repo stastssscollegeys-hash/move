@@ -1,6 +1,6 @@
 ---
 name: sdd-tasks
-description: Kiro形式の実行計画(tasks.md)を生成。要件からフェーズ分割・タスク依存関係・マイルストーンを定義し、Ganttチャートを含む。
+description: Generate Kiro-format task plans
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

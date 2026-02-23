@@ -1,6 +1,6 @@
 ---
 name: dr-synthesize
-description: >
+description: Deep research synthesis phase
   dr-explore が作った run（evidence.jsonl / sources）を検証・統合して、
   レポート（report.md）と実装計画（implementation_plan.md）を作る。
 disable-model-invocation: true

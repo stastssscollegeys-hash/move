@@ -1,11 +1,12 @@
 ---
 name: taiyo-rewriter
-description: 既存コンテンツを太陽スタイルに変換するリライトスキル。文章構造・語尾・キラーワード・心理トリガーを最適化して成約率を向上。
+description: Rewrite content in Taiyo style
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [rewrite, optimization, taiyo-style, copywriting]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # 太陽 Rewriter Skill

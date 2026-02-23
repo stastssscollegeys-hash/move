@@ -1,141 +1,130 @@
 #!/bin/bash
 #
-# MCP Health Check Script
-# Checks the status of all configured MCP servers
+# MCP Health Check Script v2
+# Auto-detects servers from .mcp.json and validates env vars
 #
 
 set -e
 
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+NC='\033[0m'
 
-# Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 MCP_CONFIG="$PROJECT_ROOT/.mcp.json"
 
 echo "=========================================="
-echo "  MCP Server Health Check"
+echo "  MCP Server Health Check v2"
 echo "=========================================="
 echo ""
 
-# Check if .mcp.json exists
 if [ ! -f "$MCP_CONFIG" ]; then
     echo -e "${RED}Error: .mcp.json not found at $MCP_CONFIG${NC}"
     exit 1
 fi
 
-# Load environment variables
+# Load environment variables safely
 if [ -f "$PROJECT_ROOT/.env" ]; then
-    export $(grep -v '^#' "$PROJECT_ROOT/.env" | xargs)
+    set -a
+    source "$PROJECT_ROOT/.env"
+    set +a
 fi
 
-# Function to check environment variable
-check_env_var() {
-    local var_name=$1
-    local value="${!var_name}"
-
-    if [ -z "$value" ] || [[ "$value" == *"your_"* ]] || [[ "$value" == *"xxxx"* ]]; then
-        echo -e "${YELLOW}  ! ENV: $var_name not configured${NC}"
-        return 1
-    else
-        echo -e "${GREEN}  ✓ ENV: $var_name configured${NC}"
-        return 0
-    fi
-}
-
-# Function to check if npx package exists
-check_npx_package() {
-    local package=$1
-    if npx --yes "$package" --version >/dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-echo "Checking MCP Servers..."
-echo ""
-
-# Parse MCP config and check each server
-SERVERS=$(jq -r '.mcpServers | keys[]' "$MCP_CONFIG" 2>/dev/null)
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}Error: jq is required. Install with: brew install jq${NC}"
+    exit 1
+fi
 
 TOTAL=0
 READY=0
-MISSING_CONFIG=0
+DISABLED=0
+MISSING_ENV=0
+
+# Get all server names (excluding _comment* keys)
+SERVERS=$(jq -r '.mcpServers | keys[] | select(startswith("_comment") | not)' "$MCP_CONFIG" 2>/dev/null)
 
 for SERVER in $SERVERS; do
     TOTAL=$((TOTAL + 1))
 
-    TYPE=$(jq -r ".mcpServers[\"$SERVER\"].type" "$MCP_CONFIG")
-    DESCRIPTION=$(jq -r ".mcpServers[\"$SERVER\"].description" "$MCP_CONFIG")
+    IS_DISABLED=$(jq -r ".mcpServers[\"$SERVER\"].disabled // false" "$MCP_CONFIG")
+    DESCRIPTION=$(jq -r ".mcpServers[\"$SERVER\"].description // \"No description\"" "$MCP_CONFIG")
     CATEGORY=$(jq -r ".mcpServers[\"$SERVER\"].category // \"general\"" "$MCP_CONFIG")
+    COST_WARNING=$(jq -r ".mcpServers[\"$SERVER\"].cost_warning // false" "$MCP_CONFIG")
 
-    echo -e "[$CATEGORY] ${GREEN}$SERVER${NC}"
-    echo "  Description: $DESCRIPTION"
-    echo "  Type: $TYPE"
+    if [ "$IS_DISABLED" = "true" ]; then
+        echo -e "${YELLOW}[$CATEGORY] $SERVER (DISABLED)${NC}"
+        DISABLED=$((DISABLED + 1))
+    else
+        echo -e "${CYAN}[$CATEGORY] $SERVER${NC}"
+    fi
+    echo "  $DESCRIPTION"
 
-    SERVER_READY=true
+    if [ "$COST_WARNING" = "true" ]; then
+        echo -e "  ${YELLOW}! Cost warning: API calls may incur charges${NC}"
+    fi
 
+    # Auto-detect env vars from the server's env config
+    SERVER_OK=true
+    ENV_KEYS=$(jq -r ".mcpServers[\"$SERVER\"].env // {} | keys[]" "$MCP_CONFIG" 2>/dev/null)
+
+    for ENV_KEY in $ENV_KEYS; do
+        ENV_REF=$(jq -r ".mcpServers[\"$SERVER\"].env[\"$ENV_KEY\"]" "$MCP_CONFIG")
+        VAR_NAME=$(echo "$ENV_REF" | sed -E 's/^\$\{([^:}]+)(:-[^}]*)?\}$/\1/')
+
+        if [ -n "$VAR_NAME" ] && [ "$VAR_NAME" != "$ENV_REF" ]; then
+            VALUE="${!VAR_NAME:-}"
+            if [ -z "$VALUE" ] || echo "$VALUE" | grep -qE '^(your_|sk-xxx|xxx)'; then
+                echo -e "  ${RED}MISSING: $VAR_NAME${NC}"
+                SERVER_OK=false
+            else
+                echo -e "  ${GREEN}OK: $VAR_NAME${NC}"
+            fi
+        fi
+    done
+
+    # Special checks for local MCP server binaries
     case $SERVER in
-        "notion")
-            if ! check_env_var "NOTION_API_KEY"; then
-                SERVER_READY=false
-            fi
-            ;;
-        "postgres-ro"|"postgres-rw")
-            if [ "$SERVER" = "postgres-ro" ]; then
-                if ! check_env_var "POSTGRES_MCP_DSN"; then
-                    SERVER_READY=false
-                fi
+        "taisun-proxy")
+            DIST_FILE="$PROJECT_ROOT/dist/proxy-mcp/server.js"
+            if [ -f "$DIST_FILE" ]; then
+                echo -e "  ${GREEN}OK: dist/proxy-mcp/server.js${NC}"
             else
-                if ! check_env_var "POSTGRES_MCP_DSN_RW"; then
-                    SERVER_READY=false
-                fi
+                echo -e "  ${RED}MISSING: dist/proxy-mcp/server.js (run: npm run build)${NC}"
+                SERVER_OK=false
             fi
             ;;
-        "github")
-            if ! check_env_var "GITHUB_TOKEN"; then
-                SERVER_READY=false
-            fi
-            ;;
-        "slack")
-            if ! check_env_var "SLACK_BOT_TOKEN"; then
-                SERVER_READY=false
-            fi
-            if ! check_env_var "SLACK_TEAM_ID"; then
-                SERVER_READY=false
-            fi
-            ;;
-        "brave-search")
-            if ! check_env_var "BRAVE_API_KEY"; then
-                SERVER_READY=false
-            fi
-            ;;
-        "docker")
-            if docker info >/dev/null 2>&1; then
-                echo -e "${GREEN}  ✓ Docker daemon running${NC}"
+        "line-bot"|"voice-ai"|"ai-sdr")
+            SERVER_DIST=$(jq -r ".mcpServers[\"$SERVER\"].args[0]" "$MCP_CONFIG")
+            if [ -f "$PROJECT_ROOT/$SERVER_DIST" ]; then
+                echo -e "  ${GREEN}OK: $SERVER_DIST${NC}"
             else
-                echo -e "${RED}  ✗ Docker daemon not running${NC}"
-                SERVER_READY=false
+                echo -e "  ${RED}MISSING: $SERVER_DIST (run: npm run build)${NC}"
+                SERVER_OK=false
             fi
             ;;
-        "filesystem"|"memory"|"sequential-thinking")
-            echo -e "${GREEN}  ✓ No external dependencies${NC}"
+        "youtube")
+            YOUTUBE_PATH=$(jq -r ".mcpServers[\"$SERVER\"].args[0]" "$MCP_CONFIG")
+            if [ -f "$YOUTUBE_PATH" ]; then
+                echo -e "  ${GREEN}OK: youtube MCP binary${NC}"
+            else
+                echo -e "  ${RED}MISSING: $YOUTUBE_PATH${NC}"
+                SERVER_OK=false
+            fi
             ;;
     esac
 
-    if $SERVER_READY; then
+    if $SERVER_OK; then
+        if [ "$IS_DISABLED" != "true" ]; then
+            READY=$((READY + 1))
+        fi
         echo -e "  Status: ${GREEN}READY${NC}"
-        READY=$((READY + 1))
     else
-        echo -e "  Status: ${YELLOW}MISSING CONFIG${NC}"
-        MISSING_CONFIG=$((MISSING_CONFIG + 1))
+        MISSING_ENV=$((MISSING_ENV + 1))
+        echo -e "  Status: ${RED}NEEDS CONFIG${NC}"
     fi
-
     echo ""
 done
 
@@ -144,14 +133,10 @@ echo "  Summary"
 echo "=========================================="
 echo -e "  Total Servers:    $TOTAL"
 echo -e "  ${GREEN}Ready:            $READY${NC}"
-echo -e "  ${YELLOW}Missing Config:   $MISSING_CONFIG${NC}"
+echo -e "  ${YELLOW}Disabled:         $DISABLED${NC}"
+echo -e "  ${RED}Needs Config:     $MISSING_ENV${NC}"
 echo ""
 
-if [ $MISSING_CONFIG -gt 0 ]; then
-    echo -e "${YELLOW}Some MCP servers need configuration.${NC}"
-    echo "See .env.example for required environment variables."
-    exit 0
-else
-    echo -e "${GREEN}All MCP servers are configured!${NC}"
-    exit 0
+if [ $MISSING_ENV -gt 0 ]; then
+    echo -e "${YELLOW}Run 'bash scripts/validate-env.sh' for env var details.${NC}"
 fi

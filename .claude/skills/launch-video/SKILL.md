@@ -1,6 +1,8 @@
 ---
 name: launch-video
-description: プロダクトローンチ動画の台本作成を支援。ローンチ動画、ウェビナー、オンラインセミナーのスクリプトを書く際に使用。3話構成・4話構成に対応。
+description: Product launch video scripts
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Launch Video Skill

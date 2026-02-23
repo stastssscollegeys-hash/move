@@ -1,12 +1,8 @@
 ---
 name: doc-convert-pandoc
-description: |
-  Pandocでドキュメント変換（md→docx/pptx等）を自動化。
-  Use when: (1) user says「ドキュメント変換」「md→docx」「Word/PowerPointに変換」,
-  (2) user wants file format conversion,
-  (3) user mentions「納品形式」「フォーマット変換」「Pandoc」.
-  Do NOT use for: PDF変換（pdf-automation-gotenbergを使用）、
-  コンテンツ作成（copywriting-helperを使用）。
+description: Document format conversion
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Pandoc Document Conversion

@@ -1,12 +1,8 @@
 ---
 name: diagram-illustration
-description: |
-  図解・インフォグラフィック・解説イラスト制作ガイド。NanoBanana Pro使用。
-  Use when: (1) user says「図解を作って」「インフォグラフィック」「解説画像」,
-  (2) user wants visual explanations for content,
-  (3) user mentions「フロー図」「比較図」「構造図」.
-  Do NOT use for: 人物画像生成（nanobanana-proを使用）、
-  サムネイル作成（youtube-thumbnailを使用）。
+description: Diagram and infographic creation
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # 図解・解説画像制作ガイド - NanoBanana Pro完全マニュアル

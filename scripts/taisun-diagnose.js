@@ -388,8 +388,7 @@ ${colors.bold}${colors.cyan}============================================${colors
 
     console.log(`
   ${colors.bold}修復コマンド:${colors.reset}
-    npm run build:all
-    chmod +x .claude/hooks/*.js
+    npm run taisun:setup
 `);
   } else {
     console.log(`  ${colors.green}${colors.bold}すべてのシステムが正常に動作しています！${colors.reset}\n`);

@@ -14,7 +14,6 @@ import type {
   CanRunSkillResult,
   PhaseTransitionResult,
   Condition,
-  ConditionalNext,
   ParallelNext,
   ParallelExecutionState,
   RollbackHistory,
@@ -284,7 +283,7 @@ function evaluateCondition(condition: Condition): string | null {
           }
 
           return output;
-        } catch (error) {
+        } catch (_error) {
           // コマンドエラーはnullを返す
           return null;
         }
@@ -459,6 +458,7 @@ function completeParallelPhase(phaseId: string): void {
  * 並列実行が完了しているか確認
  * @returns 完了している場合true
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isParallelExecutionComplete(): boolean {
   const state = loadState();
   if (!state || !state.parallelExecutions) {
@@ -750,6 +750,7 @@ export function verifyCompletion(): ValidationResult {
  * フェーズスナップショットを作成
  * Phase 3: Create phase snapshot for rollback
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createSnapshot(phaseId: string): PhaseSnapshot {
   const state = loadState();
   const workflow = getWorkflow(state!.workflowId);

@@ -1,6 +1,6 @@
 ---
 name: research-free
-description: APIキー不要の統合リサーチスキル。Claude Code組み込みのWebSearch/WebFetchを使用。他人に配布してもそのまま使える。
+description: API-free integrated research
 argument-hint: "[トピック] [--depth=quick|standard|deep]"
 allowed-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
 model: opus

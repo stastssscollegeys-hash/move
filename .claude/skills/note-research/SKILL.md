@@ -1,6 +1,6 @@
 ---
 name: note-research
-description: note.comのリサーチツール - 非公式API + MCP + WebSearchでゼロコストリサーチ
+description: note.com research tool
 disable-model-invocation: false
 allowed-tools:
   - Bash
@@ -375,8 +375,25 @@ research/note/<timestamp>__<query>/
 2. **認証**: ログイン必須のデータは取得不可
 3. **価格情報**: 有料記事の本文は取得不可（メタデータのみ）
 
+## world-research統合
+
+`/world-research` から呼び出された場合、Layer 5（SNSプラットフォーム）のnote.comセクションとして動作する。
+- world-researchの.env APIキー（Tavily/SerpAPI/Brave/NewsAPI/Perplexity）を活用可能
+- note.com非公式API + WebSearch + 外部API検索を組み合わせた高精度リサーチ
+
+### 統合呼び出し例
+
+```bash
+# world-researchからnote.com層を実行
+/world-research キーワード=AIエージェント プラットフォーム=note
+
+# note-research単体実行
+/note-research ジャンル=副業
+```
+
 ## 関連スキル
 
+- `world-research` - 全世界総合リサーチ（統合先）
 - `research-free` - 汎用WebSearchリサーチ
 - `mega-research` - API統合リサーチ（要APIキー）
 - `keyword-free` - キーワード抽出

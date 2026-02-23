@@ -6,8 +6,32 @@
 
 /**
  * Model type for task execution
+ * Legacy: 'opus' | 'sonnet' | 'haiku' (used by existing PerformanceService)
+ * Extended: 'claude-*' + Ollama/OpenRouter/Codex (used by LLM Auto-Switching System)
  */
-export type ModelType = 'opus' | 'sonnet' | 'haiku';
+export type ModelType =
+  | 'opus' | 'sonnet' | 'haiku'
+  | 'claude-opus' | 'claude-sonnet' | 'claude-haiku'
+  | 'claude-opus-4-6' | 'claude-sonnet-4-5' | 'claude-haiku-4-5'
+  | 'ollama-qwen3-coder' | 'ollama-glm4'
+  | 'openrouter-free'
+  | 'gpt53-codex'
+  | 'codex-cli';
+
+/**
+ * Provider type for LLM routing
+ */
+export type ProviderType =
+  | 'anthropic-max'
+  | 'anthropic-api'
+  | 'ollama'
+  | 'openrouter'
+  | 'openai';
+
+/**
+ * Task category for routing decisions
+ */
+export type TaskCategory = 'coding' | 'research' | 'analysis' | 'writing' | 'general';
 
 /**
  * Task complexity level
@@ -263,4 +287,169 @@ export interface PerformanceConfig {
     sampleRatePercent: number;
     metricsRetentionDays: number;
   };
+}
+
+// ====================================================================
+// LLM Auto-Switching System Types
+// ====================================================================
+
+/**
+ * Provider configuration
+ */
+export interface ProviderConfig {
+  readonly name: ProviderType;
+  readonly priority: number;
+  readonly baseUrl: string;
+  readonly apiKeyEnv?: string;
+  readonly enabled: boolean;
+  readonly healthEndpoint?: string;
+}
+
+/**
+ * Model cost definition
+ */
+export interface ModelCost {
+  readonly inputPerMillion: number;
+  readonly outputPerMillion: number;
+  readonly cachedInputPerMillion?: number;
+}
+
+/**
+ * Model configuration
+ */
+export interface ModelConfig {
+  readonly id: string;
+  readonly provider: ProviderType;
+  readonly displayName: string;
+  readonly cost: ModelCost;
+  readonly maxTokens: number;
+  readonly supportsCaching?: boolean;
+}
+
+/**
+ * Routing rule for task complexity
+ */
+export interface RoutingRule {
+  readonly taskComplexity: TaskComplexity;
+  readonly preferredModel: ModelType;
+  readonly fallbackModels: readonly ModelType[];
+  readonly maxCostPerRequest?: number;
+}
+
+/**
+ * Budget configuration
+ */
+export interface BudgetConfig {
+  readonly monthlyLimit: number;
+  readonly dailyLimit: number;
+  readonly warningThresholdPercent: number;
+  readonly hardLimitAction: 'fallback-to-free' | 'block' | 'warn';
+  readonly globalMonthlyLimit?: number;
+  readonly globalDailyLimit?: number;
+  readonly opusDailyLimit?: number;
+  readonly opusMonthlyLimit?: number;
+}
+
+/**
+ * Cost record for tracking
+ */
+export interface CostRecord {
+  readonly timestamp: string;
+  readonly model: ModelType;
+  readonly provider: ProviderType;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly cachedTokens: number;
+  readonly cost: number;
+  readonly taskType?: string;
+  readonly projectId?: string;
+}
+
+/**
+ * Budget status
+ */
+export interface BudgetStatus {
+  readonly isOverBudget: boolean;
+  readonly dailySpend: number;
+  readonly monthlySpend: number;
+  readonly dailyRemaining: number;
+  readonly monthlyRemaining: number;
+  readonly percentUsed: number;
+  readonly globalDailySpend?: number;
+  readonly globalMonthlySpend?: number;
+  readonly isGlobalOverBudget?: boolean;
+  readonly opusDailySpend?: number;
+  readonly isOpusOverLimit?: boolean;
+}
+
+/**
+ * Routing criteria for ModelRouter (distinct from ModelSelectionCriteria used by PerformanceService)
+ */
+export interface RoutingCriteria {
+  readonly taskComplexity: TaskComplexity;
+  readonly taskType?: string;
+  readonly taskCategory?: TaskCategory;
+  readonly estimatedTokens?: number;
+  readonly requiresStreaming?: boolean;
+  readonly requiresCaching?: boolean;
+}
+
+/**
+ * Model routing result
+ */
+export interface ModelRoutingResult {
+  readonly model: ModelType;
+  readonly provider: ProviderType;
+  readonly reason: string;
+  readonly estimatedCost: number;
+  readonly fallbackAvailable: boolean;
+}
+
+/**
+ * Codex CLI suggestion
+ */
+export interface CodexSuggestion {
+  readonly shouldSuggest: boolean;
+  readonly reason: string;
+  readonly currentModel: ModelType;
+  readonly currentEstimatedCost: number;
+  readonly codexEstimatedCost: number;
+  readonly savingsPercent: number;
+  readonly isCodexAvailable: boolean;
+  readonly cliCommand?: string;
+  readonly cliRateLimitInfo?: CodexCliRateLimit;
+}
+
+/**
+ * Codex CLI rate limit info
+ */
+export interface CodexCliRateLimit {
+  readonly usedInWindow: number;
+  readonly maxInWindow: number;
+  readonly windowHours: number;
+  readonly isNearLimit: boolean;
+}
+
+/**
+ * Model routing configuration
+ */
+export interface ModelRoutingConfig {
+  readonly providers: readonly ProviderConfig[];
+  readonly models: Record<ModelType, ModelConfig>;
+  readonly routingRules: readonly RoutingRule[];
+  readonly budget: BudgetConfig;
+  readonly fallbackChain: readonly ModelType[];
+}
+
+/**
+ * Cost report
+ */
+export interface CostReport {
+  readonly period: 'day' | 'week' | 'month';
+  readonly totalCost: number;
+  readonly byModel: Record<string, number>;
+  readonly byProvider: Record<string, number>;
+  readonly requestCount: number;
+  readonly averageCostPerRequest: number;
+  readonly budgetStatus: BudgetStatus;
 }

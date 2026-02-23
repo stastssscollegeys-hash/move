@@ -1,14 +1,6 @@
 ---
 name: mega-research
-description: |
-  6つの検索API（Tavily/SerpAPI/Brave/NewsAPI/Reddit/Perplexity）を統合した最強リサーチシステム。
-  深層調査から出典付きレポート生成まで自動実行。
-  Use when: (1) user says「徹底調査」「深層リサーチ」「完全調査」「mega-research」,
-  (2) user needs multi-source research with citations,
-  (3) user wants market analysis, competitor research, or trend analysis,
-  (4) user mentions「出典付き」「クロス検証」「複数ソース」.
-  Do NOT use for: simple fact-checking (use research-free), single-source lookups,
-  or when API keys are not configured.
+description: 6-API integrated research system
 argument-hint: "[トピック] [--mode=deep|quick|news|trend]"
 allowed-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Bash(curl:*, python:*, node:*)
 model: opus

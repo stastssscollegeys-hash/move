@@ -77,7 +77,7 @@ export function saveState(state: WorkflowState): void {
       if (fs.existsSync(tmpPath)) {
         fs.unlinkSync(tmpPath);
       }
-    } catch (cleanupError) {
+    } catch (_cleanupError) {
       // Ignore cleanup errors (file may have been deleted by another test)
     }
 

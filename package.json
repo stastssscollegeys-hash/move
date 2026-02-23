@@ -86,7 +86,14 @@
     "taisun:diagnose": "node scripts/taisun-diagnose.js",
     "taisun:diagnose:full": "node scripts/taisun-diagnose.js --full",
     "taisun:diagnose:fix": "node scripts/taisun-diagnose.js --fix",
-    "taisun:setup": "npm install && npm run build:all && chmod +x .claude/hooks/*.js 2>/dev/null || true && npm run taisun:diagnose"
+    "taisun:setup": "npm install && npm run build:all && node -e \"try{require('child_process').execSync('chmod +x .claude/hooks/*.js')}catch(e){}\" && npm run taisun:diagnose",
+    "metrics:collect": "node .claude/hooks/metrics-collector.js",
+    "metrics:aggregate": "node .claude/hooks/metrics-aggregator.js",
+    "metrics:report": "node .claude/hooks/generate-metrics-report.js",
+    "metrics:report:7d": "node .claude/hooks/generate-metrics-report.js --days=7",
+    "metrics:report:30d": "node .claude/hooks/generate-metrics-report.js --days=30",
+    "upstream:merge": "node scripts/upstream-merge.js",
+    "upstream:merge:dry": "node scripts/upstream-merge.js --dry-run"
   },
   "keywords": [
     "ai",

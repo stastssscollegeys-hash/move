@@ -360,13 +360,20 @@ export class PerformanceService {
    */
   private estimateCost(model: ModelType, tokens: number): number {
     // Cost per 1M tokens (rough estimates)
-    const costs: Record<ModelType, { input: number; output: number }> = {
+    const costs: Partial<Record<ModelType, { input: number; output: number }>> = {
       opus: { input: 15, output: 75 },
+      'claude-opus': { input: 5, output: 25 },
       sonnet: { input: 3, output: 15 },
+      'claude-sonnet': { input: 3, output: 15 },
       haiku: { input: 0.25, output: 1.25 },
+      'claude-haiku': { input: 1, output: 5 },
+      'ollama-qwen3-coder': { input: 0, output: 0 },
+      'ollama-glm4': { input: 0, output: 0 },
+      'openrouter-free': { input: 0, output: 0 },
+      'gpt53-codex': { input: 1.25, output: 10 },
     };
 
-    const { input, output } = costs[model];
+    const { input, output } = costs[model] ?? { input: 0, output: 0 };
     const avgOutputRatio = 0.3; // Assume output is 30% of input
     const inputTokens = tokens;
     const outputTokens = tokens * avgOutputRatio;
@@ -379,13 +386,20 @@ export class PerformanceService {
    */
   private estimateLatency(model: ModelType, tokens: number): number {
     // Base latency + tokens/s (rough estimates)
-    const specs: Record<ModelType, { baseMs: number; tokensPerSecond: number }> = {
+    const specs: Partial<Record<ModelType, { baseMs: number; tokensPerSecond: number }>> = {
       opus: { baseMs: 2000, tokensPerSecond: 50 },
+      'claude-opus': { baseMs: 2000, tokensPerSecond: 50 },
       sonnet: { baseMs: 500, tokensPerSecond: 100 },
+      'claude-sonnet': { baseMs: 500, tokensPerSecond: 100 },
       haiku: { baseMs: 200, tokensPerSecond: 200 },
+      'claude-haiku': { baseMs: 200, tokensPerSecond: 200 },
+      'ollama-qwen3-coder': { baseMs: 1000, tokensPerSecond: 30 },
+      'ollama-glm4': { baseMs: 1000, tokensPerSecond: 30 },
+      'openrouter-free': { baseMs: 1500, tokensPerSecond: 80 },
+      'gpt53-codex': { baseMs: 800, tokensPerSecond: 120 },
     };
 
-    const { baseMs, tokensPerSecond } = specs[model];
+    const { baseMs, tokensPerSecond } = specs[model] ?? { baseMs: 1000, tokensPerSecond: 50 };
     return baseMs + (tokens / tokensPerSecond) * 1000;
   }
 

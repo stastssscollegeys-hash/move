@@ -1,6 +1,6 @@
 ---
 name: sdd-runbook
-description: インシデント対応手順書(runbook.md)を生成。Severity定義・共通対応手順・シナリオ別対応・ロールバック手順を含む。
+description: Generate incident response runbook
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

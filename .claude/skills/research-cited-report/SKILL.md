@@ -1,12 +1,8 @@
 ---
 name: research-cited-report
-description: |
-  調査→論点整理→出典付きレポート生成。信頼性の高いレポート作成。
-  Use when: (1) user says「調べて」「比較して」「根拠/出典付きで」,
-  (2) user wants research report with citations,
-  (3) user mentions「エビデンス」「レポート作成」「出典明記」.
-  Do NOT use for: 簡易調査（research-freeを使用）、
-  徹底調査（mega-researchを使用）。
+description: Cited research report generation
+allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
+disable-model-invocation: true
 ---
 
 # Research: Cited Report

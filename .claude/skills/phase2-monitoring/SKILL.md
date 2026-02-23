@@ -1,3 +1,11 @@
+---
+name: phase2-monitoring
+description: Observability stack setup
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+model: sonnet
+disable-model-invocation: true
+---
+
 # Phase 2 Monitoring Stack
 
 Prometheus + Grafana + Loki + Alertmanager によるオブザーバビリティ基盤。

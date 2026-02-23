@@ -1,11 +1,8 @@
 ---
 name: note-marketing
-description: |
-  note記事の作成・マーケティング戦略スキル。無料/有料記事の両方に対応。
-  Use when: (1) user says「note記事」「noteに書いて」「noteマーケティング」,
-  (2) user wants to create content for note.com,
-  (3) user mentions「有料note」「リードマグネット」「コンテンツ戦略」.
-  Do NOT use for: ブログ記事一般（SEO目的）、SNS投稿（sns-marketingを使用）。
+description: note article marketing strategy
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # note記事マーケティングスキル

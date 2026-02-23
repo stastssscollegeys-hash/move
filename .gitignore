@@ -6,6 +6,9 @@ nul
 # 成果物フォルダ（同期しない）
 output/
 
+# upstream-merge レポート（一時生成物）
+upstream-merge-report.md
+
 # バイナリ・一時ファイル
 yt-dlp.exe
 *.vtt

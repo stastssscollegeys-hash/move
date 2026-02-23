@@ -1,18 +1,13 @@
 ---
 name: pdf-processing
-description: |
-  Comprehensive PDF processing skill for reading, extracting, and manipulating PDF files.
-  Use this skill when: (1) user shares a PDF URL like .pdf, (2) user asks to read/analyze a PDF,
-  (3) user wants to extract text/tables from PDF, (4) user needs PDF merging/splitting,
-  (5) user mentions "PDF", "document", or shares hubfs/resources links,
-  (6) user wants OCR on scanned PDFs, (7) filling PDF forms.
-  Triggers on: .pdf files, PDF URLs, "read this PDF", "extract from PDF", "analyze document",
-  "PDFを読んで", "PDFから抽出", "ドキュメントを分析".
+description: PDF reading and text extraction
 tools:
   - pdf-reader  # MCP: @sylphx/pdf-reader-mcp
   - Read
   - Bash
   - WebFetch
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # PDF Processing Guide

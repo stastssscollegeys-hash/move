@@ -290,6 +290,123 @@
       "required_skills": ["youtube-research-ss"],
       "priority": 80,
       "strict": false
+    },
+    {
+      "name": "Instagram/Shorts作成",
+      "description": "Instagram Reels・YouTube Shorts動画の作成",
+      "when_contains_all": [],
+      "when_contains_any": ["Instagram", "Shorts", "Reels", "ショート動画"],
+      "required_skills": ["shorts-create"],
+      "priority": 80,
+      "strict": true
+    },
+    {
+      "name": "インタラクティブ動画",
+      "description": "分岐動画・VSL動画・インタラクティブ動画プラットフォーム",
+      "when_contains_all": [],
+      "when_contains_any": ["インタラクティブ動画", "分岐動画", "VSL動画"],
+      "required_skills": ["interactive-video-platform"],
+      "priority": 85,
+      "strict": true
+    },
+    {
+      "name": "画像品質チェック",
+      "description": "Gemini 3 Flashによる画像分析・ビジュアルQA",
+      "when_contains_all": [],
+      "when_contains_any": ["画像品質チェック", "ビジュアルQA", "画像分析"],
+      "required_skills": ["agentic-vision"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "Voice AI（電話・架電）",
+      "description": "Twilio + OpenAI Realtime APIによる音声AI",
+      "when_contains_all": [],
+      "when_contains_any": ["電話", "架電", "通話", "Voice AI"],
+      "required_skills": ["voice-ai"],
+      "priority": 80,
+      "strict": false
+    },
+    {
+      "name": "AI SDR（営業自動化）",
+      "description": "AI SDR営業パイプライン自動化",
+      "when_contains_all": [],
+      "when_contains_any": ["SDR", "営業パイプライン", "リード管理"],
+      "required_skills": ["ai-sdr"],
+      "priority": 80,
+      "strict": false
+    },
+    {
+      "name": "リードスコアリング",
+      "description": "リードスコアリングシステム",
+      "when_contains_all": [],
+      "when_contains_any": ["リードスコアリング", "リード評価"],
+      "required_skills": ["lead-scoring"],
+      "priority": 80,
+      "strict": false
+    },
+    {
+      "name": "アウトリーチ",
+      "description": "アウトリーチメッセージ作成",
+      "when_contains_all": [],
+      "when_contains_any": ["アウトリーチ", "メッセージ送信"],
+      "required_skills": ["outreach-composer"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "ヘッドライン・キャッチコピー",
+      "description": "太陽スタイルヘッドライン生成",
+      "when_contains_all": [],
+      "when_contains_any": ["ヘッドライン", "キャッチコピー"],
+      "required_skills": ["taiyo-style-headline"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "追伸（P.S.）",
+      "description": "太陽スタイル追伸生成",
+      "when_contains_all": [],
+      "when_contains_any": ["追伸", "P.S."],
+      "required_skills": ["taiyo-style-ps"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "ブレット・箇条書き",
+      "description": "太陽スタイルブレット生成",
+      "when_contains_all": [],
+      "when_contains_any": ["ブレット", "箇条書き", "ベネフィット"],
+      "required_skills": ["taiyo-style-bullet"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "URL分析・サイト解析",
+      "description": "URL完全解析（構造・リンク・コンテンツ）",
+      "when_contains_all": [],
+      "when_contains_any": ["URL分析", "サイト解析", "ページ構造", "リンク抽出"],
+      "required_skills": ["url-deep-analysis"],
+      "priority": 75,
+      "strict": false
+    },
+    {
+      "name": "世界リサーチ",
+      "description": "全世界SNS・学術論文横断検索",
+      "when_contains_all": [],
+      "when_contains_any": ["世界リサーチ", "SNSリサーチ", "グローバル検索"],
+      "required_skills": ["world-research"],
+      "priority": 80,
+      "strict": false
+    },
+    {
+      "name": "統合リサーチ",
+      "description": "複数リサーチAPI統合",
+      "when_contains_all": [],
+      "when_contains_any": ["統合リサーチ", "マルチソース"],
+      "required_skills": ["unified-research"],
+      "priority": 80,
+      "strict": false
     }
   ],
 

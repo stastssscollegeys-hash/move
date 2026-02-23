@@ -1,11 +1,13 @@
 ---
 name: customer-support-120
-description: 顧客期待を120%超える神対応カスタマーサポート。6つの教育要素+太陽スタイル統合で2000文字以上の心を動かす返信を作成。
+description: 120% customer support responses
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [customer-support, copywriting, taiyo-style, education, high-satisfaction]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Customer Support 120% Skill

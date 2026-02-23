@@ -1,6 +1,6 @@
 ---
 name: sdd-slo
-description: Google SREに基づくSLO/SLI/SLA定義(slo.md)を生成。信頼性目標・Error Budget・アラート設定を含む運用可能な品質定義。
+description: Generate SLO/SLI/SLA definitions
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

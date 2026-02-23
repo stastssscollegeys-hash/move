@@ -1,6 +1,6 @@
 ---
 name: sdd-guardrails
-description: AIエージェント向けガードレール定義(guardrails.md)を生成。権限境界・承認ゲート・監査証跡・エラー処理ポリシーを含む。
+description: Generate AI agent guardrails
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

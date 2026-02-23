@@ -1,60 +1,42 @@
 #!/usr/bin/env node
 /**
- * Deviation Approval Guard - 勝手な行動の事前承認ガード
+ * Deviation Approval Guard - 逸脱行為の警告ガード (Layer 6) [ADVISORY MODE]
  *
- * ユーザーの指示にない行動（逸脱）を検出し、
- * 事前承認なしでは実行できないようにブロックします。
- *
- * 検出パターン:
- * 1. 「シンプルにする」「最適化する」と称した改変
- * 2. ユーザー指示にないファイル作成
- * 3. 指定されていないコマンドの実行
- * 4. 要約比率の無断変更
+ * PreToolUse で実行され、指示にない行動（逸脱）を検出して警告します。
+ * 多人数共有システムのため、ブロックせず警告のみ出力します。
  *
  * exit code:
- * - 0: 許可
- * - 2: ブロック（承認が必要）
+ * - 0: 常に許可（警告のみ出力）
+ *
+ * ※ 厳格モードが必要な場合は個人の ~/.claude/settings.json で設定してください
  */
 
 const fs = require('fs');
 const path = require('path');
-const stateManager = require('./workflow-state-manager.js');
+const { readStdin } = require('./utils/read-stdin');
 
-// 逸脱を示唆するキーワードパターン
-const DEVIATION_KEYWORDS = [
-  /シンプルに/,
-  /最適化/,
-  /効率化/,
-  /改善/,
-  /より良く/,
-  /simplif/i,
-  /optimiz/i,
-  /improv/i,
-  /better/i,
-  /instead/i,
-  /alternative/i
+// 逸脱パターン（指示にない行動）
+const DEVIATION_PATTERNS = [
+  // 勝手な最適化
+  /(?:より)?(?:シンプル|簡潔|効率的)(?:に|化)/gi,
+  /(?:最適化|optimize)/gi,
+  /(?:改善|improve)/gi,
+  
+  // 勝手な要約・圧縮
+  /(?:\d+)%(?:に)?(?:圧縮|要約|削減)/gi,
+  /(?:短縮|省略)(?:し|する)/gi,
+  
+  // 勝手な置換・変更
+  /(?:代わりに|instead)/gi,
+  /(?:別の|alternative)(?:方法|手段)/gi,
+  /(?:置き換え|replace)/gi,
 ];
 
-// 承認が必要な操作パターン
-const APPROVAL_REQUIRED_PATTERNS = {
-  bash: [
-    /rm\s+-rf/,
-    /rm\s+-r/,
-    /sudo/,
-    /chmod/,
-    /chown/,
-    /pip\s+install/,
-    /npm\s+install(?!\s+--save-dev)/
-  ],
-  write: [
-    /\.env$/,
-    /credentials/i,
-    /secret/i,
-    /password/i,
-    /\.pem$/,
-    /\.key$/
-  ]
-};
+// 承認済みパターン（ユーザーが明示的に許可した表現）
+const APPROVED_PATTERNS = [
+  /(?:承認|approved|OK|許可)/gi,
+  /(?:実行|proceed|go ahead)(?:して)?(?:よい|OK)/gi,
+];
 
 async function main() {
   let input = {};
@@ -64,159 +46,61 @@ async function main() {
     if (stdinData) {
       input = JSON.parse(stdinData);
     }
-  } catch (e) {
-    process.exit(0);
-    return;
+  } catch (error) {
+    console.error('[deviation-approval-guard] stdin parse error:', error.message);
+    process.exit(0); // 非ブロッキング
   }
 
-  const toolName = input.tool_name || '';
-  const toolInput = input.tool_input || {};
+  // Bootstrap Safe Mode: ワークフロー未開始ならスキップ
   const cwd = input.cwd || process.cwd();
-
-  // ワークフロー状態を読み込み
-  const state = stateManager.loadState(cwd);
-  const isStrict = state?.meta?.strict ?? false;
-
-  // strict mode でない場合は警告のみ
-  if (!isStrict) {
+  if (!fs.existsSync(path.join(cwd, '.workflow_state.json'))) {
     process.exit(0);
-    return;
   }
 
-  const result = evaluateDeviation(toolName, toolInput, state, cwd);
+  const tool = input.tool || '';
+  const params = input.params || {};
+  
+  // Write/Edit/Bashツールのみ対象
+  if (!['Write', 'Edit', 'Bash'].includes(tool)) {
+    process.exit(0);
+  }
 
-  if (result.requiresApproval) {
-    // 既に承認済みかチェック
-    if (state && stateManager.isDeviationApproved(state, result.deviationId)) {
-      process.exit(0);
-      return;
+  // パラメータから内容を取得
+  const content = params.content || params.new_string || params.command || '';
+  const description = params.description || '';
+  
+  // 承認済みパターンがある場合はスキップ
+  const isApproved = APPROVED_PATTERNS.some(pattern => 
+    pattern.test(content) || pattern.test(description)
+  );
+  
+  if (isApproved) {
+    process.exit(0);
+  }
+
+  // 逸脱パターンを検出
+  const deviations = [];
+  for (const pattern of DEVIATION_PATTERNS) {
+    const matches = content.match(pattern) || description.match(pattern);
+    if (matches) {
+      deviations.push(...matches);
     }
+  }
 
-    // 承認が必要な場合はブロック
-    const output = {
-      decision: 'block',
-      reason: result.reason,
-      suggestion: result.suggestion,
-      deviationId: result.deviationId,
-      hookSpecificOutput: {
-        hookEventName: 'PreToolUse',
-        additionalContext: buildApprovalRequestMessage(result)
-      }
-    };
-    console.log(JSON.stringify(output));
-    process.exit(2);
-    return;
+  if (deviations.length > 0) {
+    console.error('');
+    console.error('[deviation-approval-guard] ⚠️  ADVISORY: 逸脱パターンを検出しました（ブロックしません）');
+    console.error('検出パターン: ' + deviations.join(', '));
+    console.error('意図した操作であれば続行してください。');
+    console.error('');
+    // 多人数共有システム: 警告のみ、ブロックしない
+    process.exit(0);
   }
 
   process.exit(0);
 }
 
-function evaluateDeviation(toolName, toolInput, state, cwd) {
-  const result = {
-    requiresApproval: false,
-    reason: '',
-    suggestion: '',
-    deviationId: ''
-  };
-
-  // Bashコマンドの評価
-  if (toolName === 'Bash') {
-    const command = toolInput.command || '';
-
-    // 危険なコマンドパターン
-    for (const pattern of APPROVAL_REQUIRED_PATTERNS.bash) {
-      if (pattern.test(command)) {
-        result.requiresApproval = true;
-        result.deviationId = `bash:${pattern.toString()}`;
-        result.reason = `このコマンドは危険な操作を含んでいます: ${command.substring(0, 80)}...`;
-        result.suggestion = 'このコマンドを実行する前に、ユーザーの承認を得てください。';
-        return result;
-      }
-    }
-  }
-
-  // Write の評価
-  if (toolName === 'Write') {
-    const filePath = toolInput.file_path || '';
-
-    // センシティブなファイルパターン
-    for (const pattern of APPROVAL_REQUIRED_PATTERNS.write) {
-      if (pattern.test(filePath)) {
-        result.requiresApproval = true;
-        result.deviationId = `write:${path.basename(filePath)}`;
-        result.reason = `センシティブなファイル「${path.basename(filePath)}」を作成/編集しようとしています。`;
-        result.suggestion = 'このファイルの作成/編集はユーザーの承認が必要です。';
-        return result;
-      }
-    }
-
-    // 新規ファイル作成時、指示に含まれていない可能性をチェック
-    if (!fs.existsSync(filePath)) {
-      const ext = path.extname(filePath);
-      if (['.py', '.sh', '.js', '.ts'].includes(ext)) {
-        // state に作成許可がなければ要承認
-        if (state && !isFileCreationApproved(state, filePath)) {
-          result.requiresApproval = true;
-          result.deviationId = `newfile:${path.basename(filePath)}`;
-          result.reason = `新規ファイル「${path.basename(filePath)}」の作成は、事前に承認されていません。`;
-          result.suggestion = 'この新規ファイルの作成がユーザーの指示に含まれているか確認し、承認を得てください。';
-          return result;
-        }
-      }
-    }
-  }
-
-  return result;
-}
-
-function isFileCreationApproved(state, filePath) {
-  // 承認済み逸脱に含まれているかチェック
-  const basename = path.basename(filePath);
-  return state.evidence.approved_deviations.some(d =>
-    d.deviation.includes(basename) || d.deviation.includes('newfile')
-  );
-}
-
-function buildApprovalRequestMessage(result) {
-  const lines = [];
-  lines.push('');
-  lines.push('┌─────────────────────────────────────────────────────────────┐');
-  lines.push('│  APPROVAL REQUIRED: この操作には事前承認が必要です          │');
-  lines.push('└─────────────────────────────────────────────────────────────┘');
-  lines.push('');
-  lines.push(`**検出された逸脱**: ${result.reason}`);
-  lines.push('');
-  lines.push('**必要な対応**:');
-  lines.push('1. ユーザーに「この操作を実行してよいですか？」と確認する');
-  lines.push('2. ユーザーの承認を得てから実行する');
-  lines.push('3. 承認なしに実行することは禁止されています');
-  lines.push('');
-  lines.push(`**逸脱ID**: ${result.deviationId}`);
-  lines.push('');
-  lines.push('**Deviation Approval Guard** により、勝手な行動が防止されています。');
-  lines.push('');
-  return lines.join('\n');
-}
-
-function readStdin(timeout = 1000) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
-}
-
-main().catch(() => process.exit(0));
+main().catch(error => {
+  console.error('[deviation-approval-guard] error:', error.message);
+  process.exit(0); // 非ブロッキング
+});

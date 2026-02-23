@@ -1,6 +1,8 @@
 ---
 name: lp-analysis
-description: LPを太陽スタイル基準で分析し、成約率を最大4.3倍に改善する具体的な施策を提案。3つの黄金ルールに基づく最適化。
+description: LP conversion optimization analysis
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # LP分析・最適化スキル

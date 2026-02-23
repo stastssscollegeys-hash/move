@@ -1,11 +1,12 @@
 ---
 name: taiyo-style-lp
-description: 太陽スタイル完全準拠のLP（ランディングページ）作成・最適化。成約率4.3倍を実現する構造・心理トリガー・キラーワード配置の完全ガイド。
+description: Taiyo-style LP creation
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [lp, landing-page, taiyo-style, conversion-optimization]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Taiyo Style LP Skill

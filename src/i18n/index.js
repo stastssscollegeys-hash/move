@@ -220,34 +220,6 @@ gh auth login
 
 詳細: docs/getting-started-ja.md#前提条件
 `,
-    'env.missing.git_repo': `⚠️ Gitリポジトリではありません
-
-復旧が難しくなるため、Git管理下で作業することを強く推奨します。
-
-### 初期化方法
-git init
-git add .
-git commit -m "Initial commit"
-
-詳細: docs/operations/text-safety-ja.md
-`,
-    'env.missing.text_safety': `⚠️ テキスト安全ツールが見つかりません
-
-日本語/マルチバイト文字を含むファイルの編集には、
-UTF-8境界クラッシュを防ぐための安全ツールを使用してください。
-
-### 使用方法
-# 安全な置換
-npm run text:safe-replace -- --file path.ts --from "old" --to "new"
-
-# 文字化けチェック
-npm run text:utf8-guard
-
-# 一括置換は禁止（クラッシュの原因）
-# ❌ Claude Code内蔵の一括置換を使わない
-
-詳細: docs/operations/text-safety-ja.md
-`,
 };
 exports.jaTemplates = jaTemplates;
 /**
@@ -396,34 +368,6 @@ Required version: {required} or higher
 - Direct: Download from https://nodejs.org/
 
 Details: docs/getting-started-ja.md#prerequisites
-`,
-    'env.missing.git_repo': `⚠️ Not in a Git repository
-
-Working under Git is strongly recommended for easier recovery.
-
-### Initialize
-git init
-git add .
-git commit -m "Initial commit"
-
-Details: docs/operations/text-safety-ja.md
-`,
-    'env.missing.text_safety': `⚠️ Text safety tools not found
-
-When editing files with Japanese/multibyte characters,
-use safety tools to prevent UTF-8 boundary crashes.
-
-### Usage
-# Safe replacement
-npm run text:safe-replace -- --file path.ts --from "old" --to "new"
-
-# Check for mojibake
-npm run text:utf8-guard
-
-# Bulk replace is forbidden (causes crashes)
-# ❌ Do not use Claude Code's built-in bulk replace
-
-Details: docs/operations/text-safety-ja.md
 `,
 };
 exports.enTemplates = enTemplates;

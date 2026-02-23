@@ -1,12 +1,8 @@
 ---
 name: line-marketing
-description: |
-  LINEステップメッセージ・リッチメニュー・公式アカウント運用スキル。
-  Use when: (1) user says「LINEステップ」「LINE配信」「リッチメニュー」,
-  (2) user wants LINE marketing automation,
-  (3) user mentions「LINE公式」「LINEシナリオ」.
-  Do NOT use for: メールマガジン（taiyo-style-step-mailを使用）、
-  SNS投稿（sns-marketingを使用）。
+description: LINE marketing automation
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # LINEマーケティングスキル

@@ -2256,7 +2256,7 @@ app.post('/api/payments', async (req, res) => {
 **Example**:
 ```typescript
 // ❌ BAD: Hardcoded API key
-const stripe = new Stripe('sk_live_EXAMPLE_KEY_REPLACE_ME');
+const stripe = new Stripe('sk_live_xxxxxxxxxxxxxxxxxxxxx');
 
 // ❌ BAD: Hardcoded database password in Dockerfile
 ENV DATABASE_URL=postgresql://user:SuperSecret123@db:5432/prod

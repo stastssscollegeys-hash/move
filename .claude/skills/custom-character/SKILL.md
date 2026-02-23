@@ -1,12 +1,8 @@
 ---
 name: custom-character
-description: |
-  既存キャラクター画像を使用した一貫性のあるマーケティング素材制作ガイド。
-  Use when: (1) user says「キャラクター設定」「同じキャラで」「キャラ一貫性」,
-  (2) user wants consistent character across multiple images,
-  (3) user mentions「表情バリエーション」「ポーズ違い」.
-  Do NOT use for: ゼロからのキャラ生成（nanobanana-proを使用）、
-  アニメ動画制作（anime-productionを使用）。
+description: Consistent character art creation
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # カスタムキャラクターガイド

@@ -139,4 +139,73 @@
 
 ---
 
+## 2026-02-09 Mistake: tts-number-reading-1000man
+- **Symptom**: 「1000万円」が「せんまんえん」と読まれた（正しくは「いっせんまんえん」）
+- **Root cause 1**: `text_preprocessor.py` の正規表現 `(\d)?千(万|億|兆)` が漢字「千」しかマッチせず、アラビア数字「1000万」を処理できなかった
+- **Root cause 2**: `text_preprocessor.py` がTTS送信時に呼び出されていなかった（前処理パイプラインが未接続）
+- **Where it happened**: interactive-vsl-v2 の TTS音声生成（Fish Audio API送信前）
+- **Fix**:
+  - `text_preprocessor.py` を修正: `([\d,]+)(万|億|兆)` パターンで1000万/3000万/8000億等を正しく変換
+  - `_number_to_reading()` メソッドを追加: 千(いっせん/さんぜん/はっせん)・百(さんびゃく/ろっぴゃく/はっぴゃく)・十の位を完全対応
+- **Prevention**:
+  - [ ] TTS音声生成前に **必ず** `text_preprocessor.py` で前処理を実行する
+  - [ ] 「1000万」「3000億」等の数字+大単位パターンは前処理結果を目視確認する
+  - [ ] Fish Audio APIにテキストを送信する前に、数字→ひらがな変換が完了していることを検証する
+- **Related constraints**: SKILL.md / CLAUDE.md にTTS前処理の必須ルールを追加済み
+
+---
+
+## 2026-02-08 Mistake: pipeline-shortcut (パイプラインショートカット)
+- **Symptom**: interactive-video-platform スキルで定義されたパイプライン（NanoBanana→agentic-vision→japanese-text-verifier→Fish Audio→Remotion）を無視し、静的 Next.js サイト + macOS say + テキスト過多画像で代替した
+- **Root cause**: skill-mapping.json に interactive-video-platform のマッピングが存在せず、Layer 10（Skill Auto-Select）が発火しなかった。さらに .workflow_state.json が存在しなかったため、7/13のガードが無効化されていた
+- **Where it happened**: interactive-vsl-2026 プロジェクト全体
+- **Fix**: skill-mapping.json に MANDATORY マッピングを追加。mandatory_phases と mandatory_tools で各パイプラインステップを強制
+- **Prevention**:
+  - [ ] 新スキル作成時は必ず skill-mapping.json にマッピングを追加
+  - [ ] mandatory_phases でパイプライン順序を定義
+  - [ ] mandatory_tools で使用すべきツールと禁止ツールを明記
+
+---
+
+## 2026-02-08 Mistake: wrong-tts-engine (間違ったTTSエンジン)
+- **Symptom**: Fish Audio が指定されていたのに macOS `say -v Kyoko` コマンドでTTS生成した。品質が商用レベルに達しない
+- **Root cause**: workflow-fidelity-guard.js の DANGEROUS_BASH_PATTERNS に `say` コマンドが含まれておらず、検出できなかった。branch-structure.ts に Fish Audio の voiceId が定義されていたが、参照されなかった
+- **Where it happened**: generate-tts.sh（macOS say ベースのTTSスクリプト）
+- **Fix**: DANGEROUS_BASH_PATTERNS に `/\bsay\s+-v\b/` パターンを追加。WARN_BASH_PATTERNS で say コマンド使用時に Fish Audio を推奨する警告を追加
+- **Prevention**:
+  - [ ] TTS生成時は必ずスキル定義のTTSエンジンを確認
+  - [ ] macOS say コマンドはプロトタイプ以外では使用禁止
+  - [ ] skill-mapping.json の mandatory_tools.tts_forbidden で禁止ツールを明記
+
+---
+
+## 2026-02-08 Mistake: text-heavy-images (テキスト過多のAI生成画像)
+- **Symptom**: AI生成画像にテキストが大量に含まれ、日本語が文字化け・破損していた。品質検証パイプライン（agentic-vision, japanese-text-verifier）が一切実行されなかった
+- **Root cause**: agent-enforcement-guard.js の COMPLEX_TASK_PATTERNS に「画像生成」「品質検証」「TTS」等のマルチメディアタスクパターンがなく、専門エージェント使用を強制できなかった
+- **Where it happened**: 25シーン分のAI画像生成（NanoBanana Pro）
+- **Fix**: COMPLEX_TASK_PATTERNS にマルチメディア関連パターン（動画生成、VSL、TTS、画像一括生成、品質検証、OCR等）を追加
+- **Prevention**:
+  - [ ] AI画像生成後は必ず agentic-vision で品質スコアリング
+  - [ ] 日本語テキストを含む画像は japanese-text-verifier で検証
+  - [ ] 品質検証をスキップした場合はブロック
+
+---
+
+### Pattern 5: マルチメディアパイプラインの省略（NEW）
+```
+ユーザー: 「インタラクティブVSL動画を生成して」
+❌ 間違い: 静的HTMLサイトで代替、macOS sayでTTS、品質検証なし
+✅ 正解: interactive-video-platform スキルのフルパイプライン実行
+  2a: NanoBanana Pro → 2b: agentic-vision → 2c: japanese-text-verifier → 2d: Fish Audio → 2e: Remotion
+```
+
+### Pattern 6: 低品質ツールでの代替（NEW）
+```
+状況: スキル定義で Fish Audio が指定されている
+❌ 間違い: macOS say -v Kyoko で代替（「手軽だから」）
+✅ 正解: スキル定義の mandatory_tools を確認し、指定されたツールを使用
+```
+
+---
+
 *このファイルは違反検出時に自動更新されます*

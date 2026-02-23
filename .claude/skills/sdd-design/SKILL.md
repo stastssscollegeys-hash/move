@@ -1,6 +1,6 @@
 ---
 name: sdd-design
-description: C4モデルに基づく設計ドキュメント(design.md)を生成。Context/Container/Component図をMermaidで作成し、API契約・データモデル・セキュリティ設計を含む。
+description: Generate C4 design documents
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

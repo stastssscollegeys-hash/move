@@ -1,3 +1,11 @@
+---
+name: opencode-setup
+description: OpenCode/OMO setup guide
+allowed-tools: Read, Bash, Grep, Glob
+model: haiku
+disable-model-invocation: true
+---
+
 # OpenCode/OMO セットアップ確認と導入ガイド
 
 opt-in設計のセットアップ支援スキルです。

@@ -1,6 +1,6 @@
 ---
 name: sdd-adr
-description: MADR形式のArchitecture Decision Record(ADR)を生成。技術選択の根拠・代替案・トレードオフを記録する。
+description: Generate Architecture Decision Records
 argument-hint: "[title] [spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep
