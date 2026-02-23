@@ -1,0 +1,32 @@
+name: Push Notification
+
+on:
+  push:
+    branches: ['**']
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send push notification email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "[GitHub Push] ${{ github.repository }} に push がありました"
+          to: ${{ secrets.GMAIL_USER }}
+          from: GitHub Push Alert <${{ secrets.GMAIL_USER }}>
+          body: |
+            リポジトリ: ${{ github.repository }}
+            ブランチ: ${{ github.ref_name }}
+            プッシュした人: ${{ github.actor }}
+            日時: ${{ github.event.head_commit.timestamp }}
+            コミットメッセージ: ${{ github.event.head_commit.message }}
+
+            詳細: ${{ github.event.compare }}
+
+            ---
+            ⚠️ 身に覚えのないpushの場合は直ちに確認してください
