@@ -8,11 +8,20 @@ let searchBuzzRanking = [];  // BuzzResult[] from search
 let isComposing = false;     // IME composition state
 
 // --- Toast Notification System ---
-function showToast(message, type = 'info', duration = 4000) {
+function showToast(message, type = 'info', duration) {
+  // Error messages stay longer (10s), others default to 4s
+  if (!duration) duration = type === 'error' ? 10000 : 4000;
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
+  // Click to dismiss
+  toast.style.cursor = 'pointer';
+  toast.addEventListener('click', () => {
+    toast.classList.remove('toast-show');
+    toast.classList.add('toast-hide');
+    setTimeout(() => toast.remove(), 300);
+  });
   container.appendChild(toast);
 
   // Trigger animation
