@@ -174,14 +174,13 @@
 
         <p class="hint" style="margin-bottom:8px">▼ 絞り込み条件</p>
         <div class="filters">
-          <div class="filter-group">
-            <label>動画の長さ</label>
-            <select id="filter-length">
-              <option value="all">すべて</option>
-              <option value="short">ショート(〜4分)</option>
-              <option value="medium">ミディアム(4〜20分)</option>
-              <option value="long">ロング(20分〜)</option>
-            </select>
+          <div class="filter-group filter-length-group">
+            <label>動画の長さ（複数選択可）</label>
+            <div class="length-checkboxes">
+              <label class="length-check"><input type="checkbox" name="filter-length" value="short"> ショート(〜4分)</label>
+              <label class="length-check"><input type="checkbox" name="filter-length" value="medium"> ミディアム(4〜20分)</label>
+              <label class="length-check"><input type="checkbox" name="filter-length" value="long"> ロング(20分〜)</label>
+            </div>
           </div>
           <div class="filter-group filter-period-group">
             <label>投稿期間（複数選択で短い期間を優先表示）</label>

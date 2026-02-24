@@ -159,6 +159,12 @@ async function doSearch() {
     return;
   }
 
+  // Length checkboxes: get checked values
+  const lengthChecks = Array.from(document.querySelectorAll('input[name="filter-length"]:checked')).map(cb => cb.value);
+  // If 1 selected → send to API directly. If 0 or 3 → 'all'. If 2 → 'all' + frontend filter
+  let lengthCategory = 'all';
+  if (lengthChecks.length === 1) lengthCategory = lengthChecks[0];
+
   // Period checkboxes: get checked values
   const periodChecks = Array.from(document.querySelectorAll('input[name="filter-period"]:checked')).map(cb => cb.value);
 
@@ -178,7 +184,7 @@ async function doSearch() {
 
   const filters = {
     genre: selectedGenres.length > 0 ? selectedGenres[0] : undefined,
-    lengthCategory: document.getElementById('filter-length').value,
+    lengthCategory: lengthCategory,
     uploadPeriod: uploadPeriod,
     regionCode: document.getElementById('filter-region').value
   };
@@ -202,6 +208,16 @@ async function doSearch() {
     if (!data.success) {
       alert('エラー: ' + (data.error || '不明なエラー'));
       return;
+    }
+
+    // Filter by duration if 2 length categories selected (API got 'all', filter here)
+    if (lengthChecks.length === 2 && data.data.buzzRanking) {
+      data.data.buzzRanking = data.data.buzzRanking.filter(r => {
+        const secs = parseDuration(r.video.duration);
+        if (secs === null) return true; // keep if duration unknown
+        return lengthChecks.some(cat => matchesDurationCategory(secs, cat));
+      });
+      data.data.videoCount = data.data.buzzRanking.length;
     }
 
     // Apply period priority sorting if multiple periods checked
@@ -546,6 +562,20 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function parseDuration(iso) {
+  if (!iso) return null;
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return null;
+  return (parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseInt(m[3] || 0);
+}
+
+function matchesDurationCategory(secs, cat) {
+  if (cat === 'short') return secs <= 240;
+  if (cat === 'medium') return secs > 240 && secs <= 1200;
+  if (cat === 'long') return secs > 1200;
+  return true;
 }
 
 function formatUploadDate(dateStr) {
