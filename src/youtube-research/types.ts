@@ -60,6 +60,7 @@ export interface AudienceProfile {
   viewingMotivation: string[];
   purchaseBehavior: string[];
   relatedMedia: string[];
+  contentAngle?: string;
 }
 
 export interface KeywordEntry {

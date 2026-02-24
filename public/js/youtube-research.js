@@ -7,6 +7,54 @@ let searchResultVideos = []; // VideoMeta[] from search
 let searchBuzzRanking = [];  // BuzzResult[] from search
 let isComposing = false;     // IME composition state
 
+// --- Toast Notification System ---
+function showToast(message, type = 'info', duration = 4000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  // Trigger animation
+  requestAnimationFrame(() => toast.classList.add('toast-show'));
+
+  setTimeout(() => {
+    toast.classList.remove('toast-show');
+    toast.classList.add('toast-hide');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// --- Common API Call Helper ---
+async function apiCall(endpoint, body, timeoutMs = 60000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      const msg = errorData?.error || `サーバーエラー (${res.status})`;
+      throw new Error(msg);
+    }
+
+    return await res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('リクエストがタイムアウトしました（60秒）。もう一度お試しください。');
+    }
+    throw err;
+  }
+}
+
 // --- API Key Management ---
 function getApiKeys() {
   return {
@@ -21,7 +69,7 @@ function saveApiKeys() {
   if (ytKey) localStorage.setItem('yt-research-youtube-key', ytKey);
   if (anKey) localStorage.setItem('yt-research-anthropic-key', anKey);
   updateApiKeyStatus();
-  alert('キーを保存しました');
+  showToast('キーを保存しました', 'success');
 }
 
 function updateApiKeyStatus() {
@@ -55,6 +103,19 @@ function showLoading(text, sub) {
 
 function hideLoading() {
   document.getElementById('loading').classList.add('hidden');
+}
+
+// --- Button state helpers ---
+function setSearchButtonLoading(loading) {
+  const btn = document.getElementById('btn-search');
+  if (loading) {
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = '検索中...';
+  } else {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.originalText || '検索';
+  }
 }
 
 // --- Result Sub-tabs ---
@@ -127,12 +188,11 @@ async function doSearch() {
   const selectedGenres = Array.from(document.querySelectorAll('input[name="filter-genre"]:checked')).map(cb => cb.value);
 
   if (!keyword && selectedGenres.length === 0) {
-    alert('検索キーワードまたはジャンルを選択してください');
+    showToast('検索キーワードまたはジャンルを選択してください', 'warning');
     return;
   }
 
-  // 各ジャンルの関連キーワード（YouTube OR検索用）
-  // YouTube APIは | をOR演算子として認識する
+  // Genre keyword mapping for YouTube OR search
   const genreKeywords = {
     education: '教育|学習|勉強|講座|解説|授業|スキルアップ|資格',
     tech: 'テクノロジー|テック|プログラミング|AI|エンジニア|IT|開発|ChatGPT|アプリ',
@@ -153,19 +213,37 @@ async function doSearch() {
     mental: 'メンタルヘルス|HSP|自己肯定感|うつ|不安|心理学|カウンセリング|アダルトチルドレン|生きづらさ|自分を変える'
   };
 
+  // Genre name mapping for display
+  const genreNames = {
+    education: '教育・学習', tech: 'テクノロジー', business: 'ビジネス・副業',
+    lifestyle: 'ライフスタイル', entertainment: 'エンタメ', cooking: '料理・グルメ',
+    beauty: '美容・コスメ', fitness: 'フィットネス・健康', gaming: 'ゲーム',
+    music: '音楽', travel: '旅行・アウトドア', pets: 'ペット・動物',
+    parenting: '子育て・育児', spiritual: 'スピリチュアル', fortune: '占い・鑑定',
+    healing: 'ヒーリング・瞑想', mental: 'メンタルヘルス'
+  };
+
   let query = keyword;
+  let displayTitle = keyword; // For display in results header
+
   if (selectedGenres.length > 0) {
     if (selectedGenres.length === 1) {
-      // 1ジャンル: OR検索でそのジャンルを幅広く検索
+      // 1 genre: Full OR search for that genre
       const orTerms = genreKeywords[selectedGenres[0]];
       query = keyword ? keyword + ' ' + orTerms : orTerms;
+      displayTitle = keyword
+        ? keyword + '（' + genreNames[selectedGenres[0]] + '）'
+        : genreNames[selectedGenres[0]];
     } else {
-      // 複数ジャンル: 各ジャンルの代表キーワード（最初の語）をOR結合
-      const primaryWords = selectedGenres.map(g => {
+      // Multiple genres: Top 3 keywords from each genre joined with OR
+      const multiGenreTerms = selectedGenres.map(g => {
         const kw = genreKeywords[g];
-        return kw ? kw.split('|')[0] : null;
+        return kw ? kw.split('|').slice(0, 3).join('|') : null;
       }).filter(Boolean).join('|');
-      query = keyword ? keyword + ' ' + primaryWords : primaryWords;
+      query = keyword ? keyword + ' ' + multiGenreTerms : multiGenreTerms;
+      displayTitle = keyword
+        ? keyword + '（' + selectedGenres.map(g => genreNames[g]).join(' + ') + '）'
+        : selectedGenres.map(g => genreNames[g]).join(' + ');
     }
   }
 
@@ -173,7 +251,7 @@ async function doSearch() {
   if (!ytKey) ytKey = getApiKeys().youtubeApiKey;
 
   if (!ytKey) {
-    alert('YouTube Data API キーを設定してください');
+    showToast('YouTube Data API キーを設定してください', 'warning');
     document.getElementById('api-key-toggle').open = true;
     document.getElementById('youtube-api-key').focus();
     return;
@@ -181,7 +259,6 @@ async function doSearch() {
 
   // Length checkboxes: get checked values
   const lengthChecks = Array.from(document.querySelectorAll('input[name="filter-length"]:checked')).map(cb => cb.value);
-  // If 1 selected → send to API directly. If 0 or 3 → 'all'. If 2 → 'all' + frontend filter
   let lengthCategory = 'all';
   if (lengthChecks.length === 1) lengthCategory = lengthChecks[0];
 
@@ -197,9 +274,15 @@ async function doSearch() {
   if (periodChecks.length > 0) {
     const sorted = periodChecks.sort((a, b) => periodOrder.indexOf(a) - periodOrder.indexOf(b));
     const widest = sorted[sorted.length - 1];
-    // Map to backend-compatible values
+    // Map to backend-compatible values (some periods don't have exact API equivalents)
     const backendMap = { week: 'week', '2weeks': 'month', month: 'month', '3months': '3months', '6months': 'year', year: 'year' };
     uploadPeriod = backendMap[widest] || 'all';
+
+    // Notify user if period was rounded
+    if (widest === '2weeks' || widest === '6months') {
+      const roundedLabel = widest === '2weeks' ? '1ヶ月以内' : '1年以内';
+      showToast(`「${widest === '2weeks' ? '2週間以内' : '半年以内'}」はYouTube APIの仕様上「${roundedLabel}」に丸められます`, 'info', 5000);
+    }
   }
 
   const filters = {
@@ -210,6 +293,7 @@ async function doSearch() {
   };
   const maxResults = parseInt(document.getElementById('filter-max-results').value, 10);
 
+  setSearchButtonLoading(true);
   showLoading('YouTubeを検索中...', 'YouTube Data APIで動画を取得し、バズ比率を計算しています');
 
   // Hide previous results
@@ -217,16 +301,12 @@ async function doSearch() {
   document.getElementById('analysis-results').classList.add('hidden');
 
   try {
-    const res = await fetch(API_BASE + '/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, filters, maxResults, youtubeApiKey: ytKey, anthropicApiKey: '' })
-    });
-    const data = await res.json();
+    const data = await apiCall('/search', { query, filters, maxResults, youtubeApiKey: ytKey, anthropicApiKey: '' });
     hideLoading();
+    setSearchButtonLoading(false);
 
     if (!data.success) {
-      alert('エラー: ' + (data.error || '不明なエラー'));
+      showToast(data.error || '不明なエラー', 'error');
       return;
     }
 
@@ -234,7 +314,7 @@ async function doSearch() {
     if (lengthChecks.length === 2 && data.data.buzzRanking) {
       data.data.buzzRanking = data.data.buzzRanking.filter(r => {
         const secs = parseDuration(r.video.duration);
-        if (secs === null) return true; // keep if duration unknown
+        if (secs === null) return true;
         return lengthChecks.some(cat => matchesDurationCategory(secs, cat));
       });
       data.data.videoCount = data.data.buzzRanking.length;
@@ -249,7 +329,6 @@ async function doSearch() {
         const aDays = aDate ? Math.floor((now - aDate) / (1000 * 60 * 60 * 24)) : 99999;
         const bDays = bDate ? Math.floor((now - bDate) / (1000 * 60 * 60 * 24)) : 99999;
 
-        // Find which period group each video falls into (narrowest matching)
         const sortedPeriods = periodChecks.sort((x, y) => periodOrder.indexOf(x) - periodOrder.indexOf(y));
         let aGroup = sortedPeriods.length;
         let bGroup = sortedPeriods.length;
@@ -259,7 +338,6 @@ async function doSearch() {
           if (bGroup === sortedPeriods.length && bDays <= days) bGroup = i;
         }
 
-        // Sort by group first (narrower period = higher priority), then by buzz ratio within group
         if (aGroup !== bGroup) return aGroup - bGroup;
         const aBuzz = a.buzzRatio || 0;
         const bBuzz = b.buzzRatio || 0;
@@ -269,18 +347,19 @@ async function doSearch() {
 
     searchResultVideos = data.data.videos;
     searchBuzzRanking = data.data.buzzRanking;
-    renderSearchResults(data.data, query);
+    renderSearchResults(data.data, displayTitle);
   } catch (err) {
     hideLoading();
-    alert('通信エラー: ' + err.message);
+    setSearchButtonLoading(false);
+    showToast('通信エラー: ' + err.message, 'error');
   }
 }
 
-function renderSearchResults(data, query) {
+function renderSearchResults(data, displayTitle) {
   const container = document.getElementById('search-results');
   container.classList.remove('hidden');
 
-  document.getElementById('result-query-title').textContent = '「' + query + '」の検索結果';
+  document.getElementById('result-query-title').textContent = '「' + displayTitle + '」の検索結果';
   document.getElementById('result-video-count').textContent = data.videoCount + '件';
 
   const buzz = data.buzzRanking || [];
@@ -316,43 +395,47 @@ document.getElementById('btn-trend-selected').addEventListener('click', doTrendC
 
 async function doTrendCheck() {
   const selected = getSelectedVideos();
-  if (selected.length === 0) { alert('動画を選択してください'); return; }
+  if (selected.length === 0) { showToast('動画を選択してください', 'warning'); return; }
 
   let anKey = document.getElementById('anthropic-api-key').value.trim();
   if (!anKey) anKey = getApiKeys().anthropicApiKey;
 
   if (!anKey) {
-    alert('トレンド判定にはAnthropic APIキーが必要です');
+    showToast('トレンド判定にはAnthropic APIキーが必要です', 'warning');
     document.getElementById('api-key-toggle').open = true;
     document.getElementById('anthropic-api-key').focus();
     return;
   }
 
-  // Send video titles directly - Claude will extract the core "企画" from each
+  // Limit to 10 titles for trend check
   const titles = selected.slice(0, 10).map(v => v.title).filter(t => t && t.length > 0);
 
-  if (titles.length === 0) { alert('動画タイトルが取得できませんでした'); return; }
+  if (titles.length === 0) { showToast('動画タイトルが取得できませんでした', 'error'); return; }
 
-  showLoading('企画トレンド判定中...', selected.length + '件の動画の企画を分析しています（30秒〜1分）');
+  // Notify if selection was capped
+  if (selected.length > 10) {
+    showToast('トレンド判定は最大10本までです。先頭10本を分析します。', 'info', 5000);
+  }
+
+  const btnTrend = document.getElementById('btn-trend-selected');
+  btnTrend.disabled = true;
+  showLoading('企画トレンド判定中...', titles.length + '件の動画の企画を分析しています（30秒〜1分）');
 
   try {
-    const res = await fetch(API_BASE + '/trend', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titles, anthropicApiKey: anKey })
-    });
-    const data = await res.json();
+    const data = await apiCall('/trend', { titles, anthropicApiKey: anKey }, 120000);
     hideLoading();
+    btnTrend.disabled = false;
 
     if (!data.success) {
-      alert('エラー: ' + (data.error || '不明なエラー'));
+      showToast(data.error || '不明なエラー', 'error');
       return;
     }
 
     renderTrendResults(data.data);
   } catch (err) {
     hideLoading();
-    alert('通信エラー: ' + err.message);
+    btnTrend.disabled = false;
+    showToast('通信エラー: ' + err.message, 'error');
   }
 }
 
@@ -398,41 +481,40 @@ function renderTrendResults(data) {
 // Selected videos bulk analyze
 document.getElementById('btn-analyze-selected').addEventListener('click', async () => {
   const selected = getSelectedVideos();
-  if (selected.length === 0) { alert('動画を選択してください'); return; }
+  if (selected.length === 0) { showToast('動画を選択してください', 'warning'); return; }
 
   let anKey = document.getElementById('anthropic-api-key').value.trim();
   if (!anKey) anKey = getApiKeys().anthropicApiKey;
 
   if (!anKey) {
-    alert('ターゲット＆キーワード分析にはAnthropic APIキーが必要です');
+    showToast('ターゲット＆キーワード分析にはAnthropic APIキーが必要です', 'warning');
     document.getElementById('api-key-toggle').open = true;
     document.getElementById('anthropic-api-key').focus();
     return;
   }
 
+  const btnAnalyze = document.getElementById('btn-analyze-selected');
+  btnAnalyze.disabled = true;
   showLoading(
     selected.length + '件の動画を分析中...',
     'タイトル・概要欄・タグからターゲット層とキーワードを抽出しています（30秒〜1分）'
   );
 
   try {
-    const res = await fetch(API_BASE + '/analyze-selected', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videos: selected, anthropicApiKey: anKey })
-    });
-    const data = await res.json();
+    const data = await apiCall('/analyze-selected', { videos: selected, anthropicApiKey: anKey }, 120000);
     hideLoading();
+    btnAnalyze.disabled = false;
 
     if (!data.success) {
-      alert('エラー: ' + (data.error || '不明なエラー'));
+      showToast(data.error || '不明なエラー', 'error');
       return;
     }
 
     renderAnalysisResults(data.data, selected.length + '件の動画');
   } catch (err) {
     hideLoading();
-    alert('通信エラー: ' + err.message);
+    btnAnalyze.disabled = false;
+    showToast('通信エラー: ' + err.message, 'error');
   }
 });
 
@@ -449,6 +531,16 @@ function renderAnalysisResults(data, videoTitle) {
   // Target Audience
   const audience = data.audience;
   if (audience) {
+    let contentAngleHtml = '';
+    if (audience.contentAngle) {
+      contentAngleHtml = `
+        <div class="card">
+          <h3>コンテンツの切り口提案</h3>
+          <p style="color:var(--text);font-size:14px">${escapeHtml(audience.contentAngle)}</p>
+        </div>
+      `;
+    }
+
     document.getElementById('result-target').innerHTML = `
       <div class="card">
         <h3>デモグラフィック</h3>
@@ -474,6 +566,7 @@ function renderAnalysisResults(data, videoTitle) {
         <h3>購買行動（= 売れる商品・サービスのヒント）</h3>
         <ul>${(audience.purchaseBehavior || []).map(b => '<li>' + escapeHtml(b) + '</li>').join('')}</ul>
       </div>
+      ${contentAngleHtml}
     `;
   }
 
@@ -628,7 +721,7 @@ function formatElapsed(dateStr) {
 function copyReport() {
   const el = document.querySelector('.full-report');
   if (el) {
-    navigator.clipboard.writeText(el.textContent).then(() => alert('コピーしました'));
+    navigator.clipboard.writeText(el.textContent).then(() => showToast('レポートをコピーしました', 'success'));
   }
 }
 

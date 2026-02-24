@@ -4,6 +4,11 @@ nul
 .env.*
 .DS_Store
 
+# TypeScript build artifacts in src (prevent committing compiled JS)
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+
 # 成果物フォルダ（同期しない）
 output/
 

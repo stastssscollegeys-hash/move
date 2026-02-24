@@ -34,14 +34,27 @@ module.exports = {
         '<rootDir>/src/**/*.test.ts',
         '<rootDir>/tests/unit/**/*.test.ts',
       ],
-      // Exclude Phase 3 workflow tests (run in separate project)
+      // Exclude Phase 3 workflow tests and youtube-research tests (separate projects)
       testPathIgnorePatterns: [
         '/node_modules/',
-        '<rootDir>/tests/unit/workflow-phase3-.*\\.test\\.ts$'
+        '<rootDir>/tests/unit/workflow-phase3-.*\\.test\\.ts$',
+        '<rootDir>/tests/unit/youtube-research.*\\.test\\.ts$'
       ],
       testEnvironment: 'node',
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
+      },
+    },
+    {
+      displayName: 'youtube-research',
+      preset: 'ts-jest',
+      testMatch: [
+        '<rootDir>/tests/unit/youtube-research*.test.ts',
+        '<rootDir>/tests/integration/youtube-research*.test.ts',
+      ],
+      testEnvironment: 'node',
+      transform: {
+        '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.yt.json' }],
       },
     },
     {

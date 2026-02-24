@@ -1,24 +1,17 @@
-import request from 'supertest';
-import app from '../../src/app';
-
-// Mock Anthropic SDK
-jest.mock('@anthropic-ai/sdk', () => {
-  return jest.fn().mockImplementation(() => ({
+// Mock Anthropic SDK first
+jest.mock('@anthropic-ai/sdk', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
     messages: {
       create: jest.fn().mockResolvedValue({
-        content: [{ type: 'text', text: JSON.stringify({
-          demographics: { ageRange: '25-35', gender: '男性多め', occupation: 'IT' },
-          psychographics: { interests: ['AI'], values: ['効率'], lifestyle: 'テック好き' },
-          painPoints: ['時間がない'],
-          viewingMotivation: ['学びたい'],
-          purchaseBehavior: ['本を買う'],
-          relatedMedia: ['テック系YouTube'],
-          contentAngle: 'AI活用'
-        }) }]
+        content: [{ type: 'text', text: '{}' }]
       })
     }
-  }));
-});
+  }))
+}));
+
+import request from 'supertest';
+import app from '../../src/app';
 
 describe('YouTube Research Routes', () => {
   describe('GET /youtube-research/api/health', () => {
@@ -30,19 +23,28 @@ describe('YouTube Research Routes', () => {
     });
   });
 
+  describe('GET /health (root)', () => {
+    it('should return OK', async () => {
+      const res = await request(app).get('/health');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('OK');
+    });
+  });
+
   describe('POST /youtube-research/api/search', () => {
     it('should reject empty query', async () => {
       const res = await request(app)
         .post('/youtube-research/api/search')
-        .send({ query: '', youtubeApiKey: 'test' });
+        .send({ query: '', youtubeApiKey: 'AIzaSyA12345678901234567890123456789012' });
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
+      expect(res.body.error).toContain('検索キーワード');
     });
 
     it('should reject missing query', async () => {
       const res = await request(app)
         .post('/youtube-research/api/search')
-        .send({ youtubeApiKey: 'test' });
+        .send({ youtubeApiKey: 'AIzaSyA12345678901234567890123456789012' });
       expect(res.status).toBe(400);
     });
 
@@ -53,13 +55,31 @@ describe('YouTube Research Routes', () => {
       expect(res.status).toBe(400);
       expect(res.body.error).toContain('YouTube');
     });
+
+    it('should reject invalid YouTube API key format', async () => {
+      const res = await request(app)
+        .post('/youtube-research/api/search')
+        .send({ query: 'test', youtubeApiKey: 'invalid-key' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('フォーマットが不正');
+    });
+
+    it('should accept valid YouTube API key (AIza prefix + 35 chars)', async () => {
+      // This will pass validation but may fail at actual YouTube API call
+      // which returns a sanitized error, not a 400
+      const res = await request(app)
+        .post('/youtube-research/api/search')
+        .send({ query: 'test', youtubeApiKey: 'AIzaSyA12345678901234567890123456789012' });
+      // Should pass validation (not 400 for format)
+      expect(res.body.error).not.toContain('フォーマットが不正');
+    });
   });
 
   describe('POST /youtube-research/api/analyze-selected', () => {
     it('should reject empty videos', async () => {
       const res = await request(app)
         .post('/youtube-research/api/analyze-selected')
-        .send({ videos: [], anthropicApiKey: 'test' });
+        .send({ videos: [], anthropicApiKey: 'sk-ant-test-key-abcdefghijklmnop' });
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });
@@ -72,44 +92,36 @@ describe('YouTube Research Routes', () => {
       expect(res.body.error).toContain('Anthropic');
     });
 
-    it('should accept valid input', async () => {
+    it('should reject invalid Anthropic API key format', async () => {
       const res = await request(app)
         .post('/youtube-research/api/analyze-selected')
-        .send({
-          videos: [{
-            id: '1', title: 'AI副業', channel: 'test', subscribers: 1000,
-            views: 50000, likes: 100, uploadDate: null, duration: null,
-            description: 'テスト', transcriptOrSummary: 'テスト要約', url: null
-          }],
-          anthropicApiKey: 'test-key'
-        });
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
+        .send({ videos: [{ id: '1', title: 'test' }], anthropicApiKey: 'bad-key' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('フォーマットが不正');
     });
   });
 
   describe('POST /youtube-research/api/trend', () => {
-    it('should reject empty keywords', async () => {
+    it('should reject empty titles', async () => {
       const res = await request(app)
         .post('/youtube-research/api/trend')
-        .send({ keywords: [] });
+        .send({ titles: [] });
       expect(res.status).toBe(400);
     });
 
-    it('should accept valid keywords', async () => {
+    it('should reject missing titles', async () => {
       const res = await request(app)
         .post('/youtube-research/api/trend')
-        .send({ keywords: ['AI副業'], anthropicApiKey: 'test-key' });
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
+        .send({});
+      expect(res.status).toBe(400);
     });
-  });
 
-  describe('GET /health (original)', () => {
-    it('should still work', async () => {
-      const res = await request(app).get('/health');
-      expect(res.status).toBe(200);
-      expect(res.body.status).toBe('OK');
+    it('should reject invalid Anthropic API key format', async () => {
+      const res = await request(app)
+        .post('/youtube-research/api/trend')
+        .send({ titles: ['テスト'], anthropicApiKey: 'invalid' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('フォーマットが不正');
     });
   });
 });

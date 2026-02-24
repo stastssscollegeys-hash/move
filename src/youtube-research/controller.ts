@@ -2,6 +2,21 @@ import { Request, Response } from 'express';
 import { YouTubeResearchService } from './service';
 import { SearchRequest, TrendRequest, VideoMeta } from './types';
 
+// Validation helpers
+function isValidYouTubeApiKey(key: string): boolean {
+  return /^AIza[0-9A-Za-z_-]{35}$/.test(key);
+}
+
+function isValidAnthropicApiKey(key: string): boolean {
+  return /^sk-ant-[0-9A-Za-z_-]{20,}$/.test(key);
+}
+
+function clampMaxResults(value: unknown): number {
+  const num = typeof value === 'number' ? value : parseInt(String(value), 10);
+  if (isNaN(num) || num < 1) return 20;
+  return Math.min(num, 50);
+}
+
 // Step 1: YouTube検索 + バズ比率（高速・Claude不要）
 export async function handleSearch(req: Request, res: Response): Promise<void> {
   try {
@@ -15,20 +30,26 @@ export async function handleSearch(req: Request, res: Response): Promise<void> {
       res.status(400).json({ success: false, error: 'YouTube APIキーを入力してください' });
       return;
     }
+    if (!isValidYouTubeApiKey(body.youtubeApiKey)) {
+      res.status(400).json({ success: false, error: 'YouTube APIキーのフォーマットが不正です' });
+      return;
+    }
+
+    const maxResults = clampMaxResults(body.maxResults);
 
     const service = new YouTubeResearchService();
     const result = await service.searchWithBuzz({
       query: body.query.trim(),
       filters: body.filters || { lengthCategory: 'all', uploadPeriod: 'all' },
-      maxResults: body.maxResults || 20,
+      maxResults,
       youtubeApiKey: body.youtubeApiKey,
       anthropicApiKey: body.anthropicApiKey,
     });
 
     res.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    res.status(500).json({ success: false, error: message });
+    console.error('[handleSearch] Error:', err);
+    res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
   }
 }
 
@@ -45,13 +66,17 @@ export async function handleAnalyzeSelected(req: Request, res: Response): Promis
       res.status(400).json({ success: false, error: 'Anthropic APIキーを入力してください' });
       return;
     }
+    if (!isValidAnthropicApiKey(body.anthropicApiKey)) {
+      res.status(400).json({ success: false, error: 'Anthropic APIキーのフォーマットが不正です' });
+      return;
+    }
 
     const service = new YouTubeResearchService(body.anthropicApiKey);
     const result = await service.analyzeSelected(body.videos);
     res.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    res.status(500).json({ success: false, error: message });
+    console.error('[handleAnalyzeSelected] Error:', err);
+    res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
   }
 }
 
@@ -65,11 +90,16 @@ export async function handleTrend(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    if (body.anthropicApiKey && !isValidAnthropicApiKey(body.anthropicApiKey)) {
+      res.status(400).json({ success: false, error: 'Anthropic APIキーのフォーマットが不正です' });
+      return;
+    }
+
     const service = new YouTubeResearchService(body.anthropicApiKey);
     const result = await service.checkTrend(body.titles.slice(0, 10));
     res.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    res.status(500).json({ success: false, error: message });
+    console.error('[handleTrend] Error:', err);
+    res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
   }
 }

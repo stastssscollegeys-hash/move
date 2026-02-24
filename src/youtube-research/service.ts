@@ -14,11 +14,56 @@ import {
   buildRecommendationsPrompt
 } from './prompts';
 
+// Region to language mapping (shared across methods)
+const REGION_LANG_MAP: Record<string, string> = {
+  JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
+  GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
+};
+
+// Region to script regex mapping (for post-filtering)
+const REGION_SCRIPT_MAP: Record<string, RegExp> = {
+  JP: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/,
+  KR: /[\uAC00-\uD7AF\u1100-\u11FF]/,
+  TW: /[\u4E00-\u9FFF]/,
+  CN: /[\u4E00-\u9FFF]/,
+};
+
+/**
+ * Calculate buzz ratio and level for a single video.
+ * Centralized logic used by both searchWithBuzz() and detectBuzz().
+ */
+export function calculateBuzzForVideo(video: VideoMeta): BuzzResult {
+  let buzzRatio: number | null = null;
+  let buzzLevel: BuzzResult['buzzLevel'] = 'unknown';
+
+  if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
+    buzzRatio = video.views / video.subscribers;
+    if (buzzRatio >= 10) buzzLevel = 'super-buzz';
+    else if (buzzRatio >= 5) buzzLevel = 'buzz';
+    else if (buzzRatio >= 2) buzzLevel = 'good';
+    else if (buzzRatio >= 1) buzzLevel = 'average';
+    else buzzLevel = 'low';
+  }
+
+  return { video, buzzRatio, buzzLevel };
+}
+
+/** Sort buzz results descending (unknowns at end) */
+function sortBuzzRanking(ranking: BuzzResult[]): BuzzResult[] {
+  return ranking.sort((a, b) => {
+    if (a.buzzRatio === null) return 1;
+    if (b.buzzRatio === null) return -1;
+    return b.buzzRatio - a.buzzRatio;
+  });
+}
+
 export class YouTubeResearchService {
   private client: Anthropic | null = null;
-  private model = 'claude-sonnet-4-5-20250929';
+  private model: string;
 
   constructor(anthropicApiKey?: string) {
+    this.model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929';
+
     if (anthropicApiKey) {
       this.client = new Anthropic({ apiKey: anthropicApiKey });
     } else if (process.env.ANTHROPIC_API_KEY) {
@@ -47,12 +92,7 @@ export class YouTubeResearchService {
     // Region + language filter
     if (filters.regionCode && filters.regionCode !== 'all') {
       searchParams.set('regionCode', filters.regionCode);
-      // Map region to primary language for relevance filtering
-      const regionLangMap: Record<string, string> = {
-        JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
-        GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
-      };
-      const lang = regionLangMap[filters.regionCode];
+      const lang = REGION_LANG_MAP[filters.regionCode];
       if (lang) searchParams.set('relevanceLanguage', lang);
     }
 
@@ -69,8 +109,13 @@ export class YouTubeResearchService {
 
     const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
     if (!searchRes.ok) {
-      const err = await searchRes.text();
-      throw new Error(`YouTube Search API error: ${searchRes.status} ${err}`);
+      console.error(`[searchYouTube] YouTube Search API error: ${searchRes.status}`);
+      if (searchRes.status === 403) {
+        throw new Error('YouTube APIキーのクォータが上限に達したか、キーが無効です');
+      } else if (searchRes.status === 400) {
+        throw new Error('YouTube API リクエストが不正です。検索条件を確認してください');
+      }
+      throw new Error(`YouTube APIエラーが発生しました（ステータス: ${searchRes.status}）`);
     }
     const searchData: any = await searchRes.json();
     const videoIds = (searchData.items || []).map((item: any) => item.id.videoId).filter(Boolean);
@@ -85,7 +130,10 @@ export class YouTubeResearchService {
     });
 
     const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?${detailParams}`);
-    if (!detailRes.ok) throw new Error(`YouTube Videos API error: ${detailRes.status}`);
+    if (!detailRes.ok) {
+      console.error(`[searchYouTube] YouTube Videos API error: ${detailRes.status}`);
+      throw new Error(`YouTube APIエラーが発生しました（ステータス: ${detailRes.status}）`);
+    }
     const detailData: any = await detailRes.json();
 
     // Step 3: Get channel subscriber counts
@@ -131,20 +179,9 @@ export class YouTubeResearchService {
 
     // Step 5: Post-filter by language if region is specified
     if (filters.regionCode && filters.regionCode !== 'all') {
-      const regionLangMap: Record<string, { lang: string; script: RegExp }> = {
-        JP: { lang: 'ja', script: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/ },
-        KR: { lang: 'ko', script: /[\uAC00-\uD7AF\u1100-\u11FF]/ },
-        TW: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
-        CN: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
-      };
-      const mapping = regionLangMap[filters.regionCode];
-      if (mapping) {
-        const filtered = rawVideos.filter((v: any) => {
-          // タイトルにその言語の文字が含まれるかどうかで判定
-          // _langフィールドはYouTube APIが不正確な値を返すことがあるため使わない
-          return mapping.script.test(v.title);
-        });
-        // フィルタ後0件の場合のみフィルタ前を返す（1件でもあれば対象言語動画を優先）
+      const script = REGION_SCRIPT_MAP[filters.regionCode];
+      if (script) {
+        const filtered = rawVideos.filter((v: any) => script.test(v.title));
         const result = filtered.length > 0 ? filtered : rawVideos;
         return result.map(({ _lang, ...rest }: any) => rest);
       }
@@ -162,26 +199,7 @@ export class YouTubeResearchService {
         return { success: false, error: '動画が見つかりませんでした。キーワードを変えてみてください。' };
       }
 
-      // バズ比率は計算だけ（Claude不要）
-      const buzzRanking: BuzzResult[] = videos.map(video => {
-        let buzzRatio: number | null = null;
-        let buzzLevel: BuzzResult['buzzLevel'] = 'unknown';
-        if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
-          buzzRatio = video.views / video.subscribers;
-          if (buzzRatio >= 10) buzzLevel = 'super-buzz';
-          else if (buzzRatio >= 5) buzzLevel = 'buzz';
-          else if (buzzRatio >= 2) buzzLevel = 'good';
-          else if (buzzRatio >= 1) buzzLevel = 'average';
-          else buzzLevel = 'low';
-        }
-        return { video, buzzRatio, buzzLevel };
-      });
-
-      buzzRanking.sort((a, b) => {
-        if (a.buzzRatio === null) return 1;
-        if (b.buzzRatio === null) return -1;
-        return b.buzzRatio - a.buzzRatio;
-      });
+      const buzzRanking = sortBuzzRanking(videos.map(calculateBuzzForVideo));
 
       return {
         success: true,
@@ -213,9 +231,11 @@ export class YouTubeResearchService {
         return { success: false, error: 'Anthropic APIキーが設定されていません' };
       }
 
-      // タイトル+概要欄+タグから分析（字幕は使わない）
-      const audience = await this.analyzeAudience(videos);
-      const keywords = await this.extractKeywords(videos);
+      // Audience and Keywords are independent - run in parallel
+      const [audience, keywords] = await Promise.all([
+        this.analyzeAudience(videos),
+        this.extractKeywords(videos),
+      ]);
 
       const recsRaw = await this.callClaude(buildRecommendationsPrompt(
         'バズ動画の共通パターン分析',
@@ -244,7 +264,8 @@ export class YouTubeResearchService {
   }
 
   // --- Phase 2: Metadata ---
-
+  // 未実装：現UIでは未使用。YouTube Data API検索（searchYouTube）を使用するため、
+  // このメソッドはURL/テキスト入力ベースの旧フローの残存コード。
   async fetchVideoMetadata(inputs: VideoInput[]): Promise<VideoMeta[]> {
     return inputs.map((input, i) => {
       const isUrl = input.inputType === 'url' || input.rawText.match(/youtube\.com|youtu\.be/);
@@ -274,28 +295,7 @@ export class YouTubeResearchService {
   // --- Phase 3: Buzz Detection ---
 
   async detectBuzz(videos: VideoMeta[]): Promise<BuzzResponse> {
-    const ranking: BuzzResult[] = videos.map(video => {
-      let buzzRatio: number | null = null;
-      let buzzLevel: BuzzResult['buzzLevel'] = 'unknown';
-
-      if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
-        buzzRatio = video.views / video.subscribers;
-        if (buzzRatio >= 10) buzzLevel = 'super-buzz';
-        else if (buzzRatio >= 5) buzzLevel = 'buzz';
-        else if (buzzRatio >= 2) buzzLevel = 'good';
-        else if (buzzRatio >= 1) buzzLevel = 'average';
-        else buzzLevel = 'low';
-      }
-
-      return { video, buzzRatio, buzzLevel };
-    });
-
-    // Sort by buzz ratio descending (unknowns at end)
-    ranking.sort((a, b) => {
-      if (a.buzzRatio === null) return 1;
-      if (b.buzzRatio === null) return -1;
-      return b.buzzRatio - a.buzzRatio;
-    });
+    const ranking = sortBuzzRanking(videos.map(calculateBuzzForVideo));
 
     // AI analysis of common patterns in top buzz videos
     const buzzVideos = ranking.filter(r => r.buzzLevel === 'super-buzz' || r.buzzLevel === 'buzz' || r.buzzLevel === 'good');
@@ -433,16 +433,18 @@ export class YouTubeResearchService {
         .slice(0, 5)
         .map(v => v.title)
         .filter(t => t && t !== 'Unknown');
-      const trendResult = topKeywords.length > 0
-        ? await this.checkTrend(topKeywords.slice(0, 3))
-        : { success: true, data: { results: [], summary: '' } };
+      const trendPromise = topKeywords.length > 0
+        ? this.checkTrend(topKeywords.slice(0, 3))
+        : Promise.resolve({ success: true, data: { results: [] as TrendResult[], summary: '' } });
+
+      // Phase 5 & 6 are independent of Phase 4 - run in parallel
+      const [trendResult, audience, keywords] = await Promise.all([
+        trendPromise,
+        this.analyzeAudience(videos),
+        this.extractKeywords(videos),
+      ]);
+
       const trendCheck = trendResult.data?.results || [];
-
-      // Phase 5
-      const audience = await this.analyzeAudience(videos);
-
-      // Phase 6
-      const keywords = await this.extractKeywords(videos);
 
       // Phase 7: Recommendations
       const recsRaw = await this.callClaude(buildRecommendationsPrompt(
@@ -501,7 +503,7 @@ export class YouTubeResearchService {
   }
 
   /** Strip markdown code fences and extract JSON from Claude response */
-  private extractJson(raw: string): string {
+  extractJson(raw: string): string {
     let text = raw.trim();
 
     // Remove ```json ... ``` or ``` ... ``` fences
@@ -512,7 +514,7 @@ export class YouTubeResearchService {
 
     // If still not starting with { or [, try to find JSON object/array
     if (!text.startsWith('{') && !text.startsWith('[')) {
-      const jsonStart = text.search(/[\{\\[]/);
+      const jsonStart = text.search(/[{\[]/);
       if (jsonStart >= 0) {
         text = text.slice(jsonStart);
         // Find matching closing bracket
