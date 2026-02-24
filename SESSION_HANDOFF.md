@@ -152,6 +152,55 @@ nohup npx tsx src/server.ts > /tmp/yt-research-server.log 2>&1 &
 - `config/workflows/video_generation_v1.json`
 - `config/workflows/wf_coding_change_v1.json`
 
+## 今回のセッションでの修正（2026-02-24）
+
+### YouTubeリサーチツール（Web版）ジャンル・国フィルタ修正
+
+#### 完了した修正
+
+1. **ジャンルポストフィルタ追加** (`src/youtube-research/service.ts`)
+   - バックエンドに17ジャンルのキーワードマップ（`GENRE_KEYWORDS`）を追加
+   - `scoreGenreRelevance()` 関数: タイトル(重み50%) + タグ(30%) + 説明文(20%) でスコアリング
+   - `searchWithBuzz()` でYouTube APIの結果をジャンルスコアでフィルタ＆ソート
+   - スコア0（キーワード一致ゼロ）の動画を除外
+
+2. **国フィルタ強化** (`src/youtube-research/service.ts`)
+   - Before: タイトルに日本語がなければ全件返すフォールバック
+   - After: 3段階フィルタ（タイトル/説明文の文字種 → YouTube APIの言語メタデータ → 全件フォールバック）
+
+3. **投稿期間フィルタ補完** (`src/youtube-research/service.ts` + `types.ts`)
+   - `2weeks`(14日) と `6months`(180日) をバックエンド側でも直接サポート
+
+4. **Anthropic APIキーバリデーション修正** (`src/youtube-research/controller.ts`)
+   - `^sk-ant-` → `^sk-` に変更。新フォーマットのキーも受け付ける
+
+5. **エラーメッセージ改善** (`src/youtube-research/controller.ts`)
+   - 「サーバー内部エラー」→ 具体的な原因（APIキー無効、レート制限、モデルエラー等）を表示
+
+6. **エラートースト表示時間延長** (`public/js/youtube-research.js`)
+   - エラー通知: 4秒 → 10秒に延長 + クリックで閉じる機能追加
+
+#### 未解決の問題
+
+- **ユーザーが「サーバー内部エラーが発生しました」と報告** → エラーメッセージ改善＋トースト延長をデプロイ済み
+- 次回セッションでユーザーに再度試してもらい、表示されるエラーメッセージの内容を確認する
+- どの操作（検索/トレンド判定/ターゲット分析）でエラーが出たかを特定する
+
+#### コミット履歴
+
+- `93bac95` - YouTubeリサーチツール: ジャンル・国フィルタ強化
+- `109b511` - Anthropic APIキーバリデーションを新フォーマット対応に修正
+- `3bfd878` - エラーメッセージ改善: 具体的なエラー原因をユーザーに表示
+- `1cab729` - エラートースト表示時間を10秒に延長+クリックで閉じる機能追加
+
+---
+
+## 別件: 電子書籍+漫画3段階自動生成ツール
+
+要件定義書を `docs/ebook-manga-tool-requirements.md` に作成済み。実装はまだ未着手。
+
+---
+
 ## 次のセッションへの指示
 
 ### MUST DO（必須）
