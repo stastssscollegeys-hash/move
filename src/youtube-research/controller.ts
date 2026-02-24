@@ -8,7 +8,8 @@ function isValidYouTubeApiKey(key: string): boolean {
 }
 
 function isValidAnthropicApiKey(key: string): boolean {
-  return /^sk-ant-[0-9A-Za-z_-]{20,}$/.test(key);
+  // Support both old (sk-ant-api03-...) and new (sk-ant-..., sk-...) key formats
+  return /^sk-[0-9A-Za-z_-]{20,}$/.test(key);
 }
 
 function clampMaxResults(value: unknown): number {
