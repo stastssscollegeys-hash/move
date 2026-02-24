@@ -131,22 +131,42 @@ async function doSearch() {
     return;
   }
 
-  // Each genre maps to its primary keyword (first word) for multi-genre queries
+  // 各ジャンルの関連キーワード（YouTube OR検索用）
+  // YouTube APIは | をOR演算子として認識する
   const genreKeywords = {
-    education: '教育', tech: 'テクノロジー', business: 'ビジネス',
-    lifestyle: 'ライフスタイル', entertainment: 'エンタメ',
-    cooking: '料理', beauty: '美容',
-    fitness: '筋トレ', gaming: 'ゲーム',
-    music: '音楽', travel: '旅行',
-    pets: 'ペット', parenting: '子育て',
-    spiritual: 'スピリチュアル', fortune: '占い',
-    healing: 'ヒーリング', mental: 'メンタルヘルス'
+    education: '教育|学習|勉強|講座|解説|授業|スキルアップ|資格',
+    tech: 'テクノロジー|テック|プログラミング|AI|エンジニア|IT|開発|ChatGPT|アプリ',
+    business: 'ビジネス|副業|起業|稼ぐ|マーケティング|フリーランス|収益化|投資|ノウハウ|コンサル|物販|せどり|アフィリエイト|ネットビジネス',
+    lifestyle: 'ライフスタイル|暮らし|ルーティン|日常|Vlog|生活|ミニマリスト|丁寧な暮らし|モーニングルーティン|ナイトルーティン',
+    entertainment: 'エンタメ|バラエティ|面白い|やってみた|検証|ドッキリ|チャレンジ|コント|大食い',
+    cooking: '料理|レシピ|グルメ|食べ|作り方|クッキング|簡単レシピ|食レポ|お弁当|スイーツ',
+    beauty: '美容|コスメ|メイク|スキンケア|ヘアアレンジ|垢抜け|整形|ダイエット美容|プチプラ',
+    fitness: '筋トレ|ダイエット|フィットネス|ワークアウト|エクササイズ|ストレッチ|ヨガ|痩せる|ボディメイク|宅トレ',
+    gaming: 'ゲーム|ゲーム実況|プレイ|攻略|配信|eスポーツ|マイクラ|フォートナイト|原神|スプラ',
+    music: '音楽|歌ってみた|MV|弾いてみた|カバー|作曲|ピアノ|ギター|DTM|オリジナル曲',
+    travel: '旅行|旅|観光|キャンプ|アウトドア|絶景|一人旅|海外旅行|温泉|車中泊|バンライフ',
+    pets: 'ペット|犬|猫|動物|かわいい|子犬|子猫|保護猫|多頭飼い|爬虫類',
+    parenting: '子育て|育児|ママ|パパ|赤ちゃん|知育|離乳食|幼児教育|小学生|受験',
+    spiritual: 'スピリチュアル|引き寄せ|潜在意識|宇宙|波動|目覚め|覚醒|ハイヤーセルフ|アセンション|ツインレイ',
+    fortune: '占い|タロット|星座|数秘術|四柱推命|手相|星読み|今週の運勢|誕生日占い|オラクルカード',
+    healing: 'ヒーリング|瞑想|周波数|睡眠|リラックス|ソルフェジオ|ASMR|自然音|528Hz|マインドフルネス',
+    mental: 'メンタルヘルス|HSP|自己肯定感|うつ|不安|心理学|カウンセリング|アダルトチルドレン|生きづらさ|自分を変える'
   };
 
   let query = keyword;
   if (selectedGenres.length > 0) {
-    const genreWords = selectedGenres.map(g => genreKeywords[g]).filter(Boolean).join(' ');
-    query = keyword ? keyword + ' ' + genreWords : genreWords;
+    if (selectedGenres.length === 1) {
+      // 1ジャンル: OR検索でそのジャンルを幅広く検索
+      const orTerms = genreKeywords[selectedGenres[0]];
+      query = keyword ? keyword + ' ' + orTerms : orTerms;
+    } else {
+      // 複数ジャンル: 各ジャンルの代表キーワード（最初の語）をOR結合
+      const primaryWords = selectedGenres.map(g => {
+        const kw = genreKeywords[g];
+        return kw ? kw.split('|')[0] : null;
+      }).filter(Boolean).join('|');
+      query = keyword ? keyword + ' ' + primaryWords : primaryWords;
+    }
   }
 
   let ytKey = document.getElementById('youtube-api-key').value.trim();
