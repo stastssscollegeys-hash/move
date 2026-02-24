@@ -6,7 +6,7 @@
   "scripts": {
     "setup": "bash scripts/install.sh",
     "update": "bash scripts/update.sh",
-    "start": "node src/index.js",
+    "start": "node dist-yt/server.js",
     "dev": "nodemon src/index.js",
     "test": "jest --runInBand",
     "test:silent": "jest --silent --noStackTrace",

@@ -35,15 +35,290 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YouTubeResearchService = void 0;
 var sdk_1 = require("@anthropic-ai/sdk");
 var prompts_1 = require("./prompts");
 var YouTubeResearchService = /** @class */ (function () {
-    function YouTubeResearchService() {
+    function YouTubeResearchService(anthropicApiKey) {
+        this.client = null;
         this.model = 'claude-sonnet-4-5-20250929';
-        this.client = new sdk_1.default();
+        if (anthropicApiKey) {
+            this.client = new sdk_1.default({ apiKey: anthropicApiKey });
+        }
+        else if (process.env.ANTHROPIC_API_KEY) {
+            this.client = new sdk_1.default();
+        }
     }
+    // --- YouTube Data API Search ---
+    YouTubeResearchService.prototype.searchYouTube = function (query_1, filters_1, apiKey_1) {
+        return __awaiter(this, arguments, void 0, function (query, filters, apiKey, maxResults) {
+            var searchParams, regionLangMap, lang, now, dateMap, days, after, searchRes, err, searchData, videoIds, detailParams, detailRes, detailData, channelIds, channelSubs, chParams, chRes, chData, _i, _a, ch, allVideos, regionLangMap, mapping_1, filtered, result;
+            if (maxResults === void 0) { maxResults = 20; }
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        searchParams = new URLSearchParams({
+                            part: 'snippet',
+                            q: query,
+                            type: 'video',
+                            order: 'viewCount',
+                            maxResults: String(maxResults),
+                            key: apiKey,
+                        });
+                        // Video duration filter
+                        if (filters.lengthCategory === 'short')
+                            searchParams.set('videoDuration', 'short');
+                        else if (filters.lengthCategory === 'medium')
+                            searchParams.set('videoDuration', 'medium');
+                        else if (filters.lengthCategory === 'long')
+                            searchParams.set('videoDuration', 'long');
+                        // Region + language filter
+                        if (filters.regionCode && filters.regionCode !== 'all') {
+                            searchParams.set('regionCode', filters.regionCode);
+                            regionLangMap = {
+                                JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
+                                GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
+                            };
+                            lang = regionLangMap[filters.regionCode];
+                            if (lang)
+                                searchParams.set('relevanceLanguage', lang);
+                        }
+                        // Upload date filter
+                        if (filters.uploadPeriod !== 'all') {
+                            now = new Date();
+                            dateMap = { week: 7, month: 30, '3months': 90, year: 365 };
+                            days = dateMap[filters.uploadPeriod] || 0;
+                            if (days > 0) {
+                                after = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+                                searchParams.set('publishedAfter', after.toISOString());
+                            }
+                        }
+                        return [4 /*yield*/, fetch("https://www.googleapis.com/youtube/v3/search?".concat(searchParams))];
+                    case 1:
+                        searchRes = _b.sent();
+                        if (!!searchRes.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, searchRes.text()];
+                    case 2:
+                        err = _b.sent();
+                        throw new Error("YouTube Search API error: ".concat(searchRes.status, " ").concat(err));
+                    case 3: return [4 /*yield*/, searchRes.json()];
+                    case 4:
+                        searchData = _b.sent();
+                        videoIds = (searchData.items || []).map(function (item) { return item.id.videoId; }).filter(Boolean);
+                        if (videoIds.length === 0)
+                            return [2 /*return*/, []];
+                        detailParams = new URLSearchParams({
+                            part: 'snippet,statistics,contentDetails',
+                            id: videoIds.join(','),
+                            key: apiKey,
+                        });
+                        return [4 /*yield*/, fetch("https://www.googleapis.com/youtube/v3/videos?".concat(detailParams))];
+                    case 5:
+                        detailRes = _b.sent();
+                        if (!detailRes.ok)
+                            throw new Error("YouTube Videos API error: ".concat(detailRes.status));
+                        return [4 /*yield*/, detailRes.json()];
+                    case 6:
+                        detailData = _b.sent();
+                        channelIds = __spreadArray([], new Set((detailData.items || []).map(function (item) { return item.snippet.channelId; })), true);
+                        channelSubs = {};
+                        if (!(channelIds.length > 0)) return [3 /*break*/, 9];
+                        chParams = new URLSearchParams({
+                            part: 'statistics',
+                            id: channelIds.join(','),
+                            key: apiKey,
+                        });
+                        return [4 /*yield*/, fetch("https://www.googleapis.com/youtube/v3/channels?".concat(chParams))];
+                    case 7:
+                        chRes = _b.sent();
+                        if (!chRes.ok) return [3 /*break*/, 9];
+                        return [4 /*yield*/, chRes.json()];
+                    case 8:
+                        chData = _b.sent();
+                        for (_i = 0, _a = chData.items || []; _i < _a.length; _i++) {
+                            ch = _a[_i];
+                            channelSubs[ch.id] = parseInt(ch.statistics.subscriberCount || '0', 10);
+                        }
+                        _b.label = 9;
+                    case 9:
+                        allVideos = (detailData.items || []).map(function (item) {
+                            var _a, _b, _c, _d, _e;
+                            var stats = item.statistics || {};
+                            var snippet = item.snippet || {};
+                            return {
+                                id: item.id,
+                                title: snippet.title || '',
+                                channel: snippet.channelTitle || '',
+                                subscribers: channelSubs[snippet.channelId] || null,
+                                views: parseInt(stats.viewCount || '0', 10),
+                                likes: parseInt(stats.likeCount || '0', 10),
+                                uploadDate: snippet.publishedAt || null,
+                                duration: ((_a = item.contentDetails) === null || _a === void 0 ? void 0 : _a.duration) || null,
+                                description: snippet.description || '',
+                                tags: Array.isArray(snippet.tags) ? snippet.tags : [],
+                                transcriptOrSummary: '',
+                                url: "https://youtube.com/watch?v=".concat(item.id),
+                                thumbnail: ((_c = (_b = snippet.thumbnails) === null || _b === void 0 ? void 0 : _b.medium) === null || _c === void 0 ? void 0 : _c.url) || ((_e = (_d = snippet.thumbnails) === null || _d === void 0 ? void 0 : _d.default) === null || _e === void 0 ? void 0 : _e.url) || '',
+                                _lang: snippet.defaultAudioLanguage || snippet.defaultLanguage || '',
+                            };
+                        });
+                        // Step 5: Post-filter by language if region is specified
+                        if (filters.regionCode && filters.regionCode !== 'all') {
+                            regionLangMap = {
+                                JP: { lang: 'ja', script: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/ },
+                                KR: { lang: 'ko', script: /[\uAC00-\uD7AF\u1100-\u11FF]/ },
+                                TW: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
+                                CN: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
+                            };
+                            mapping_1 = regionLangMap[filters.regionCode];
+                            if (mapping_1) {
+                                filtered = allVideos.filter(function (v) {
+                                    // 1. API言語フィールドが一致
+                                    if (v._lang && v._lang.startsWith(mapping_1.lang))
+                                        return true;
+                                    // 2. 言語フィールド未設定 → タイトルの文字種で判定
+                                    if (!v._lang && mapping_1.script.test(v.title))
+                                        return true;
+                                    return false;
+                                });
+                                result = filtered.length >= 3 ? filtered : allVideos;
+                                return [2 /*return*/, result.map(function (_a) {
+                                        var _lang = _a._lang, rest = __rest(_a, ["_lang"]);
+                                        return rest;
+                                    })];
+                            }
+                        }
+                        return [2 /*return*/, allVideos.map(function (_a) {
+                                var _lang = _a._lang, rest = __rest(_a, ["_lang"]);
+                                return rest;
+                            })];
+                }
+            });
+        });
+    };
+    // Step 1: YouTube検索 + バズ比率算出（Claude不要・高速）
+    YouTubeResearchService.prototype.searchWithBuzz = function (request) {
+        return __awaiter(this, void 0, void 0, function () {
+            var videos, buzzRanking, err_1, message;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.searchYouTube(request.query, request.filters, request.youtubeApiKey, request.maxResults || 20)];
+                    case 1:
+                        videos = _a.sent();
+                        if (videos.length === 0) {
+                            return [2 /*return*/, { success: false, error: '動画が見つかりませんでした。キーワードを変えてみてください。' }];
+                        }
+                        buzzRanking = videos.map(function (video) {
+                            var buzzRatio = null;
+                            var buzzLevel = 'unknown';
+                            if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
+                                buzzRatio = video.views / video.subscribers;
+                                if (buzzRatio >= 10)
+                                    buzzLevel = 'super-buzz';
+                                else if (buzzRatio >= 5)
+                                    buzzLevel = 'buzz';
+                                else if (buzzRatio >= 2)
+                                    buzzLevel = 'good';
+                                else if (buzzRatio >= 1)
+                                    buzzLevel = 'average';
+                                else
+                                    buzzLevel = 'low';
+                            }
+                            return { video: video, buzzRatio: buzzRatio, buzzLevel: buzzLevel };
+                        });
+                        buzzRanking.sort(function (a, b) {
+                            if (a.buzzRatio === null)
+                                return 1;
+                            if (b.buzzRatio === null)
+                                return -1;
+                            return b.buzzRatio - a.buzzRatio;
+                        });
+                        return [2 /*return*/, {
+                                success: true,
+                                data: {
+                                    query: request.query,
+                                    videoCount: videos.length,
+                                    videos: videos,
+                                    buzzRanking: buzzRanking,
+                                    audience: undefined,
+                                    keywords: [],
+                                    recommendations: [],
+                                    fullReport: '',
+                                }
+                            }];
+                    case 2:
+                        err_1 = _a.sent();
+                        message = err_1 instanceof Error ? err_1.message : 'Unknown error';
+                        return [2 /*return*/, { success: false, error: message }];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // Step 2: 選択した動画に対してターゲット＆キーワード＆レポート生成（Claude使用）
+    YouTubeResearchService.prototype.analyzeSelected = function (videos) {
+        return __awaiter(this, void 0, void 0, function () {
+            var audience, keywords, recsRaw, recommendations, parsed, fullReport, err_2, message;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 4, , 5]);
+                        if (!this.client) {
+                            return [2 /*return*/, { success: false, error: 'Anthropic APIキーが設定されていません' }];
+                        }
+                        return [4 /*yield*/, this.analyzeAudience(videos)];
+                    case 1:
+                        audience = _a.sent();
+                        return [4 /*yield*/, this.extractKeywords(videos)];
+                    case 2:
+                        keywords = _a.sent();
+                        return [4 /*yield*/, this.callClaude((0, prompts_1.buildRecommendationsPrompt)('バズ動画の共通パターン分析', '', JSON.stringify(audience.demographics), keywords.slice(0, 5).map(function (k) { return k.keyword; }).join(', ')))];
+                    case 3:
+                        recsRaw = _a.sent();
+                        recommendations = [];
+                        try {
+                            parsed = JSON.parse(recsRaw);
+                            recommendations = parsed.recommendations || [];
+                        }
+                        catch (e) {
+                            console.error('[analyzeSelected] Recommendations JSON parse failed:', recsRaw.slice(0, 300));
+                            recommendations = ['分析データを元にコンテンツ企画を検討してください'];
+                        }
+                        fullReport = this.buildReport(videos, [], [], audience, keywords, recommendations, { lengthCategory: 'all', uploadPeriod: 'all' });
+                        return [2 /*return*/, { success: true, data: { audience: audience, keywords: keywords, recommendations: recommendations, fullReport: fullReport } }];
+                    case 4:
+                        err_2 = _a.sent();
+                        message = err_2 instanceof Error ? err_2.message : 'Unknown error';
+                        console.error('[analyzeSelected] Error:', message);
+                        return [2 /*return*/, { success: false, error: message }];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     // --- Phase 2: Metadata ---
     YouTubeResearchService.prototype.fetchVideoMetadata = function (inputs) {
         return __awaiter(this, void 0, void 0, function () {
@@ -61,6 +336,7 @@ var YouTubeResearchService = /** @class */ (function () {
                             uploadDate: null,
                             duration: null,
                             description: '',
+                            tags: [],
                             transcriptOrSummary: isUrl ? '' : input.rawText,
                             url: isUrl ? input.rawText.trim() : null
                         };
@@ -124,36 +400,39 @@ var YouTubeResearchService = /** @class */ (function () {
         });
     };
     // --- Phase 4: Trend Check ---
-    YouTubeResearchService.prototype.checkTrend = function (keywords) {
+    YouTubeResearchService.prototype.checkTrend = function (titles) {
         return __awaiter(this, void 0, void 0, function () {
-            var results, _i, keywords_1, keyword, prompt_1, raw, parsed, summary;
+            var results, _i, titles_1, title, prompt_1, raw, parsed, summary;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         results = [];
-                        _i = 0, keywords_1 = keywords;
+                        _i = 0, titles_1 = titles;
                         _a.label = 1;
                     case 1:
-                        if (!(_i < keywords_1.length)) return [3 /*break*/, 4];
-                        keyword = keywords_1[_i];
-                        prompt_1 = (0, prompts_1.buildTrendCheckPrompt)(keyword, "\u30AD\u30FC\u30EF\u30FC\u30C9\u300C".concat(keyword, "\u300D\u306B\u3064\u3044\u3066\u3001\u73FE\u5728\u306EGoogle Trends\u3001YouTube\u691C\u7D22\u30C8\u30EC\u30F3\u30C9\u3001\u7AF6\u5408\u72B6\u6CC1\u3092\u63A8\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002"));
+                        if (!(_i < titles_1.length)) return [3 /*break*/, 4];
+                        title = titles_1[_i];
+                        prompt_1 = (0, prompts_1.buildTrendCheckPrompt)(title);
                         return [4 /*yield*/, this.callClaude(prompt_1)];
                     case 2:
                         raw = _a.sent();
                         try {
                             parsed = JSON.parse(raw);
                             results.push({
-                                keyword: keyword,
-                                googleTrends: parsed.googleTrends || 'unknown',
-                                youtubeSearch: parsed.youtubeSearch || 'unknown',
-                                competition: parsed.competition || 'unknown',
-                                verdict: parsed.verdict || 'unknown'
+                                originalTitle: title,
+                                topic: parsed.topic || title,
+                                googleTrends: parsed.googleTrends || 'stable',
+                                youtubeSearch: parsed.youtubeSearch || 'stable',
+                                competition: parsed.competition || 'medium',
+                                verdict: parsed.verdict || 'niche-stable',
+                                reasoning: parsed.reasoning || ''
                             });
                         }
                         catch (_b) {
                             results.push({
-                                keyword: keyword,
+                                originalTitle: title,
+                                topic: title,
                                 googleTrends: 'unknown',
                                 youtubeSearch: 'unknown',
                                 competition: 'unknown',
@@ -166,7 +445,7 @@ var YouTubeResearchService = /** @class */ (function () {
                         return [3 /*break*/, 1];
                     case 4:
                         summary = results
-                            .map(function (r) { return "".concat(r.keyword, ": ").concat(_this.verdictLabel(r.verdict)); })
+                            .map(function (r) { return "".concat(r.topic, ": ").concat(_this.verdictLabel(r.verdict)).concat(r.reasoning ? '（' + r.reasoning + '）' : ''); })
                             .join('\n');
                         return [2 /*return*/, { success: true, data: { results: results, summary: summary } }];
                 }
@@ -181,7 +460,18 @@ var YouTubeResearchService = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         content = videos
-                            .map(function (v) { return "\u30BF\u30A4\u30C8\u30EB: ".concat(v.title, "\n\u30C1\u30E3\u30F3\u30CD\u30EB: ").concat(v.channel, "\n\u8AAC\u660E: ").concat(v.description, "\n\u5185\u5BB9: ").concat(v.transcriptOrSummary.slice(0, 2000)); })
+                            .map(function (v) {
+                            var lines = [
+                                "\u30BF\u30A4\u30C8\u30EB: ".concat(v.title),
+                                "\u30C1\u30E3\u30F3\u30CD\u30EB: ".concat(v.channel),
+                                v.views !== null ? "\u518D\u751F\u6570: ".concat(v.views.toLocaleString(), "\u56DE") : null,
+                                v.subscribers !== null ? "\u30C1\u30E3\u30F3\u30CD\u30EB\u767B\u9332\u8005\u6570: ".concat(v.subscribers.toLocaleString(), "\u4EBA") : null,
+                                v.likes !== null ? "\u9AD8\u8A55\u4FA1\u6570: ".concat(v.likes.toLocaleString()) : null,
+                                "\u8AAC\u660E\u6587: ".concat(v.description),
+                                v.tags && v.tags.length > 0 ? "\u30BF\u30B0: ".concat(v.tags.join(', ')) : null,
+                            ];
+                            return lines.filter(Boolean).join('\n');
+                        })
                             .join('\n---\n');
                         return [4 /*yield*/, this.callClaude((0, prompts_1.buildAudiencePrompt)(content))];
                     case 1:
@@ -189,10 +479,12 @@ var YouTubeResearchService = /** @class */ (function () {
                         try {
                             return [2 /*return*/, JSON.parse(raw)];
                         }
-                        catch (_b) {
+                        catch (e) {
+                            console.error('[analyzeAudience] JSON parse failed. Raw response:', raw.slice(0, 500));
+                            console.error('[analyzeAudience] Parse error:', e instanceof Error ? e.message : e);
                             return [2 /*return*/, {
-                                    demographics: { ageRange: '不明', gender: '不明', occupation: '不明' },
-                                    psychographics: { interests: [], values: [], lifestyle: '不明' },
+                                    demographics: { ageRange: '分析失敗', gender: '分析失敗', occupation: '分析失敗' },
+                                    psychographics: { interests: ['JSON解析エラー - APIレスポンスを確認してください'], values: [], lifestyle: '' },
                                     painPoints: [],
                                     viewingMotivation: [],
                                     purchaseBehavior: [],
@@ -212,7 +504,17 @@ var YouTubeResearchService = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         content = videos
-                            .map(function (v) { return "\u30BF\u30A4\u30C8\u30EB: ".concat(v.title, "\n\u8AAC\u660E: ").concat(v.description, "\n\u5185\u5BB9: ").concat(v.transcriptOrSummary.slice(0, 2000)); })
+                            .map(function (v) {
+                            var lines = [
+                                "\u30BF\u30A4\u30C8\u30EB: ".concat(v.title),
+                                "\u30C1\u30E3\u30F3\u30CD\u30EB: ".concat(v.channel),
+                                v.views !== null ? "\u518D\u751F\u6570: ".concat(v.views.toLocaleString(), "\u56DE") : null,
+                                v.subscribers !== null ? "\u30C1\u30E3\u30F3\u30CD\u30EB\u767B\u9332\u8005\u6570: ".concat(v.subscribers.toLocaleString(), "\u4EBA") : null,
+                                "\u8AAC\u660E\u6587: ".concat(v.description),
+                                v.tags && v.tags.length > 0 ? "\u30BF\u30B0: ".concat(v.tags.join(', ')) : null,
+                            ];
+                            return lines.filter(Boolean).join('\n');
+                        })
                             .join('\n---\n');
                         return [4 /*yield*/, this.callClaude((0, prompts_1.buildKeywordPrompt)(content))];
                     case 1:
@@ -221,7 +523,9 @@ var YouTubeResearchService = /** @class */ (function () {
                             parsed = JSON.parse(raw);
                             return [2 /*return*/, parsed.keywords || []];
                         }
-                        catch (_b) {
+                        catch (e) {
+                            console.error('[extractKeywords] JSON parse failed. Raw response:', raw.slice(0, 500));
+                            console.error('[extractKeywords] Parse error:', e instanceof Error ? e.message : e);
                             return [2 /*return*/, []];
                         }
                         return [2 /*return*/];
@@ -232,7 +536,7 @@ var YouTubeResearchService = /** @class */ (function () {
     // --- Phase 7: Full Analysis ---
     YouTubeResearchService.prototype.fullAnalysis = function (request) {
         return __awaiter(this, void 0, void 0, function () {
-            var videos, buzzResult, buzzRanking, topKeywords, trendResult, _a, trendCheck, audience, keywords, recsRaw, recommendations, parsed, fullReport, err_1, message;
+            var videos, buzzResult, buzzRanking, topKeywords, trendResult, _a, trendCheck, audience, keywords, recsRaw, recommendations, parsed, fullReport, err_3, message;
             var _b, _c, _d, _e;
             return __generator(this, function (_f) {
                 switch (_f.label) {
@@ -292,8 +596,8 @@ var YouTubeResearchService = /** @class */ (function () {
                                 }
                             }];
                     case 9:
-                        err_1 = _f.sent();
-                        message = err_1 instanceof Error ? err_1.message : 'Unknown error';
+                        err_3 = _f.sent();
+                        message = err_3 instanceof Error ? err_3.message : 'Unknown error';
                         return [2 /*return*/, { success: false, error: message }];
                     case 10: return [2 /*return*/];
                 }
@@ -303,22 +607,58 @@ var YouTubeResearchService = /** @class */ (function () {
     // --- Helpers ---
     YouTubeResearchService.prototype.callClaude = function (userPrompt) {
         return __awaiter(this, void 0, void 0, function () {
-            var response, block;
+            var response, block, raw;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.client.messages.create({
-                            model: this.model,
-                            max_tokens: 4096,
-                            system: prompts_1.SYSTEM_PROMPT,
-                            messages: [{ role: 'user', content: userPrompt }]
-                        })];
+                    case 0:
+                        if (!this.client) {
+                            throw new Error('Anthropic APIキーが設定されていません');
+                        }
+                        return [4 /*yield*/, this.client.messages.create({
+                                model: this.model,
+                                max_tokens: 4096,
+                                system: prompts_1.SYSTEM_PROMPT,
+                                messages: [{ role: 'user', content: userPrompt }]
+                            })];
                     case 1:
                         response = _a.sent();
                         block = response.content[0];
-                        return [2 /*return*/, block.type === 'text' ? block.text : ''];
+                        raw = block.type === 'text' ? block.text : '';
+                        return [2 /*return*/, this.extractJson(raw)];
                 }
             });
         });
+    };
+    /** Strip markdown code fences and extract JSON from Claude response */
+    YouTubeResearchService.prototype.extractJson = function (raw) {
+        var text = raw.trim();
+        // Remove ```json ... ``` or ``` ... ``` fences
+        var fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+        if (fenceMatch) {
+            text = fenceMatch[1].trim();
+        }
+        // If still not starting with { or [, try to find JSON object/array
+        if (!text.startsWith('{') && !text.startsWith('[')) {
+            var jsonStart = text.search(/[\{\\[]/);
+            if (jsonStart >= 0) {
+                text = text.slice(jsonStart);
+                // Find matching closing bracket
+                var opener_1 = text[0];
+                var closer = opener_1 === '{' ? '}' : ']';
+                var depth = 0;
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i] === opener_1)
+                        depth++;
+                    else if (text[i] === closer)
+                        depth--;
+                    if (depth === 0) {
+                        text = text.slice(0, i + 1);
+                        break;
+                    }
+                }
+            }
+        }
+        return text;
     };
     YouTubeResearchService.prototype.verdictLabel = function (verdict) {
         var labels = {
@@ -344,7 +684,7 @@ var YouTubeResearchService = /** @class */ (function () {
             .map(function (r, i) { var _a, _b, _c, _d; return "| ".concat(i + 1, " | ").concat(r.video.title, " | ").concat(r.video.channel || '-', " | ").concat((_a = r.video.views) !== null && _a !== void 0 ? _a : '-', " | ").concat((_b = r.video.subscribers) !== null && _b !== void 0 ? _b : '-', " | ").concat((_d = (_c = r.buzzRatio) === null || _c === void 0 ? void 0 : _c.toFixed(1)) !== null && _d !== void 0 ? _d : '-', " | ").concat(_this.buzzLabel(r.buzzLevel), " |"); })
             .join('\n');
         var trendTable = trendCheck
-            .map(function (r) { return "| ".concat(r.keyword, " | ").concat(_this.trendArrow(r.googleTrends), " | ").concat(_this.trendArrow(r.youtubeSearch), " | ").concat(_this.compLabel(r.competition), " | ").concat(_this.verdictLabel(r.verdict), " |"); })
+            .map(function (r) { return "| ".concat(r.topic, " | ").concat(_this.trendArrow(r.googleTrends), " | ").concat(_this.trendArrow(r.youtubeSearch), " | ").concat(_this.compLabel(r.competition), " | ").concat(_this.verdictLabel(r.verdict), " |"); })
             .join('\n');
         var kwTable = keywords
             .slice(0, 20)

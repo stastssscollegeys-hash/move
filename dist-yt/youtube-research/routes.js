@@ -11,9 +11,13 @@ router.get('/', function (_req, res) {
     res.sendFile(path_1.default.join(__dirname, '..', '..', 'public', 'youtube-research.html'));
 });
 // API endpoints
-router.post('/api/analyze', controller_1.handleAnalyze);
-router.post('/api/buzz', controller_1.handleBuzz);
-router.post('/api/trend', controller_1.handleTrend);
+router.post('/api/search', controller_1.handleSearch); // 検索+バズ（高速）
+router.post('/api/analyze-selected', controller_1.handleAnalyzeSelected); // ターゲット+キーワード
+router.post('/api/trend', controller_1.handleTrend); // トレンド判定
+// API Key Guide page
+router.get('/api-key-guide', function (_req, res) {
+    res.sendFile(path_1.default.join(__dirname, '..', '..', 'public', 'youtube-research-api-guide.html'));
+});
 // Health check
 router.get('/api/health', function (_req, res) {
     res.json({ status: 'OK', service: 'youtube-research' });

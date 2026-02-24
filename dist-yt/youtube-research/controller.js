@@ -36,27 +36,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseRawInput = exports.handleTrend = exports.handleBuzz = exports.handleAnalyze = void 0;
+exports.handleTrend = exports.handleAnalyzeSelected = exports.handleSearch = void 0;
 var service_1 = require("./service");
-var service = new service_1.YouTubeResearchService();
-function handleAnalyze(req, res) {
+// Step 1: YouTube検索 + バズ比率（高速・Claude不要）
+function handleSearch(req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var body, request, result, err_1, message;
+        var body, service, result, err_1, message;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     body = req.body;
-                    if (!body.videos || body.videos.length === 0) {
-                        res.status(400).json({ success: false, error: '動画データを1つ以上入力してください' });
+                    if (!body.query || !body.query.trim()) {
+                        res.status(400).json({ success: false, error: '検索キーワードを入力してください' });
                         return [2 /*return*/];
                     }
-                    request = {
-                        videos: body.videos,
-                        filters: body.filters || { lengthCategory: 'all', uploadPeriod: 'all' },
-                        purpose: body.purpose
-                    };
-                    return [4 /*yield*/, service.fullAnalysis(request)];
+                    if (!body.youtubeApiKey) {
+                        res.status(400).json({ success: false, error: 'YouTube APIキーを入力してください' });
+                        return [2 /*return*/];
+                    }
+                    service = new service_1.YouTubeResearchService();
+                    return [4 /*yield*/, service.searchWithBuzz({
+                            query: body.query.trim(),
+                            filters: body.filters || { lengthCategory: 'all', uploadPeriod: 'all' },
+                            maxResults: body.maxResults || 20,
+                            youtubeApiKey: body.youtubeApiKey,
+                            anthropicApiKey: body.anthropicApiKey,
+                        })];
                 case 1:
                     result = _a.sent();
                     res.json(result);
@@ -71,51 +77,56 @@ function handleAnalyze(req, res) {
         });
     });
 }
-exports.handleAnalyze = handleAnalyze;
-function handleBuzz(req, res) {
+exports.handleSearch = handleSearch;
+// Step 2: 選択した動画でターゲット＆キーワード分析（Claude使用）
+function handleAnalyzeSelected(req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var body, videos, result, err_2, message;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    body = req.body;
-                    if (!body.videos || body.videos.length === 0) {
-                        res.status(400).json({ success: false, error: '動画データを1つ以上入力してください' });
-                        return [2 /*return*/];
-                    }
-                    return [4 /*yield*/, service.fetchVideoMetadata(body.videos)];
-                case 1:
-                    videos = _a.sent();
-                    return [4 /*yield*/, service.detectBuzz(videos)];
-                case 2:
-                    result = _a.sent();
-                    res.json(result);
-                    return [3 /*break*/, 4];
-                case 3:
-                    err_2 = _a.sent();
-                    message = err_2 instanceof Error ? err_2.message : 'Internal server error';
-                    res.status(500).json({ success: false, error: message });
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.handleBuzz = handleBuzz;
-function handleTrend(req, res) {
-    return __awaiter(this, void 0, void 0, function () {
-        var body, result, err_3, message;
+        var body, service, result, err_2, message;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     body = req.body;
-                    if (!body.keywords || body.keywords.length === 0) {
-                        res.status(400).json({ success: false, error: 'キーワードを1つ以上入力してください' });
+                    if (!body.videos || body.videos.length === 0) {
+                        res.status(400).json({ success: false, error: '分析する動画を選択してください' });
                         return [2 /*return*/];
                     }
-                    return [4 /*yield*/, service.checkTrend(body.keywords.slice(0, 10))];
+                    if (!body.anthropicApiKey) {
+                        res.status(400).json({ success: false, error: 'Anthropic APIキーを入力してください' });
+                        return [2 /*return*/];
+                    }
+                    service = new service_1.YouTubeResearchService(body.anthropicApiKey);
+                    return [4 /*yield*/, service.analyzeSelected(body.videos)];
+                case 1:
+                    result = _a.sent();
+                    res.json(result);
+                    return [3 /*break*/, 3];
+                case 2:
+                    err_2 = _a.sent();
+                    message = err_2 instanceof Error ? err_2.message : 'Internal server error';
+                    res.status(500).json({ success: false, error: message });
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.handleAnalyzeSelected = handleAnalyzeSelected;
+// Step 3: トレンド判定（Claude使用）
+function handleTrend(req, res) {
+    return __awaiter(this, void 0, void 0, function () {
+        var body, service, result, err_3, message;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    body = req.body;
+                    if (!body.titles || body.titles.length === 0) {
+                        res.status(400).json({ success: false, error: '動画タイトルが必要です' });
+                        return [2 /*return*/];
+                    }
+                    service = new service_1.YouTubeResearchService(body.anthropicApiKey);
+                    return [4 /*yield*/, service.checkTrend(body.titles.slice(0, 10))];
                 case 1:
                     result = _a.sent();
                     res.json(result);
@@ -131,16 +142,3 @@ function handleTrend(req, res) {
     });
 }
 exports.handleTrend = handleTrend;
-// Parse raw text input into VideoInput array
-function parseRawInput(rawText) {
-    var blocks = rawText.split(/\n---\n|\n\n\n/).filter(function (b) { return b.trim(); });
-    return blocks.map(function (block) {
-        var trimmed = block.trim();
-        var isUrl = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)/.test(trimmed);
-        return {
-            rawText: trimmed,
-            inputType: isUrl ? 'url' : 'summary'
-        };
-    });
-}
-exports.parseRawInput = parseRawInput;
