@@ -3,13 +3,111 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YouTubeResearchService = void 0;
+exports.YouTubeResearchService = exports.calculateBuzzForVideo = exports.scoreGenreRelevance = void 0;
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 const prompts_1 = require("./prompts");
+// Region to language mapping (shared across methods)
+const REGION_LANG_MAP = {
+    JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
+    GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
+};
+// Region to script regex mapping (for post-filtering)
+const REGION_SCRIPT_MAP = {
+    JP: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/,
+    KR: /[\uAC00-\uD7AF\u1100-\u11FF]/,
+    TW: /[\u4E00-\u9FFF]/,
+    CN: /[\u4E00-\u9FFF]/,
+};
+// Genre keyword mapping for post-filtering (backend verification)
+const GENRE_KEYWORDS = {
+    education: ['教育', '学習', '勉強', '講座', '解説', '授業', 'スキルアップ', '資格', '学ぶ', '教える'],
+    tech: ['テクノロジー', 'テック', 'プログラミング', 'AI', 'エンジニア', 'IT', '開発', 'ChatGPT', 'アプリ', 'コード', 'Python', 'JavaScript', 'プログラム'],
+    business: ['ビジネス', '副業', '起業', '稼ぐ', 'マーケティング', 'フリーランス', '収益化', '投資', 'ノウハウ', 'コンサル', '物販', 'せどり', 'アフィリエイト', 'ネットビジネス', '経営', '営業', '転売'],
+    lifestyle: ['ライフスタイル', '暮らし', 'ルーティン', '日常', 'Vlog', '生活', 'ミニマリスト', '丁寧な暮らし', 'モーニングルーティン', 'ナイトルーティン', '部屋'],
+    entertainment: ['エンタメ', 'バラエティ', '面白い', 'やってみた', '検証', 'ドッキリ', 'チャレンジ', 'コント', '大食い', '爆笑', 'ネタ'],
+    cooking: ['料理', 'レシピ', 'グルメ', '食べ', '作り方', 'クッキング', '簡単レシピ', '食レポ', 'お弁当', 'スイーツ', '手作り', '献立'],
+    beauty: ['美容', 'コスメ', 'メイク', 'スキンケア', 'ヘアアレンジ', '垢抜け', '整形', 'ダイエット美容', 'プチプラ', 'ビューティー'],
+    fitness: ['筋トレ', 'ダイエット', 'フィットネス', 'ワークアウト', 'エクササイズ', 'ストレッチ', 'ヨガ', '痩せる', 'ボディメイク', '宅トレ', 'トレーニング'],
+    gaming: ['ゲーム', 'ゲーム実況', 'プレイ', '攻略', '配信', 'eスポーツ', 'マイクラ', 'フォートナイト', '原神', 'スプラ', 'ゲーミング', '実況'],
+    music: ['音楽', '歌ってみた', 'MV', '弾いてみた', 'カバー', '作曲', 'ピアノ', 'ギター', 'DTM', 'オリジナル曲', '歌', '演奏'],
+    travel: ['旅行', '旅', '観光', 'キャンプ', 'アウトドア', '絶景', '一人旅', '海外旅行', '温泉', '車中泊', 'バンライフ', '旅vlog'],
+    pets: ['ペット', '犬', '猫', '動物', 'かわいい', '子犬', '子猫', '保護猫', '多頭飼い', '爬虫類', 'わんこ', 'にゃんこ'],
+    parenting: ['子育て', '育児', 'ママ', 'パパ', '赤ちゃん', '知育', '離乳食', '幼児教育', '小学生', '受験', '出産', '妊娠'],
+    spiritual: ['スピリチュアル', '引き寄せ', '潜在意識', '宇宙', '波動', '目覚め', '覚醒', 'ハイヤーセルフ', 'アセンション', 'ツインレイ'],
+    fortune: ['占い', 'タロット', '星座', '数秘術', '四柱推命', '手相', '星読み', '運勢', '誕生日占い', 'オラクルカード', '鑑定'],
+    healing: ['ヒーリング', '瞑想', '周波数', '睡眠', 'リラックス', 'ソルフェジオ', 'ASMR', '自然音', '528Hz', 'マインドフルネス'],
+    mental: ['メンタルヘルス', 'HSP', '自己肯定感', 'うつ', '不安', '心理学', 'カウンセリング', 'アダルトチルドレン', '生きづらさ', '自分を変える', 'メンタル'],
+};
+/**
+ * Score genre relevance for a video by checking title + description + tags.
+ * Returns a score from 0 to 1.
+ */
+function scoreGenreRelevance(video, genre) {
+    const keywords = GENRE_KEYWORDS[genre];
+    if (!keywords)
+        return 1; // Unknown genre = don't filter
+    const titleLower = video.title.toLowerCase();
+    const descLower = (video.description || '').toLowerCase();
+    const tagsLower = (video.tags || []).map(t => t.toLowerCase());
+    const allTags = tagsLower.join(' ');
+    let score = 0;
+    let titleHits = 0;
+    let descHits = 0;
+    let tagHits = 0;
+    for (const kw of keywords) {
+        const kwLower = kw.toLowerCase();
+        if (titleLower.includes(kwLower))
+            titleHits++;
+        if (descLower.includes(kwLower))
+            descHits++;
+        if (allTags.includes(kwLower))
+            tagHits++;
+    }
+    // Title match is most important (weight: 0.5), tags (0.3), description (0.2)
+    const titleScore = Math.min(titleHits / 2, 1); // 2+ title hits = max
+    const tagScore = Math.min(tagHits / 2, 1);
+    const descScore = Math.min(descHits / 3, 1); // 3+ desc hits = max
+    score = titleScore * 0.5 + tagScore * 0.3 + descScore * 0.2;
+    return score;
+}
+exports.scoreGenreRelevance = scoreGenreRelevance;
+/**
+ * Calculate buzz ratio and level for a single video.
+ * Centralized logic used by both searchWithBuzz() and detectBuzz().
+ */
+function calculateBuzzForVideo(video) {
+    let buzzRatio = null;
+    let buzzLevel = 'unknown';
+    if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
+        buzzRatio = video.views / video.subscribers;
+        if (buzzRatio >= 10)
+            buzzLevel = 'super-buzz';
+        else if (buzzRatio >= 5)
+            buzzLevel = 'buzz';
+        else if (buzzRatio >= 2)
+            buzzLevel = 'good';
+        else if (buzzRatio >= 1)
+            buzzLevel = 'average';
+        else
+            buzzLevel = 'low';
+    }
+    return { video, buzzRatio, buzzLevel };
+}
+exports.calculateBuzzForVideo = calculateBuzzForVideo;
+/** Sort buzz results descending (unknowns at end) */
+function sortBuzzRanking(ranking) {
+    return ranking.sort((a, b) => {
+        if (a.buzzRatio === null)
+            return 1;
+        if (b.buzzRatio === null)
+            return -1;
+        return b.buzzRatio - a.buzzRatio;
+    });
+}
 class YouTubeResearchService {
     constructor(anthropicApiKey) {
         this.client = null;
-        this.model = 'claude-sonnet-4-5-20250929';
+        this.model = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929';
         if (anthropicApiKey) {
             this.client = new sdk_1.default({ apiKey: anthropicApiKey });
         }
@@ -38,19 +136,14 @@ class YouTubeResearchService {
         // Region + language filter
         if (filters.regionCode && filters.regionCode !== 'all') {
             searchParams.set('regionCode', filters.regionCode);
-            // Map region to primary language for relevance filtering
-            const regionLangMap = {
-                JP: 'ja', US: 'en', KR: 'ko', TW: 'zh-Hant', CN: 'zh-Hans',
-                GB: 'en', DE: 'de', FR: 'fr', IN: 'hi', BR: 'pt',
-            };
-            const lang = regionLangMap[filters.regionCode];
+            const lang = REGION_LANG_MAP[filters.regionCode];
             if (lang)
                 searchParams.set('relevanceLanguage', lang);
         }
         // Upload date filter
         if (filters.uploadPeriod !== 'all') {
             const now = new Date();
-            const dateMap = { week: 7, month: 30, '3months': 90, year: 365 };
+            const dateMap = { week: 7, '2weeks': 14, month: 30, '3months': 90, '6months': 180, year: 365 };
             const days = dateMap[filters.uploadPeriod] || 0;
             if (days > 0) {
                 const after = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -59,8 +152,14 @@ class YouTubeResearchService {
         }
         const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
         if (!searchRes.ok) {
-            const err = await searchRes.text();
-            throw new Error(`YouTube Search API error: ${searchRes.status} ${err}`);
+            console.error(`[searchYouTube] YouTube Search API error: ${searchRes.status}`);
+            if (searchRes.status === 403) {
+                throw new Error('YouTube APIキーのクォータが上限に達したか、キーが無効です');
+            }
+            else if (searchRes.status === 400) {
+                throw new Error('YouTube API リクエストが不正です。検索条件を確認してください');
+            }
+            throw new Error(`YouTube APIエラーが発生しました（ステータス: ${searchRes.status}）`);
         }
         const searchData = await searchRes.json();
         const videoIds = (searchData.items || []).map((item) => item.id.videoId).filter(Boolean);
@@ -73,8 +172,10 @@ class YouTubeResearchService {
             key: apiKey,
         });
         const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?${detailParams}`);
-        if (!detailRes.ok)
-            throw new Error(`YouTube Videos API error: ${detailRes.status}`);
+        if (!detailRes.ok) {
+            console.error(`[searchYouTube] YouTube Videos API error: ${detailRes.status}`);
+            throw new Error(`YouTube APIエラーが発生しました（ステータス: ${detailRes.status}）`);
+        }
         const detailData = await detailRes.json();
         // Step 3: Get channel subscriber counts
         const channelIds = [...new Set((detailData.items || []).map((item) => item.snippet.channelId))];
@@ -116,22 +217,27 @@ class YouTubeResearchService {
         });
         // Step 5: Post-filter by language if region is specified
         if (filters.regionCode && filters.regionCode !== 'all') {
-            const regionLangMap = {
-                JP: { lang: 'ja', script: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/ },
-                KR: { lang: 'ko', script: /[\uAC00-\uD7AF\u1100-\u11FF]/ },
-                TW: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
-                CN: { lang: 'zh', script: /[\u4E00-\u9FFF]/ },
-            };
-            const mapping = regionLangMap[filters.regionCode];
-            if (mapping) {
-                const filtered = rawVideos.filter((v) => {
-                    // タイトルにその言語の文字が含まれるかどうかで判定
-                    // _langフィールドはYouTube APIが不正確な値を返すことがあるため使わない
-                    return mapping.script.test(v.title);
+            const script = REGION_SCRIPT_MAP[filters.regionCode];
+            if (script) {
+                // Strict filter: title OR description must contain regional script characters
+                const filtered = rawVideos.filter((v) => script.test(v.title) || script.test(v.description || ''));
+                if (filtered.length > 0) {
+                    console.log(`[searchYouTube] Region filter "${filters.regionCode}": ${rawVideos.length} → ${filtered.length} videos`);
+                    return filtered.map(({ _lang, ...rest }) => rest);
+                }
+                // Fallback: check _lang metadata from YouTube API
+                const langFiltered = rawVideos.filter((v) => {
+                    if (!v._lang)
+                        return false;
+                    const regionLang = REGION_LANG_MAP[filters.regionCode];
+                    return regionLang && v._lang.startsWith(regionLang);
                 });
-                // フィルタ後0件の場合のみフィルタ前を返す（1件でもあれば対象言語動画を優先）
-                const result = filtered.length > 0 ? filtered : rawVideos;
-                return result.map(({ _lang, ...rest }) => rest);
+                if (langFiltered.length > 0) {
+                    console.log(`[searchYouTube] Region filter "${filters.regionCode}" (lang fallback): ${rawVideos.length} → ${langFiltered.length} videos`);
+                    return langFiltered.map(({ _lang, ...rest }) => rest);
+                }
+                // Last resort: return all but log warning
+                console.warn(`[searchYouTube] Region filter "${filters.regionCode}": no matches found, returning all ${rawVideos.length} videos`);
             }
         }
         return rawVideos.map(({ _lang, ...rest }) => rest);
@@ -143,38 +249,34 @@ class YouTubeResearchService {
             if (videos.length === 0) {
                 return { success: false, error: '動画が見つかりませんでした。キーワードを変えてみてください。' };
             }
-            // バズ比率は計算だけ（Claude不要）
-            const buzzRanking = videos.map(video => {
-                let buzzRatio = null;
-                let buzzLevel = 'unknown';
-                if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
-                    buzzRatio = video.views / video.subscribers;
-                    if (buzzRatio >= 10)
-                        buzzLevel = 'super-buzz';
-                    else if (buzzRatio >= 5)
-                        buzzLevel = 'buzz';
-                    else if (buzzRatio >= 2)
-                        buzzLevel = 'good';
-                    else if (buzzRatio >= 1)
-                        buzzLevel = 'average';
-                    else
-                        buzzLevel = 'low';
+            // Genre post-filter: score and filter results by genre relevance
+            let filteredVideos = videos;
+            const genre = request.filters?.genre;
+            if (genre && GENRE_KEYWORDS[genre]) {
+                const scored = videos.map(v => ({
+                    video: v,
+                    genreScore: scoreGenreRelevance(v, genre),
+                }));
+                // Keep videos with score > 0 (at least 1 keyword match somewhere)
+                const relevant = scored.filter(s => s.genreScore > 0);
+                if (relevant.length > 0) {
+                    // Sort by genre relevance (highest first), then use those videos
+                    relevant.sort((a, b) => b.genreScore - a.genreScore);
+                    filteredVideos = relevant.map(s => s.video);
+                    console.log(`[searchWithBuzz] Genre filter "${genre}": ${videos.length} → ${filteredVideos.length} videos`);
                 }
-                return { video, buzzRatio, buzzLevel };
-            });
-            buzzRanking.sort((a, b) => {
-                if (a.buzzRatio === null)
-                    return 1;
-                if (b.buzzRatio === null)
-                    return -1;
-                return b.buzzRatio - a.buzzRatio;
-            });
+                else {
+                    // No relevant videos found - return all with a note
+                    console.log(`[searchWithBuzz] Genre filter "${genre}": no matches, returning all ${videos.length} videos`);
+                }
+            }
+            const buzzRanking = sortBuzzRanking(filteredVideos.map(calculateBuzzForVideo));
             return {
                 success: true,
                 data: {
                     query: request.query,
-                    videoCount: videos.length,
-                    videos,
+                    videoCount: filteredVideos.length,
+                    videos: filteredVideos,
                     buzzRanking,
                     audience: undefined,
                     keywords: [],
@@ -194,9 +296,11 @@ class YouTubeResearchService {
             if (!this.client) {
                 return { success: false, error: 'Anthropic APIキーが設定されていません' };
             }
-            // タイトル+概要欄+タグから分析（字幕は使わない）
-            const audience = await this.analyzeAudience(videos);
-            const keywords = await this.extractKeywords(videos);
+            // Audience and Keywords are independent - run in parallel
+            const [audience, keywords] = await Promise.all([
+                this.analyzeAudience(videos),
+                this.extractKeywords(videos),
+            ]);
             const recsRaw = await this.callClaude((0, prompts_1.buildRecommendationsPrompt)('バズ動画の共通パターン分析', '', JSON.stringify(audience.demographics), keywords.slice(0, 5).map(k => k.keyword).join(', ')));
             let recommendations = [];
             try {
@@ -217,6 +321,8 @@ class YouTubeResearchService {
         }
     }
     // --- Phase 2: Metadata ---
+    // 未実装：現UIでは未使用。YouTube Data API検索（searchYouTube）を使用するため、
+    // このメソッドはURL/テキスト入力ベースの旧フローの残存コード。
     async fetchVideoMetadata(inputs) {
         return inputs.map((input, i) => {
             const isUrl = input.inputType === 'url' || input.rawText.match(/youtube\.com|youtu\.be/);
@@ -243,32 +349,7 @@ class YouTubeResearchService {
     }
     // --- Phase 3: Buzz Detection ---
     async detectBuzz(videos) {
-        const ranking = videos.map(video => {
-            let buzzRatio = null;
-            let buzzLevel = 'unknown';
-            if (video.views !== null && video.subscribers !== null && video.subscribers > 0) {
-                buzzRatio = video.views / video.subscribers;
-                if (buzzRatio >= 10)
-                    buzzLevel = 'super-buzz';
-                else if (buzzRatio >= 5)
-                    buzzLevel = 'buzz';
-                else if (buzzRatio >= 2)
-                    buzzLevel = 'good';
-                else if (buzzRatio >= 1)
-                    buzzLevel = 'average';
-                else
-                    buzzLevel = 'low';
-            }
-            return { video, buzzRatio, buzzLevel };
-        });
-        // Sort by buzz ratio descending (unknowns at end)
-        ranking.sort((a, b) => {
-            if (a.buzzRatio === null)
-                return 1;
-            if (b.buzzRatio === null)
-                return -1;
-            return b.buzzRatio - a.buzzRatio;
-        });
+        const ranking = sortBuzzRanking(videos.map(calculateBuzzForVideo));
         // AI analysis of common patterns in top buzz videos
         const buzzVideos = ranking.filter(r => r.buzzLevel === 'super-buzz' || r.buzzLevel === 'buzz' || r.buzzLevel === 'good');
         let commonPatterns = '';
@@ -388,14 +469,16 @@ class YouTubeResearchService {
                 .slice(0, 5)
                 .map(v => v.title)
                 .filter(t => t && t !== 'Unknown');
-            const trendResult = topKeywords.length > 0
-                ? await this.checkTrend(topKeywords.slice(0, 3))
-                : { success: true, data: { results: [], summary: '' } };
+            const trendPromise = topKeywords.length > 0
+                ? this.checkTrend(topKeywords.slice(0, 3))
+                : Promise.resolve({ success: true, data: { results: [], summary: '' } });
+            // Phase 5 & 6 are independent of Phase 4 - run in parallel
+            const [trendResult, audience, keywords] = await Promise.all([
+                trendPromise,
+                this.analyzeAudience(videos),
+                this.extractKeywords(videos),
+            ]);
             const trendCheck = trendResult.data?.results || [];
-            // Phase 5
-            const audience = await this.analyzeAudience(videos);
-            // Phase 6
-            const keywords = await this.extractKeywords(videos);
             // Phase 7: Recommendations
             const recsRaw = await this.callClaude((0, prompts_1.buildRecommendationsPrompt)(buzzResult.data?.commonPatterns || 'バズ分析データなし', trendResult.data?.summary || 'トレンドデータなし', JSON.stringify(audience.demographics), keywords.slice(0, 5).map(k => k.keyword).join(', ')));
             let recommendations = [];
@@ -452,7 +535,7 @@ class YouTubeResearchService {
         }
         // If still not starting with { or [, try to find JSON object/array
         if (!text.startsWith('{') && !text.startsWith('[')) {
-            const jsonStart = text.search(/[\{\\[]/);
+            const jsonStart = text.search(/[{\[]/);
             if (jsonStart >= 0) {
                 text = text.slice(jsonStart);
                 // Find matching closing bracket
