@@ -2,8 +2,37 @@
 
 > **CRITICAL**: 次のセッションは必ずこのファイルを読んでから作業を開始すること
 
-**最終更新**: 2026-02-21
-**作業ディレクトリ**: C:\Users\baseb\dev\開発1
+**最終更新**: 2026-02-24
+**作業ディレクトリ**: /Users/shimizusubaru/claude code/kaihatu1（Mac mini）
+
+---
+
+## OpenClaw セキュリティ強化（2026-02-24）
+
+### 完了
+
+1. **openclaw.json セキュリティ設定**（`~/.openclaw/openclaw.json` — PC固有）
+   - `groupPolicy: "allowlist"` + guilds/channels で指定チャンネルのみ応答
+   - 許可チャンネル: `1475380502251700317`（サーバー: `1475380501773684737`）
+   - `allowBots: false` / `workspaceOnly: true` / `tools.deny`
+   - `denyCommands` に `location.get`, `sms.send`, `canvas.eval`, `system.run` 追加
+
+2. **.gitignore 保護設定** — `openclaw-workspace/memory/`, `.env`, `.pi/` を除外
+
+3. **Discord動作確認済み**
+   - `@SubaClaw` でコーディング指示 → openclaw-workspace内にファイル作成OK
+   - workspace外（src/等）へのアクセスはブロック確認済み
+
+### 不採用
+
+- `claude-code-skill`（openclaw-claude-code-skill）— バックエンドAPIサーバーが無く動作しない。OpenClaw自体がClaude Codeで動いているため不要。削除済み。
+
+### 万が一の復旧
+
+```bash
+cd ~/claude\ code/kaihatu1
+git checkout -- openclaw-workspace/
+```
 
 ---
 
