@@ -108,7 +108,7 @@ export class YouTubeResearchService {
     }
 
     // Step 4: Build VideoMeta array
-    const allVideos: VideoMeta[] = ((detailData as any).items || []).map((item: any) => {
+    const rawVideos: VideoMeta[] = ((detailData as any).items || []).map((item: any) => {
       const stats = item.statistics || {};
       const snippet = item.snippet || {};
       return {
@@ -139,20 +139,20 @@ export class YouTubeResearchService {
       };
       const mapping = regionLangMap[filters.regionCode];
       if (mapping) {
-        const filtered = allVideos.filter((v: any) => {
+        const filtered = rawVideos.filter((v: any) => {
           // 1. API言語フィールドが一致
           if (v._lang && v._lang.startsWith(mapping.lang)) return true;
-          // 2. 言語フィールド未設定 → タイトルの文字種で判定
-          if (!v._lang && mapping.script.test(v.title)) return true;
+          // 2. タイトルにその言語の文字が含まれる
+          if (mapping.script.test(v.title)) return true;
           return false;
         });
         // フィルタ後の結果が少なすぎる場合はフィルタ前を返す
-        const result = filtered.length >= 3 ? filtered : allVideos;
+        const result = filtered.length >= 3 ? filtered : rawVideos;
         return result.map(({ _lang, ...rest }: any) => rest);
       }
     }
 
-    return allVideos.map(({ _lang, ...rest }: any) => rest);
+    return rawVideos.map(({ _lang, ...rest }: any) => rest);
   }
 
   // Step 1: YouTube検索 + バズ比率算出（Claude不要・高速）
