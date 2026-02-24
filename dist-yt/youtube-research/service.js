@@ -125,15 +125,11 @@ class YouTubeResearchService {
             const mapping = regionLangMap[filters.regionCode];
             if (mapping) {
                 const filtered = rawVideos.filter((v) => {
-                    // 1. API言語フィールドが一致
-                    if (v._lang && v._lang.startsWith(mapping.lang))
-                        return true;
-                    // 2. タイトルにその言語の文字が含まれる
-                    if (mapping.script.test(v.title))
-                        return true;
-                    return false;
+                    // タイトルにその言語の文字が含まれるかどうかで判定
+                    // _langフィールドはYouTube APIが不正確な値を返すことがあるため使わない
+                    return mapping.script.test(v.title);
                 });
-                // フィルタ後0件の場合のみフィルタ前を返す（1件でもあれば日本語動画を優先）
+                // フィルタ後0件の場合のみフィルタ前を返す（1件でもあれば対象言語動画を優先）
                 const result = filtered.length > 0 ? filtered : rawVideos;
                 return result.map(({ _lang, ...rest }) => rest);
             }
