@@ -146,8 +146,8 @@ export class YouTubeResearchService {
           if (mapping.script.test(v.title)) return true;
           return false;
         });
-        // フィルタ後の結果が少なすぎる場合はフィルタ前を返す
-        const result = filtered.length >= 3 ? filtered : rawVideos;
+        // フィルタ後0件の場合のみフィルタ前を返す（1件でもあれば日本語動画を優先）
+        const result = filtered.length > 0 ? filtered : rawVideos;
         return result.map(({ _lang, ...rest }: any) => rest);
       }
     }

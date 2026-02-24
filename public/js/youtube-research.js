@@ -595,8 +595,10 @@ function formatElapsed(dateStr) {
   if (diffDays < 1) return '今日';
   if (diffDays === 1) return '1日前';
   if (diffDays < 7) return diffDays + '日前';
-  const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks < 4) return diffWeeks + '週間前';
+  if (diffDays < 30) {
+    const diffWeeks = Math.floor(diffDays / 7);
+    return diffWeeks + '週間前';
+  }
   const diffMonths = Math.floor(diffDays / 30);
   if (diffMonths < 12) return diffMonths + 'ヶ月前';
   const diffYears = Math.floor(diffDays / 365);
