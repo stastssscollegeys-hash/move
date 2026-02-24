@@ -28,6 +28,61 @@ const REGION_SCRIPT_MAP: Record<string, RegExp> = {
   CN: /[\u4E00-\u9FFF]/,
 };
 
+// Genre keyword mapping for post-filtering (backend verification)
+const GENRE_KEYWORDS: Record<string, string[]> = {
+  education: ['教育', '学習', '勉強', '講座', '解説', '授業', 'スキルアップ', '資格', '学ぶ', '教える'],
+  tech: ['テクノロジー', 'テック', 'プログラミング', 'AI', 'エンジニア', 'IT', '開発', 'ChatGPT', 'アプリ', 'コード', 'Python', 'JavaScript', 'プログラム'],
+  business: ['ビジネス', '副業', '起業', '稼ぐ', 'マーケティング', 'フリーランス', '収益化', '投資', 'ノウハウ', 'コンサル', '物販', 'せどり', 'アフィリエイト', 'ネットビジネス', '経営', '営業', '転売'],
+  lifestyle: ['ライフスタイル', '暮らし', 'ルーティン', '日常', 'Vlog', '生活', 'ミニマリスト', '丁寧な暮らし', 'モーニングルーティン', 'ナイトルーティン', '部屋'],
+  entertainment: ['エンタメ', 'バラエティ', '面白い', 'やってみた', '検証', 'ドッキリ', 'チャレンジ', 'コント', '大食い', '爆笑', 'ネタ'],
+  cooking: ['料理', 'レシピ', 'グルメ', '食べ', '作り方', 'クッキング', '簡単レシピ', '食レポ', 'お弁当', 'スイーツ', '手作り', '献立'],
+  beauty: ['美容', 'コスメ', 'メイク', 'スキンケア', 'ヘアアレンジ', '垢抜け', '整形', 'ダイエット美容', 'プチプラ', 'ビューティー'],
+  fitness: ['筋トレ', 'ダイエット', 'フィットネス', 'ワークアウト', 'エクササイズ', 'ストレッチ', 'ヨガ', '痩せる', 'ボディメイク', '宅トレ', 'トレーニング'],
+  gaming: ['ゲーム', 'ゲーム実況', 'プレイ', '攻略', '配信', 'eスポーツ', 'マイクラ', 'フォートナイト', '原神', 'スプラ', 'ゲーミング', '実況'],
+  music: ['音楽', '歌ってみた', 'MV', '弾いてみた', 'カバー', '作曲', 'ピアノ', 'ギター', 'DTM', 'オリジナル曲', '歌', '演奏'],
+  travel: ['旅行', '旅', '観光', 'キャンプ', 'アウトドア', '絶景', '一人旅', '海外旅行', '温泉', '車中泊', 'バンライフ', '旅vlog'],
+  pets: ['ペット', '犬', '猫', '動物', 'かわいい', '子犬', '子猫', '保護猫', '多頭飼い', '爬虫類', 'わんこ', 'にゃんこ'],
+  parenting: ['子育て', '育児', 'ママ', 'パパ', '赤ちゃん', '知育', '離乳食', '幼児教育', '小学生', '受験', '出産', '妊娠'],
+  spiritual: ['スピリチュアル', '引き寄せ', '潜在意識', '宇宙', '波動', '目覚め', '覚醒', 'ハイヤーセルフ', 'アセンション', 'ツインレイ'],
+  fortune: ['占い', 'タロット', '星座', '数秘術', '四柱推命', '手相', '星読み', '運勢', '誕生日占い', 'オラクルカード', '鑑定'],
+  healing: ['ヒーリング', '瞑想', '周波数', '睡眠', 'リラックス', 'ソルフェジオ', 'ASMR', '自然音', '528Hz', 'マインドフルネス'],
+  mental: ['メンタルヘルス', 'HSP', '自己肯定感', 'うつ', '不安', '心理学', 'カウンセリング', 'アダルトチルドレン', '生きづらさ', '自分を変える', 'メンタル'],
+};
+
+/**
+ * Score genre relevance for a video by checking title + description + tags.
+ * Returns a score from 0 to 1.
+ */
+export function scoreGenreRelevance(video: VideoMeta, genre: string): number {
+  const keywords = GENRE_KEYWORDS[genre];
+  if (!keywords) return 1; // Unknown genre = don't filter
+
+  const titleLower = video.title.toLowerCase();
+  const descLower = (video.description || '').toLowerCase();
+  const tagsLower = (video.tags || []).map(t => t.toLowerCase());
+  const allTags = tagsLower.join(' ');
+
+  let score = 0;
+  let titleHits = 0;
+  let descHits = 0;
+  let tagHits = 0;
+
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase();
+    if (titleLower.includes(kwLower)) titleHits++;
+    if (descLower.includes(kwLower)) descHits++;
+    if (allTags.includes(kwLower)) tagHits++;
+  }
+
+  // Title match is most important (weight: 0.5), tags (0.3), description (0.2)
+  const titleScore = Math.min(titleHits / 2, 1); // 2+ title hits = max
+  const tagScore = Math.min(tagHits / 2, 1);
+  const descScore = Math.min(descHits / 3, 1); // 3+ desc hits = max
+
+  score = titleScore * 0.5 + tagScore * 0.3 + descScore * 0.2;
+  return score;
+}
+
 /**
  * Calculate buzz ratio and level for a single video.
  * Centralized logic used by both searchWithBuzz() and detectBuzz().
@@ -99,7 +154,7 @@ export class YouTubeResearchService {
     // Upload date filter
     if (filters.uploadPeriod !== 'all') {
       const now = new Date();
-      const dateMap: Record<string, number> = { week: 7, month: 30, '3months': 90, year: 365 };
+      const dateMap: Record<string, number> = { week: 7, '2weeks': 14, month: 30, '3months': 90, '6months': 180, year: 365 };
       const days = dateMap[filters.uploadPeriod] || 0;
       if (days > 0) {
         const after = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
@@ -181,9 +236,30 @@ export class YouTubeResearchService {
     if (filters.regionCode && filters.regionCode !== 'all') {
       const script = REGION_SCRIPT_MAP[filters.regionCode];
       if (script) {
-        const filtered = rawVideos.filter((v: any) => script.test(v.title));
-        const result = filtered.length > 0 ? filtered : rawVideos;
-        return result.map(({ _lang, ...rest }: any) => rest);
+        // Strict filter: title OR description must contain regional script characters
+        const filtered = rawVideos.filter((v: any) =>
+          script.test(v.title) || script.test(v.description || '')
+        );
+
+        if (filtered.length > 0) {
+          console.log(`[searchYouTube] Region filter "${filters.regionCode}": ${rawVideos.length} → ${filtered.length} videos`);
+          return filtered.map(({ _lang, ...rest }: any) => rest);
+        }
+
+        // Fallback: check _lang metadata from YouTube API
+        const langFiltered = rawVideos.filter((v: any) => {
+          if (!v._lang) return false;
+          const regionLang = REGION_LANG_MAP[filters.regionCode!];
+          return regionLang && v._lang.startsWith(regionLang);
+        });
+
+        if (langFiltered.length > 0) {
+          console.log(`[searchYouTube] Region filter "${filters.regionCode}" (lang fallback): ${rawVideos.length} → ${langFiltered.length} videos`);
+          return langFiltered.map(({ _lang, ...rest }: any) => rest);
+        }
+
+        // Last resort: return all but log warning
+        console.warn(`[searchYouTube] Region filter "${filters.regionCode}": no matches found, returning all ${rawVideos.length} videos`);
       }
     }
 
@@ -199,14 +275,37 @@ export class YouTubeResearchService {
         return { success: false, error: '動画が見つかりませんでした。キーワードを変えてみてください。' };
       }
 
-      const buzzRanking = sortBuzzRanking(videos.map(calculateBuzzForVideo));
+      // Genre post-filter: score and filter results by genre relevance
+      let filteredVideos = videos;
+      const genre = request.filters?.genre;
+      if (genre && GENRE_KEYWORDS[genre]) {
+        const scored = videos.map(v => ({
+          video: v,
+          genreScore: scoreGenreRelevance(v, genre),
+        }));
+
+        // Keep videos with score > 0 (at least 1 keyword match somewhere)
+        const relevant = scored.filter(s => s.genreScore > 0);
+
+        if (relevant.length > 0) {
+          // Sort by genre relevance (highest first), then use those videos
+          relevant.sort((a, b) => b.genreScore - a.genreScore);
+          filteredVideos = relevant.map(s => s.video);
+          console.log(`[searchWithBuzz] Genre filter "${genre}": ${videos.length} → ${filteredVideos.length} videos`);
+        } else {
+          // No relevant videos found - return all with a note
+          console.log(`[searchWithBuzz] Genre filter "${genre}": no matches, returning all ${videos.length} videos`);
+        }
+      }
+
+      const buzzRanking = sortBuzzRanking(filteredVideos.map(calculateBuzzForVideo));
 
       return {
         success: true,
         data: {
           query: request.query,
-          videoCount: videos.length,
-          videos,
+          videoCount: filteredVideos.length,
+          videos: filteredVideos,
           buzzRanking,
           audience: undefined as any,
           keywords: [],
