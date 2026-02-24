@@ -72,7 +72,7 @@ export class YouTubeResearchService {
       const err = await searchRes.text();
       throw new Error(`YouTube Search API error: ${searchRes.status} ${err}`);
     }
-    const searchData = await searchRes.json();
+    const searchData: any = await searchRes.json();
     const videoIds = (searchData.items || []).map((item: any) => item.id.videoId).filter(Boolean);
 
     if (videoIds.length === 0) return [];
@@ -86,7 +86,7 @@ export class YouTubeResearchService {
 
     const detailRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?${detailParams}`);
     if (!detailRes.ok) throw new Error(`YouTube Videos API error: ${detailRes.status}`);
-    const detailData = await detailRes.json();
+    const detailData: any = await detailRes.json();
 
     // Step 3: Get channel subscriber counts
     const channelIds = [...new Set((detailData.items || []).map((item: any) => item.snippet.channelId))];
@@ -100,7 +100,7 @@ export class YouTubeResearchService {
       });
       const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?${chParams}`);
       if (chRes.ok) {
-        const chData = await chRes.json();
+        const chData: any = await chRes.json();
         for (const ch of chData.items || []) {
           channelSubs[ch.id] = parseInt(ch.statistics.subscriberCount || '0', 10);
         }
@@ -108,7 +108,7 @@ export class YouTubeResearchService {
     }
 
     // Step 4: Build VideoMeta array
-    const allVideos: VideoMeta[] = (detailData.items || []).map((item: any) => {
+    const allVideos: VideoMeta[] = ((detailData as any).items || []).map((item: any) => {
       const stats = item.statistics || {};
       const snippet = item.snippet || {};
       return {
