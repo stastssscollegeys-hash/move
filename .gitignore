@@ -19,3 +19,11 @@ upstream-merge-report.md
 yt-dlp.exe
 *.vtt
 ~$*
+
+# openclaw-workspace（機密・一時データを除外）
+openclaw-workspace/memory/
+openclaw-workspace/.env
+openclaw-workspace/.pi/
+
+# Claude Code Skill（外部クローン）
+openclaw-claude-code-skill/
