@@ -24,6 +24,3 @@ yt-dlp.exe
 openclaw-workspace/memory/
 openclaw-workspace/.env
 openclaw-workspace/.pi/
-
-# Claude Code Skill（外部クローン）
-openclaw-claude-code-skill/
