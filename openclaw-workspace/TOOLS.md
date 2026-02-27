@@ -1,40 +1,29 @@
 # TOOLS.md - Local Notes
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+## Git同期
 
-## What Goes Here
+### kaihatu1 リポへのpush
+ワークスペースの変更を kaihatu1 リポに同期するコマンド:
 
-Things like:
-
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
-
-## Examples
-
-```markdown
-### Cameras
-
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
-
-### SSH
-
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
+```bash
+cd "/Users/shimizusubaru/claude code/kaihatu1"
+git add openclaw-workspace/
+git commit -m "openclaw-workspace の変更を同期"
+git push origin main
 ```
 
-## Why Separate?
+- **リポ**: https://github.com/subaru-blip/kaihatu1
+- **ブランチ**: main
+- **パス**: `openclaw-workspace/` 以下がワークスペース
+- **注意**: `read` ツールではkaihatu1の外は触れないが、`exec`（シェルコマンド）なら `kaihatu1/` 内のgit操作が可能
 
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
+### umarou アプリ（GitHub Pages）
+- **リポ**: https://github.com/subaru-blip/umarou
+- **公開URL**: https://subaru-blip.github.io/umarou/
+- **パス**: `openclaw-workspace/umarou-app/`
+- umarou リポへの直接pushも可能（独立リポとして残っている）
 
----
-
-Add whatever helps you do your job. This is your cheat sheet.
+### 同期手順まとめ
+1. ワークスペース内のファイルを編集
+2. umarou アプリの変更 → `umarou-app/` 内で `git push`（GitHub Pages反映）
+3. 全体の同期 → `kaihatu1/` で `git add openclaw-workspace/ && git push`
