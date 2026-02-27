@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>馬狼 - UMAROU</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;
+  --bg-image:none;
+  --card:#161b22;
+  --card-border:#30363d;
+  --accent:#d4af37;
+  --accent-dim:rgba(212,175,55,.15);
+  --green:#1a5c2a;
+  --green-light:#2ea043;
+  --red:#e74c3c;
+  --text:#e6edf3;
+  --dim:#8b949e;
+  --turf:#1a3d1a;
+  /* プレイヤーカラー */
+  --waku1:#e74c3c;--waku2:#3498db;--waku3:#2ecc71;--waku4:#f1c40f;
+  --waku5:#9b59b6;--waku6:#e67e22;--waku7:#ff69b4;--waku8:#1abc9c;
+}
+html,body{min-height:100%;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic',sans-serif;font-weight:600;background:var(--bg);color:var(--text);overflow-x:hidden;overflow-y:auto;-webkit-tap-highlight-color:transparent;font-size:17px;-webkit-overflow-scrolling:touch}
+
+/* ===== 背景パターン（馬シルエット風） ===== */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:var(--bg-image);background-size:cover;background-position:center;
+  opacity:.12;
+}
+body::after{
+  content:'🐴';position:fixed;bottom:-40px;right:-20px;font-size:18rem;opacity:.03;
+  z-index:0;pointer-events:none;transform:rotate(-15deg);
+}
+
+/* ===== HEADER ===== */
+.game-header{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  background:linear-gradient(180deg,rgba(13,17,23,.98) 0%,rgba(13,17,23,.9) 100%);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--card-border);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;
+}
+.header-logo{display:flex;align-items:center;gap:8px}
+.header-logo-text{font-size:1.1rem;font-weight:900;color:var(--accent);letter-spacing:.08em}
+.header-logo-sub{font-size:.65rem;color:var(--dim);letter-spacing:.15em}
+.phase-badge{
+  padding:5px 14px;border-radius:20px;font-size:.75rem;font-weight:700;
+  background:var(--accent-dim);color:var(--accent);border:1px solid rgba(212,175,55,.3);
+  letter-spacing:.05em;
+}
+.phase-badge.night{background:rgba(88,101,242,.15);color:#8b9cf7;border-color:rgba(88,101,242,.3)}
+.phase-badge.vote{background:rgba(234,179,8,.15);color:#eab308;border-color:rgba(234,179,8,.3)}
+.phase-badge.danger{background:rgba(231,76,60,.15);color:var(--red);border-color:rgba(231,76,60,.3)}
+
+#app{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px;padding-top:70px;padding-bottom:40px;text-align:center;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:1}
+
+/* ===== SCREENS ===== */
+.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;max-width:420px;gap:12px;animation:fadeIn .4s;padding:4px 0 40px;position:relative}
+.screen.active{display:flex}
+
+/* 各画面の背景装飾 */
+.screen::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.04;z-index:-1;
+  background:radial-gradient(ellipse at 50% 20%,var(--accent) 0%,transparent 60%);
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes reveal{0%{transform:scale(0) rotate(-180deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ===== TYPOGRAPHY ===== */
+h1{font-size:2.2rem;font-weight:900;color:var(--accent);text-shadow:0 0 40px rgba(212,175,55,.3);letter-spacing:.12em}
+h2{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
+h3{font-size:1.15rem;font-weight:700;color:var(--text)}
+p{line-height:1.7;color:var(--dim);font-weight:500;font-size:1rem}
+.subtitle{font-size:.9rem;color:var(--dim);margin-top:-4px;letter-spacing:.1em}
+.section-label{font-size:.8rem;color:var(--dim);text-transform:uppercase;letter-spacing:.15em;font-weight:700}
+
+/* ===== BUTTONS ===== */
+.btn{
+  background:linear-gradient(135deg,var(--accent),#b8960f);
+  color:#0d1117;border:none;padding:16px 34px;border-radius:24px;
+  font-size:1.05rem;font-weight:800;cursor:pointer;transition:all .15s;
+  min-width:200px;touch-action:manipulation;letter-spacing:.03em;
+  box-shadow:0 4px 16px rgba(212,175,55,.2);
+}
+.btn:active{transform:scale(.92);filter:brightness(1.15);box-shadow:0 2px 8px rgba(212,175,55,.15)}
+.btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--card-border);box-shadow:none}
+.btn.secondary:active{background:#1c2129;transform:scale(.92)}
+.btn.danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;box-shadow:0 4px 16px rgba(231,76,60,.2)}
+.btn.danger:active{transform:scale(.92);filter:brightness(1.15)}
+.btn.small{padding:10px 20px;font-size:.9rem;min-width:auto;border-radius:20px}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn.green{background:linear-gradient(135deg,var(--green),#227a36);color:#fff;box-shadow:0 4px 16px rgba(26,92,42,.3)}
+.btn.green:active{transform:scale(.92);filter:brightness(1.15)}
+
+/* ===== INPUTS ===== */
+.input{background:var(--card);border:1px solid var(--card-border);color:var(--text);padding:14px 16px;border-radius:12px;font-size:1.05rem;width:100%;text-align:center;font-weight:600}
+.input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.input::placeholder{color:var(--dim);font-weight:500}
+
+/* ===== PLAYER INPUTS ===== */
+.player-inputs{display:flex;flex-direction:column;gap:6px;width:100%;max-height:35vh;overflow-y:auto;padding:4px}
+.player-row{display:flex;gap:8px;align-items:center}
+.player-row .input{flex:1;text-align:left;padding-left:12px}
+.player-row .player-num{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;
+}
+
+/* ===== COUNT SELECT ===== */
+.count-select{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.count-btn{
+  width:52px;height:52px;border-radius:50%;background:var(--card);
+  border:2px solid var(--card-border);color:var(--text);font-size:1.3rem;
+  font-weight:800;cursor:pointer;transition:all .15s;
+}
+.count-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.count-btn:active{transform:scale(.85)}
+
+/* ===== TICKET (馬券風) ===== */
+.ticket-card{
+  background:var(--card);border:2px solid var(--card-border);border-radius:16px;
+  padding:24px 20px;width:100%;max-width:320px;position:relative;overflow:hidden;
+}
+.ticket-card::before,.ticket-card::after{
+  content:'';position:absolute;width:24px;height:24px;background:var(--bg);border-radius:50%;
+  top:50%;transform:translateY(-50%);
+}
+.ticket-card::before{left:-12px}
+.ticket-card::after{right:-12px}
+.ticket-dashed{
+  border:none;border-top:2px dashed var(--card-border);margin:16px 8px;
+}
+.ticket-header{font-size:.75rem;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.ticket-display{
+  font-size:4rem;font-weight:900;animation:reveal .6s;
+  width:100px;height:100px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin:12px auto;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.ticket-label{font-size:1.15rem;font-weight:800;margin-top:4px}
+.ticket-footer{font-size:.75rem;color:var(--dim);letter-spacing:.1em;margin-top:4px}
+
+/* ===== TIMER ===== */
+.timer-display{font-size:3.5rem;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.timer-bar{width:100%;height:6px;background:var(--card);border-radius:3px;overflow:hidden;margin-top:8px}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--accent),#b8960f);transition:width 1s linear;border-radius:3px}
+
+/* ===== SURVIVORS ===== */
+.survivors{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.survivor-tag{
+  padding:9px 16px;border-radius:24px;background:var(--card);
+  border:1px solid var(--card-border);font-size:.9rem;font-weight:700;
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+}
+.survivor-tag .waku-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.2)}
+.survivor-tag.wolf{border-color:var(--red);color:var(--red)}
+.survivor-tag.dead{
+  opacity:.35;text-decoration:line-through;background:transparent;border-style:dashed;
+  position:relative;
+}
+.survivor-tag.dead::after{content:'✕';margin-left:4px;color:var(--red);font-weight:900;text-decoration:none}
+
+/* ===== VOTE OPTIONS (カード型) ===== */
+.vote-list{display:flex;flex-direction:column;gap:10px;width:100%;max-height:50vh;overflow-y:auto;padding:4px}
+.vote-option{
+  width:100%;padding:16px;background:var(--card);border:2px solid var(--card-border);
+  border-radius:16px;color:var(--text);font-size:1.05rem;font-weight:700;
+  cursor:pointer;transition:all .15s;text-align:left;
+  display:flex;align-items:center;gap:14px;
+}
+.vote-option:active{transform:scale(.96)}
+.vote-option.selected{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 3px rgba(212,175,55,.1)}
+.vote-option .vote-avatar{
+  width:42px;height:42px;border-radius:50%;background:var(--green);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+}
+
+/* ===== VOTE RESULTS ===== */
+.result-bar{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0}
+.result-bar .name{min-width:70px;text-align:right;font-size:.9rem;font-weight:700}
+.result-bar .bar{flex:1;height:34px;background:var(--card);border-radius:10px;overflow:hidden;position:relative}
+.result-bar .fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),#b8960f);
+  border-radius:10px;transition:width .8s ease-out;
+  display:flex;align-items:center;padding-left:10px;
+  font-size:.85rem;font-weight:800;color:#0d1117;
+}
+
+/* ===== RACE SELECT (シンプル馬番選択) ===== */
+.race-select-grid{
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px 0;
+}
+.race-horse-btn{
+  width:72px;height:72px;border-radius:50%;border:3px solid var(--card-border);
+  background:var(--card);display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:900;cursor:pointer;transition:all .15s;
+  flex-direction:column;gap:2px;
+}
+.race-horse-btn:active{transform:scale(.88)}
+.race-horse-btn.selected{border-width:4px;transform:scale(1.1);box-shadow:0 0 20px rgba(212,175,55,.3)}
+.race-horse-btn .horse-num{font-size:.7rem;font-weight:700;opacity:.7}
+
+/* ===== PASS SCREEN ===== */
+.pass-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:24px;padding:24px}
+
+/* ===== NIGHT OVERLAY (スマホ回し方式) ===== */
+.night-overlay{
+  position:fixed;inset:0;background:rgba(0,0,10,.97);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;gap:24px;padding:24px;text-align:center;
+}
+.night-overlay h2{color:#8b9cf7;font-size:1.5rem}
+.night-overlay p{color:var(--dim);font-size:1.1rem;line-height:1.8}
+
+/* ===== CONFETTI ===== */
+.confetti{position:fixed;top:-10px;font-size:1.5rem;animation:fall linear forwards;pointer-events:none;z-index:200}
+@keyframes fall{to{top:110vh;transform:rotate(720deg)}}
+
+/* ===== LOGO ===== */
+.logo-horse{font-size:2.2rem;margin-bottom:-4px;filter:drop-shadow(0 0 30px rgba(212,175,55,.25))}
+.logo-accent{
+  display:inline-block;background:linear-gradient(135deg,var(--accent),#e8c84a);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ===== HERO AREA (タイトル画面) ===== */
+.hero-area{
+  width:100%;border-radius:16px;padding:16px 12px;margin-bottom:4px;
+  background:var(--bg-image,linear-gradient(135deg,rgba(212,175,55,.08) 0%,rgba(26,92,42,.12) 50%,rgba(13,17,23,.9) 100%));
+  background-size:cover;background-position:center;
+  position:relative;overflow:hidden;
+}
+.hero-area::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,var(--bg) 100%);
+  pointer-events:none;
+}
+.hero-area>*{position:relative;z-index:1}
+
+/* ===== RULES ===== */
+.rules-btn{position:absolute;top:12px;right:12px;background:none;border:1px solid var(--card-border);color:var(--dim);padding:7px 14px;border-radius:20px;font-size:.85rem;cursor:pointer;font-weight:600}
+.rules-btn:active{background:var(--card);transform:scale(.92)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:150;display:none;align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.modal-content{
+  background:var(--card);border-radius:20px;padding:24px;max-width:400px;width:100%;
+  max-height:80vh;overflow-y:auto;text-align:left;line-height:1.8;font-size:.95rem;
+  border:1px solid var(--card-border);
+}
+.modal-content h3{color:var(--accent);margin:16px 0 8px;text-align:center;font-weight:800}
+.modal-content p{color:var(--text);margin:6px 0;font-weight:500}
+
+/* ===== CARD ===== */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:14px;width:100%}
+
+/* ===== MISC ===== */
+.horse-icon{font-size:1.5rem}
+.divider{width:100%;height:1px;background:var(--card-border);margin:8px 0}
+.gold-text{color:var(--accent)}
+.green-text{color:var(--green-light)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="game-header" id="gameHeader">
+  <div class="header-logo">
+    <span style="font-size:1.4rem">🐴</span>
+    <div>
+      <div class="header-logo-text">馬狼</div>
+      <div class="header-logo-sub">UMAROU</div>
+    </div>
+  </div>
+  <div class="phase-badge" id="phaseBadge">🏠 ロビー</div>
+</div>
+
+<div id="app">
+
+<!-- TITLE SCREEN -->
+<div class="screen active" id="s-title">
+  <div class="hero-area">
+    <div class="logo-horse">🐴</div>
+    <h1 class="logo-accent">馬狼</h1>
+    <p class="subtitle">UMAROU — 人狼 × 競馬 心理ゲーム</p>
+  </div>
+  <div class="card" style="margin-top:8px">
+    <p class="section-label" style="margin-bottom:10px">プレイヤー人数</p>
+    <div class="count-select" id="countSelect"></div>
+  </div>
+
+  <div class="player-inputs" id="playerInputs"></div>
+  <button class="btn green" id="startBtn" disabled onclick="startGame()">ゲーム開始 🏇</button>
+  <button class="rules-btn" onclick="toggleRules()">📖 ルール</button>
+</div>
+
+<!-- TICKET CHECK -->
+<div class="screen" id="s-ticket">
+  <div style="font-size:2rem">🎫</div>
+  <h2>馬券配布</h2>
+  <p id="ticketPlayerName"></p>
+  <div id="ticketHidden" style="margin:16px 0">
+    <div class="ticket-card">
+      <div class="ticket-header">UMAROU TICKET</div>
+      <hr class="ticket-dashed">
+      <p style="color:var(--dim);margin-bottom:12px;font-size:.95rem">タップして馬券を確認</p>
+      <button class="btn secondary" onclick="revealTicket()" style="font-size:1.05rem;padding:16px 32px;width:100%">👆 タップで表示</button>
+      <hr class="ticket-dashed">
+      <div class="ticket-footer">UMAROU RACING CLUB</div>
+    </div>
+  </div>
+  <div id="ticketRevealed" style="display:none">
+    <div class="ticket-card">
+      <div class="ticket-header">UMAROU TICKET</div>
+      <hr class="ticket-dashed">
+      <div class="ticket-display" id="ticketNumber"></div>
+      <p class="ticket-label" id="ticketLabel"></p>
+      <hr class="ticket-dashed">
+      <div class="ticket-footer">この馬券は他の人に見せないでください</div>
+    </div>
+    <button class="btn" onclick="nextTicket()" style="margin-top:20px">確認OK ✓</button>
+  </div>
+</div>
+
+<!-- PASS DEVICE -->
+<div class="pass-screen" id="s-pass" style="display:none">
+  <div style="font-size:2.5rem">📱</div>
+  <h2>スマホを渡してください</h2>
+  <p id="passText" style="font-size:1.15rem;color:var(--text)"></p>
+  <button class="btn" onclick="continueAfterPass()">準備OK</button>
+</div>
+
+<!-- RACE (シンプル版) -->
+<div class="screen" id="s-race">
+  <div style="font-size:2.5rem">🏇</div>
+  <h2>勝ち馬を選択</h2>
+  <p style="color:var(--text);font-size:1.05rem;line-height:1.8">実際のレース結果を確認して、<br>勝ち馬の番号を選んでください</p>
+  <div class="race-select-grid" id="raceSelectGrid"></div>
+  <button class="btn" id="raceConfirmBtn" disabled onclick="confirmRace()">決定</button>
+</div>
+
+<!-- WOLF REVEAL -->
+<div class="screen" id="s-wolfReveal">
+  <div style="font-size:3.5rem;animation:pulse 1.5s infinite">🐺🐴</div>
+  <h2>馬狼が決まりました！</h2>
+  <div class="card">
+    <p style="font-size:1.1rem;color:var(--text);line-height:2">
+      当たり馬券を持っている人…<br>
+      あなたが<span style="color:var(--red);font-weight:900">馬狼</span>です。<br>
+      <span style="color:var(--dim);font-size:.95rem">ポーカーフェイスを保ってください</span>
+    </p>
+  </div>
+  <p id="wolfHint" style="color:var(--accent);font-weight:800;font-size:1.15rem"></p>
+  <button class="btn" onclick="startDay()">昼フェイズへ ☀️</button>
+</div>
+
+<!-- DAY PHASE -->
+<div class="screen" id="s-day">
+  <div class="timer-display" id="timerDisplay">3:00</div>
+  <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+  <div style="display:flex;gap:8px;margin:4px 0">
+    <button class="btn small secondary" onclick="setTimer(180)">3分</button>
+    <button class="btn small secondary" onclick="setTimer(240)">4分</button>
+    <button class="btn small secondary" onclick="setTimer(300)">5分</button>
+  </div>
+  <button class="btn small" id="timerBtn" onclick="toggleTimer()">⏱ スタート</button>
+  <div class="divider"></div>
+  <p class="section-label">生存者</p>
+  <div class="survivors" id="daySurvivors"></div>
+  <button class="btn" id="toVoteBtn" onclick="startVote()">投票へ 🗳️</button>
+</div>
+
+<!-- VOTE -->
+<div class="screen" id="s-vote">
+  <div style="font-size:1.8rem">🗳️</div>
+  <h2>投票</h2>
+  <p id="votePlayerName"></p>
+  <div class="vote-list" id="voteOptions"></div>
+  <button class="btn" id="voteConfirmBtn" disabled onclick="confirmVote()">投票する</button>
+</div>
+
+<!-- VOTE RESULT -->
+<div class="screen" id="s-voteResult">
+  <div style="font-size:1.8rem">📊</div>
+  <h2>投票結果</h2>
+  <div id="voteResultBars" style="width:100%"></div>
+  <div id="exileResult" style="margin-top:16px"></div>
+  <button class="btn" id="afterVoteBtn"></button>
+</div>
+
+<!-- NIGHT PHASE (全員スマホ回し方式) -->
+<div class="screen" id="s-night">
+  <div style="font-size:3.5rem">🌙</div>
+  <h2>夜が来ました</h2>
+  <p style="font-size:1.15rem;color:var(--text);line-height:2">全員、目を閉じてください。</p>
+  <p style="color:var(--dim);font-size:1rem">準備ができたら下のボタンを押してください</p>
+  <button class="btn" onclick="startNightRound()" style="margin-top:8px">全員目を閉じた 🌙</button>
+</div>
+
+<!-- NIGHT ACTION (馬狼用) -->
+<div class="screen" id="s-nightAction">
+  <div style="font-size:2rem">🐺</div>
+  <h2>馬狼の時間</h2>
+  <p>追放する人を選んでください</p>
+  <div class="vote-list" id="nightTargets"></div>
+  <button class="btn danger" id="nightKillBtn" disabled onclick="nightKill()">追放する</button>
+</div>
+
+<!-- NIGHT DUMMY (村人用) -->
+<div class="screen" id="s-nightDummy">
+  <div style="font-size:3.5rem">😴</div>
+  <h2>あなたは村人です</h2>
+  <p style="font-size:1.05rem;color:var(--dim);line-height:1.8">少し待ってから「完了」を押してください</p>
+  <button class="btn secondary" id="nightDummyBtn" disabled onclick="nightDummyDone()">完了</button>
+</div>
+
+<!-- NIGHT: 全員完了 -->
+<div class="screen" id="s-nightAllDone">
+  <div style="font-size:3.5rem">🌅</div>
+  <h2 style="color:#8b9cf7">全員、目を開けてください</h2>
+  <button class="btn" onclick="showMorning()" style="margin-top:8px">朝の結果を見る 🌅</button>
+</div>
+
+<!-- MORNING -->
+<div class="screen" id="s-morning">
+  <div style="font-size:3rem">🌅</div>
+  <h2>朝が来ました</h2>
+  <p id="morningText" style="font-size:1.15rem;color:var(--text)"></p>
+  <button class="btn" onclick="startDay()">議論を始める ☀️</button>
+</div>
+
+<!-- GAME END -->
+<div class="screen" id="s-end">
+  <div id="endIcon" style="font-size:3.5rem"></div>
+  <h2 id="endTitle"></h2>
+  <p id="endText" style="font-size:1.15rem;color:var(--text)"></p>
+  <div id="endDetails" style="margin:12px 0"></div>
+  <button class="btn" onclick="location.reload()">もう一度遊ぶ 🔄</button>
+</div>
+
+</div>
+
+<!-- RULES MODAL -->
+<div class="modal" id="rulesModal">
+<div class="modal-content">
+  <h3>📖 馬狼のルール</h3>
+  <p><b>1.</b> プレイヤー全員に馬券（馬番号）が配られます</p>
+  <p><b>2.</b> レース結果が決まり、当たり馬券の持ち主が「馬狼」になります</p>
+  <p><b>3.</b> 馬狼は正体を隠します。村人は議論で馬狼を見つけ出しましょう</p>
+  <p><b>4.</b> 投票で最多票の人が追放されます</p>
+  <p><b>5.</b> 夜になると馬狼が1人を追放できます（スマホ回し方式）</p>
+  <p><b>🏆 村人の勝利:</b> 馬狼を追放すれば勝ち！</p>
+  <p><b>🐺 馬狼の勝利:</b> 最後まで生き残れば勝ち！</p>
+  <br>
+  <button class="btn small" onclick="toggleRules()" style="width:100%">閉じる</button>
+</div>
+</div>
+
+<script>
+// ===== GAME STATE =====
+const G = {
+  players: [],
+  wolfIndex: -1,
+  winningHorse: -1,
+  numHorses: 6,
+  timerSec: 180,
+  timerMax: 180,
+  timerInterval: null,
+  timerRunning: false,
+  currentTicketIdx: 0,
+  currentVoterIdx: 0,
+  votes: {},
+  selectedVote: -1,
+  nightSelected: -1,
+  round: 1,
+  passCallback: null,
+  nightKillTarget: -1,
+  runoffCandidates: null
+};
+
+// プレイヤーカラー
+const wakuColors = ['#e74c3c','#3498db','#2ecc71','#f1c40f','#9b59b6','#e67e22','#ff69b4','#1abc9c'];
+const wakuTextColors = ['#fff','#fff','#fff','#000','#fff','#fff','#fff','#fff'];
+
+// Phase badge helper
+function setPhase(text, type) {
+  const badge = document.getElementById('phaseBadge');
+  badge.textContent = text;
+  badge.className = 'phase-badge' + (type ? ' ' + type : '');
+}
+
+// ===== INIT =====
+function init() {
+  const sel = document.getElementById('countSelect');
+  for (let i = 2; i <= 8; i++) {
+    const b = document.createElement('button');
+    b.className = 'count-btn';
+    b.textContent = i;
+    b.onclick = () => selectCount(i);
+    sel.appendChild(b);
+  }
+
+}
+
+function selectCount(n) {
+  document.querySelectorAll('#countSelect .count-btn').forEach(b => b.classList.toggle('selected', b.textContent == n));
+  G.numHorses = n;
+  const c = document.getElementById('playerInputs');
+  c.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const color = wakuColors[i % 8];
+    const textColor = wakuTextColors[i % 8];
+    const d = document.createElement('div');
+    d.className = 'player-row';
+    d.innerHTML = `<div class="player-num" style="background:${color};color:${textColor}">${i+1}</div><input class="input" placeholder="プレイヤー${i+1}" maxlength="10" oninput="checkReady()">`;
+    c.appendChild(d);
+  }
+  checkReady();
+}
+
+function checkReady() {
+  const count = document.querySelectorAll('#playerInputs input').length;
+  document.getElementById('startBtn').disabled = count < 2;
+}
+
+// ===== SCREEN NAV =====
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  document.getElementById('app').scrollTo(0, 0);
+}
+
+function showPass(text, cb) {
+  G.passCallback = cb;
+  document.getElementById('passText').textContent = text;
+  document.getElementById('s-pass').style.display = 'flex';
+  window.scrollTo(0, 0);
+}
+
+function continueAfterPass() {
+  document.getElementById('s-pass').style.display = 'none';
+  if (G.passCallback) G.passCallback();
+}
+
+// ===== START GAME =====
+function startGame() {
+  const inputs = document.querySelectorAll('#playerInputs input');
+  G.players = [...inputs].map((inp, idx) => ({name: inp.value.trim() || `プレイヤー${idx+1}`, ticket: 0, alive: true, isWolf: false}));
+  
+  // 1人1頭: シャッフルして配布
+  const tickets = Array.from({length: G.numHorses}, (_, i) => i + 1);
+  for (let i = tickets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tickets[i], tickets[j]] = [tickets[j], tickets[i]];
+  }
+  G.players.forEach((p, i) => p.ticket = tickets[i]);
+  
+  G.currentTicketIdx = 0;
+  setPhase('🎫 馬券配布', '');
+  showTicket();
+}
+
+// ===== TICKETS =====
+function showTicket() {
+  if (G.currentTicketIdx >= G.players.length) {
+    show('s-race');
+    setPhase('🏇 レース', '');
+    buildRaceSelect();
+    return;
+  }
+  show('s-ticket');
+  const p = G.players[G.currentTicketIdx];
+  document.getElementById('ticketPlayerName').innerHTML = `<span style="color:var(--accent);font-size:1.2rem;font-weight:800">${p.name}</span> さんの番です`;
+  document.getElementById('ticketHidden').style.display = 'block';
+  document.getElementById('ticketRevealed').style.display = 'none';
+}
+
+function revealTicket() {
+  const p = G.players[G.currentTicketIdx];
+  const num = p.ticket;
+  const color = wakuColors[(num - 1) % 8];
+  const textColor = wakuTextColors[(num - 1) % 8];
+  document.getElementById('ticketHidden').style.display = 'none';
+  document.getElementById('ticketRevealed').style.display = 'block';
+  document.getElementById('ticketNumber').style.background = color;
+  document.getElementById('ticketNumber').style.color = textColor;
+  document.getElementById('ticketNumber').style.border = 'none';
+  document.getElementById('ticketNumber').textContent = num;
+  document.getElementById('ticketLabel').textContent = `${num}番馬`;
+  document.getElementById('ticketLabel').style.color = color === '#ffffff' ? '#ccc' : color;
+}
+
+function nextTicket() {
+  G.currentTicketIdx++;
+  if (G.currentTicketIdx < G.players.length) {
+    showPass(`次は ${G.players[G.currentTicketIdx].name} さんに渡してください`, showTicket);
+  } else {
+    showTicket();
+  }
+}
+
+// ===== RACE (シンプル版：番号選択のみ) =====
+function buildRaceSelect() {
+  const grid = document.getElementById('raceSelectGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= G.numHorses; i++) {
+    const color = wakuColors[(i-1) % 8];
+    const textColor = wakuTextColors[(i-1) % 8];
+    const b = document.createElement('button');
+    b.className = 'race-horse-btn';
+    b.style.background = color;
+    b.style.color = textColor;
+    b.style.borderColor = color === '#ffffff' ? '#888' : color;
+    b.innerHTML = `<span>${i}</span><span class="horse-num">${i}番</span>`;
+    b.onclick = () => selectWinner(i);
+    grid.appendChild(b);
+  }
+  document.getElementById('raceConfirmBtn').disabled = true;
+}
+
+function selectWinner(n) {
+  G.winningHorse = n;
+  document.querySelectorAll('#raceSelectGrid .race-horse-btn').forEach((b,i) => {
+    b.classList.toggle('selected', i+1 === n);
+    b.style.opacity = (i+1 === n) ? '1' : '.4';
+  });
+  document.getElementById('raceConfirmBtn').disabled = false;
+}
+
+function confirmRace() {
+  const wolves = G.players.filter(p => p.ticket === G.winningHorse);
+  if (wolves.length === 0) {
+    alert('当たり馬券を持っている人がいません！別の番号を選んでください。');
+    return;
+  }
+  wolves.forEach(p => p.isWolf = true);
+  G.wolfIndex = G.players.indexOf(wolves[0]);
+  
+  document.getElementById('wolfHint').textContent = `勝ち馬: ${G.winningHorse}番`;
+  setPhase('🐺 馬狼決定', 'danger');
+  show('s-wolfReveal');
+}
+
+// ===== DAY PHASE =====
+function startDay() {
+  show('s-day');
+  setPhase('☀️ 昼・議論', '');
+  G.timerRunning = false;
+  clearInterval(G.timerInterval);
+  updateDaySurvivors();
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = '⏱ スタート';
+  
+  const alive = G.players.filter(p => p.alive);
+  const wolvesAlive = alive.filter(p => p.isWolf);
+  if (wolvesAlive.length === 0) {
+    endGame(false);
+    return;
+  }
+}
+
+function updateDaySurvivors() {
+  const c = document.getElementById('daySurvivors');
+  c.innerHTML = '';
+  G.players.forEach((p, i) => {
+    const t = document.createElement('span');
+    const wakuColor = wakuColors[i % 8];
+    t.className = 'survivor-tag' + (p.alive ? '' : ' dead');
+    t.innerHTML = `<span class="waku-dot" style="background:${wakuColor}"></span>${p.name}`;
+    c.appendChild(t);
+  });
+}
+
+function setTimer(sec) {
+  G.timerSec = sec;
+  G.timerMax = sec;
+  G.timerRunning = false;
+  clearInterval(G.timerInterval);
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = '⏱ スタート';
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(G.timerSec / 60);
+  const s = G.timerSec % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('timerFill').style.width = (G.timerSec / G.timerMax * 100) + '%';
+  document.getElementById('timerDisplay').style.color = G.timerSec <= 30 ? 'var(--red)' : 'var(--accent)';
+}
+
+function toggleTimer() {
+  if (G.timerRunning) {
+    clearInterval(G.timerInterval);
+    G.timerRunning = false;
+    document.getElementById('timerBtn').textContent = '⏱ 再開';
+  } else {
+    G.timerRunning = true;
+    document.getElementById('timerBtn').textContent = '⏸ 一時停止';
+    G.timerInterval = setInterval(() => {
+      G.timerSec--;
+      updateTimerDisplay();
+      if (G.timerSec <= 0) {
+        clearInterval(G.timerInterval);
+        G.timerRunning = false;
+        document.getElementById('timerBtn').textContent = '⏱ 終了';
+        if (navigator.vibrate) navigator.vibrate([200,100,200]);
+      }
+    }, 1000);
+  }
+}
+
+// ===== VOTE =====
+function startVote() {
+  clearInterval(G.timerInterval);
+  setPhase('🗳️ 投票', 'vote');
+  G.votes = {};
+  G.selectedVote = -1;
+  G.runoffCandidates = null;
+  const alive = G.players.map((p,i) => ({...p, idx: i})).filter(p => p.alive);
+  G.currentVoterIdx = 0;
+  G.aliveList = alive;
+  showVoter();
+}
+
+function showVoter() {
+  if (G.currentVoterIdx >= G.aliveList.length) {
+    tallyVotes();
+    return;
+  }
+  show('s-vote');
+  G.selectedVote = -1;
+  const voter = G.aliveList[G.currentVoterIdx];
+  document.getElementById('votePlayerName').innerHTML = `<span style="color:var(--accent);font-size:1.15rem;font-weight:800">${voter.name}</span> さんの投票`;
+  const c = document.getElementById('voteOptions');
+  c.innerHTML = '';
+  G.aliveList.forEach((p) => {
+    if (p.idx === voter.idx) return;
+    const wakuColor = wakuColors[p.idx % 8];
+    const d = document.createElement('div');
+    d.className = 'vote-option';
+    d.innerHTML = `<div class="vote-avatar" style="background:${wakuColor}"><span style="font-size:.9rem;color:${wakuTextColors[p.idx%8]};font-weight:900">${p.idx+1}</span></div><span>${p.name}</span>`;
+    d.onclick = () => {
+      document.querySelectorAll('#voteOptions .vote-option').forEach(o => o.classList.remove('selected'));
+      d.classList.add('selected');
+      G.selectedVote = p.idx;
+      document.getElementById('voteConfirmBtn').disabled = false;
+    };
+    c.appendChild(d);
+  });
+  document.getElementById('voteConfirmBtn').disabled = true;
+}
+
+function confirmVote() {
+  const voter = G.aliveList[G.currentVoterIdx];
+  G.votes[voter.idx] = G.selectedVote;
+  G.currentVoterIdx++;
+  
+  // 決選投票モードかどうかで分岐
+  if (G.runoffCandidates) {
+    if (G.currentVoterIdx < G.runoffVoters.length) {
+      showPass(`次は ${G.runoffVoters[G.currentVoterIdx].name} さんに渡してください`, showRunoffVoter);
+    } else {
+      tallyVotes(G.runoffCandidates);
+    }
+  } else {
+    if (G.currentVoterIdx < G.aliveList.length) {
+      showPass(`次は ${G.aliveList[G.currentVoterIdx].name} さんに渡してください`, showVoter);
+    } else {
+      tallyVotes();
+    }
+  }
+}
+
+function tallyVotes(runoffCandidates) {
+  show('s-voteResult');
+  setPhase('📊 結果発表', '');
+  
+  // runoffCandidates: 決選投票の場合は対象者リスト、通常はnull
+  const displayList = runoffCandidates || G.aliveList;
+  
+  const counts = {};
+  displayList.forEach(p => counts[p.idx] = 0);
+  Object.values(G.votes).forEach(t => { if (counts[t] !== undefined) counts[t]++; });
+  
+  const c = document.getElementById('voteResultBars');
+  c.innerHTML = '';
+  const maxV = Math.max(...Object.values(counts), 1);
+  
+  displayList.forEach(p => {
+    const cnt = counts[p.idx] || 0;
+    const d = document.createElement('div');
+    d.className = 'result-bar';
+    d.innerHTML = `<span class="name">${p.name}</span><div class="bar"><div class="fill" style="width:0">${cnt}票</div></div>`;
+    c.appendChild(d);
+    setTimeout(() => {
+      d.querySelector('.fill').style.width = (cnt / maxV * 100) + '%';
+    }, 100);
+  });
+  
+  const maxCount = Math.max(...Object.values(counts));
+  const exiled = displayList.filter(p => counts[p.idx] === maxCount);
+  
+  const res = document.getElementById('exileResult');
+  const btn = document.getElementById('afterVoteBtn');
+  
+  if (exiled.length > 1) {
+    // 同票 → 決選投票
+    const names = exiled.map(p => p.name).join('、');
+    res.innerHTML = `<div class="card"><p style="color:var(--accent);font-size:1.1rem;font-weight:700">⚔️ 同票: ${names}</p><p style="color:var(--dim);font-size:.95rem;margin-top:8px">決選投票を行います</p></div>`;
+    btn.textContent = '決選投票へ ⚔️';
+    btn.onclick = () => startRunoff(exiled);
+  } else {
+    const ex = exiled[0];
+    if (ex.isWolf) {
+      res.innerHTML = `<div class="card"><p style="font-size:1.2rem;animation:shake .5s"><span style="color:var(--red);font-weight:900">${ex.name}</span> は<br>馬狼でした！🐺</p></div>`;
+      btn.textContent = '結果を見る 🏆';
+      btn.onclick = () => { G.players[ex.idx].alive = false; endGame(false); };
+    } else {
+      res.innerHTML = `<div class="card"><p style="font-size:1.2rem">${ex.name} は<br><span style="color:var(--green-light);font-weight:700">馬狼ではありませんでした</span></p></div>`;
+      G.players[ex.idx].alive = false;
+      const aliveCount = G.players.filter(p => p.alive).length;
+      const wolvesAlive = G.players.filter(p => p.alive && p.isWolf).length;
+      if (wolvesAlive >= aliveCount - wolvesAlive) {
+        btn.textContent = '結果を見る 🏆';
+        btn.onclick = () => endGame(true);
+      } else {
+        btn.textContent = '夜フェイズへ 🌙';
+        btn.onclick = () => startNight();
+      }
+    }
+  }
+}
+
+// ===== 決選投票 =====
+function startRunoff(candidates) {
+  setPhase('⚔️ 決選投票', 'vote');
+  G.votes = {};
+  G.selectedVote = -1;
+  G.currentVoterIdx = 0;
+  G.runoffCandidates = candidates;
+  // 候補者を投票者から除外
+  const candidateIdxs = candidates.map(c => c.idx);
+  G.runoffVoters = G.aliveList.filter(p => !candidateIdxs.includes(p.idx));
+  
+  // 投票者が0人の場合、ランダムで1人を処刑
+  if (G.runoffVoters.length === 0) {
+    const randomIdx = Math.floor(Math.random() * candidates.length);
+    const ex = candidates[randomIdx];
+    G.players[ex.idx].alive = false;
+    show('s-voteResult');
+    setPhase('📊 結果発表', '');
+    document.getElementById('voteResultBars').innerHTML = '';
+    const res = document.getElementById('exileResult');
+    const btn = document.getElementById('afterVoteBtn');
+    if (ex.isWolf) {
+      res.innerHTML = `<div class="card"><p style="font-size:1.1rem;color:var(--dim);margin-bottom:8px">全員が候補者のためランダム処刑</p><p style="font-size:1.2rem;animation:shake .5s"><span style="color:var(--red);font-weight:900">${G.players[ex.idx].name}</span> は<br>馬狼でした！🐺</p></div>`;
+      btn.textContent = '結果を見る 🏆';
+      btn.onclick = () => endGame(false);
+    } else {
+      res.innerHTML = `<div class="card"><p style="font-size:1.1rem;color:var(--dim);margin-bottom:8px">全員が候補者のためランダム処刑</p><p style="font-size:1.2rem">${G.players[ex.idx].name} は<br><span style="color:var(--green-light);font-weight:700">馬狼ではありませんでした</span></p></div>`;
+      const aliveCount = G.players.filter(p => p.alive).length;
+      const wolvesAlive = G.players.filter(p => p.alive && p.isWolf).length;
+      if (wolvesAlive >= aliveCount - wolvesAlive) {
+        btn.textContent = '結果を見る 🏆';
+        btn.onclick = () => endGame(true);
+      } else {
+        btn.textContent = '夜フェイズへ 🌙';
+        btn.onclick = () => startNight();
+      }
+    }
+    return;
+  }
+  
+  showRunoffVoter();
+}
+
+function showRunoffVoter() {
+  if (G.currentVoterIdx >= G.runoffVoters.length) {
+    tallyVotes(G.runoffCandidates);
+    return;
+  }
+  show('s-vote');
+  G.selectedVote = -1;
+  const voter = G.runoffVoters[G.currentVoterIdx];
+  document.getElementById('votePlayerName').innerHTML = `<span style="color:var(--red);font-size:.9rem;font-weight:700">⚔️ 決選投票</span><br><span style="color:var(--dim);font-size:.85rem">同票のため決選投票を行います（候補者は投票できません）</span><br><span style="color:var(--accent);font-size:1.15rem;font-weight:800">${voter.name}</span> さんの投票`;
+  const c = document.getElementById('voteOptions');
+  c.innerHTML = '';
+  G.runoffCandidates.forEach((p) => {
+    const wakuColor = wakuColors[p.idx % 8];
+    const d = document.createElement('div');
+    d.className = 'vote-option';
+    d.innerHTML = `<div class="vote-avatar" style="background:${wakuColor}"><span style="font-size:.9rem;color:${wakuTextColors[p.idx%8]};font-weight:900">${p.idx+1}</span></div><span>${p.name}</span>`;
+    d.onclick = () => {
+      document.querySelectorAll('#voteOptions .vote-option').forEach(o => o.classList.remove('selected'));
+      d.classList.add('selected');
+      G.selectedVote = p.idx;
+      document.getElementById('voteConfirmBtn').disabled = false;
+    };
+    c.appendChild(d);
+  });
+  document.getElementById('voteConfirmBtn').disabled = true;
+}
+
+function confirmRunoffVote() {
+  const voter = G.aliveList[G.currentVoterIdx];
+  G.votes[voter.idx] = G.selectedVote;
+  G.currentVoterIdx++;
+  if (G.currentVoterIdx < G.aliveList.length) {
+    showPass(`次は ${G.aliveList[G.currentVoterIdx].name} さんに渡してください`, showRunoffVoter);
+  } else {
+    tallyVotes(G.runoffCandidates);
+  }
+}
+
+// ===== NIGHT (全員スマホ回し方式) =====
+function startNight() {
+  show('s-night');
+  setPhase('🌙 夜', 'night');
+}
+
+function startNightRound() {
+  // 生存者リストを作成し、順番にスマホを回す
+  G.nightAliveList = G.players.map((p,i) => ({...p, idx: i})).filter(p => p.alive);
+  G.nightPlayerIdx = 0;
+  G.nightKillTarget = -1;
+  setPhase('🌙 夜・スマホ回し', 'night');
+  showNightPassScreen();
+}
+
+function showNightPassScreen() {
+  if (G.nightPlayerIdx >= G.nightAliveList.length) {
+    // 全員完了
+    show('s-nightAllDone');
+    setPhase('🌅 朝', 'night');
+    return;
+  }
+  const p = G.nightAliveList[G.nightPlayerIdx];
+  const isWolf = G.players[p.idx].isWolf;
+  showPass(`${p.name} さんにスマホを渡してください`, () => {
+    if (isWolf) {
+      showNightAction();
+    } else {
+      showNightDummy();
+    }
+  });
+}
+
+function showNightAction() {
+  show('s-nightAction');
+  G.nightSelected = -1;
+  const c = document.getElementById('nightTargets');
+  c.innerHTML = '';
+  const alive = G.players.filter(p => p.alive && !p.isWolf);
+  alive.forEach(p => {
+    const idx = G.players.indexOf(p);
+    const wakuColor = wakuColors[idx % 8];
+    const d = document.createElement('div');
+    d.className = 'vote-option';
+    d.innerHTML = `<div class="vote-avatar" style="background:${wakuColor}"><span style="color:${wakuTextColors[idx%8]};font-weight:900;font-size:.9rem">${idx+1}</span></div><span>${p.name}</span>`;
+    d.onclick = () => {
+      document.querySelectorAll('#nightTargets .vote-option').forEach(o => o.classList.remove('selected'));
+      d.classList.add('selected');
+      G.nightSelected = idx;
+      document.getElementById('nightKillBtn').disabled = false;
+    };
+    c.appendChild(d);
+  });
+  document.getElementById('nightKillBtn').disabled = true;
+}
+
+function nightKill() {
+  G.nightKillTarget = G.nightSelected;
+  G.players[G.nightSelected].alive = false;
+  G.nightPlayerIdx++;
+  showNightPassScreen();
+}
+
+function showNightDummy() {
+  show('s-nightDummy');
+  const btn = document.getElementById('nightDummyBtn');
+  btn.disabled = true;
+  setTimeout(() => { btn.disabled = false; }, 5000);
+}
+
+function nightDummyDone() {
+  G.nightPlayerIdx++;
+  showNightPassScreen();
+}
+
+function showMorning() {
+  show('s-morning');
+  setPhase('🌅 朝', '');
+  document.getElementById('morningText').innerHTML = `<span style="color:var(--red);font-weight:900">${G.players[G.nightKillTarget].name}</span> が追放されました…`;
+  
+  const alive = G.players.filter(p => p.alive);
+  const wolvesAlive = alive.filter(p => p.isWolf);
+  if (wolvesAlive.length >= alive.length - wolvesAlive.length) {
+    setTimeout(() => endGame(true), 1500);
+  } else {
+    G.timerSec = G.timerMax;
+  }
+}
+
+// ===== END =====
+function endGame(wolfWins) {
+  show('s-end');
+  const wolfNames = G.players.filter(p => p.isWolf).map(p => p.name).join(', ');
+  if (wolfWins) {
+    setPhase('🐺 馬狼の勝利', 'danger');
+    document.getElementById('endIcon').textContent = '🐺🏆';
+    document.getElementById('endTitle').textContent = '馬狼の勝利！';
+    document.getElementById('endTitle').style.color = 'var(--red)';
+    document.getElementById('endText').innerHTML = `馬狼 <b>${wolfNames}</b> が生き残った！<br>馬券総取り！`;
+  } else {
+    setPhase('🎉 村人の勝利', '');
+    document.getElementById('endIcon').textContent = '🎉🏇';
+    document.getElementById('endTitle').textContent = '村人の勝利！';
+    document.getElementById('endTitle').style.color = 'var(--green-light)';
+    document.getElementById('endText').innerHTML = `馬狼 <b>${wolfNames}</b> を追放した！<br>馬券山分け！`;
+  }
+  spawnConfetti();
+  document.getElementById('endDetails').innerHTML = '';
+}
+
+function spawnConfetti() {
+  const emojis = ['🎊','🎉','✨','🐴','💰','🏆'];
+  for (let i = 0; i < 20; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+    c.style.animationDelay = Math.random() * 1 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+function toggleRules() {
+  document.getElementById('rulesModal').classList.toggle('open');
+}
+
+init();
+</script>
+</body>
+</html>
