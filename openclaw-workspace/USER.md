@@ -2,17 +2,15 @@
 
 _Learn about the person you're helping. Update this as you go._
 
-- **Name:** 清水昴（Shimizu Subaru）
-- **What to call them:** 昴
-- **Pronouns:** 僕
-- **Timezone:** Asia/Tokyo (GMT+9)
+- **Name:**
+- **What to call them:**
+- **Pronouns:** _(optional)_
+- **Timezone:**
 - **Notes:**
 
 ## Context
 
-- 出版・コンテンツマーケティングに関わっている
-- AIのマネタイズスクールを運営
-- 日本語でコミュニケーション
+_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
 
 ---
 
