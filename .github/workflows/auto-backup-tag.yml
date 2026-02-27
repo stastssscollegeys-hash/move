@@ -1,0 +1,39 @@
+name: Auto Backup Tag
+
+# mainにpushされるたびに自動でバックアップタグを作成
+# これにより、いつでも任意の時点に復元できる
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  backup-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create backup tag
+        run: |
+          # 日時ベースのタグ名を生成（例: auto-backup/2026-02-27_143052）
+          TAG_NAME="auto-backup/$(date -u +'%Y-%m-%d_%H%M%S')"
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+          echo "Created backup tag: $TAG_NAME"
+
+      - name: Cleanup old backup tags (keep last 30)
+        run: |
+          # auto-backup/ タグを日付順に取得
+          TAGS=$(git tag -l 'auto-backup/*' --sort=-creatordate)
+          COUNT=0
+          for TAG in $TAGS; do
+            COUNT=$((COUNT + 1))
+            if [ $COUNT -gt 30 ]; then
+              echo "Deleting old tag: $TAG"
+              git push origin --delete "$TAG" 2>/dev/null || true
+              git tag -d "$TAG" 2>/dev/null || true
+            fi
+          done
+          echo "Kept last 30 backup tags"
