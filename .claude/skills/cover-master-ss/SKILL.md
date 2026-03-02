@@ -15,7 +15,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion, Task
 - 「表紙プロンプトを生成して」「表紙のプロンプト作って」
 - 「本の表紙をデザインして」
 - 「cover-master」「カバーマスター」
-- ebook-creator-ss の Phase 5.5 で表紙作成が必要になった時
+- ebook-creator-ss の Phase 8 で表紙作成が必要になった時
 
 ## 全体フロー
 
@@ -80,6 +80,33 @@ Step 1で原稿情報を受け取った後、**必ず以下を確認する**：
 **ユーザーが画像を貼り付けたら**:
 - 画像の外見を英語で詳細に記述し、プロンプトに反映する
 - キャラクターのデザイン（色・形・アクセサリー等）を忠実に再現する指示を含める
+
+### 漫画制作フローからの自動参照画像選定
+
+**manga-produce-kobetsu-ss / manga-produce-creator-ss のStep 4から呼ばれた場合**、
+以下の参照画像が自動的に利用可能になる。ユーザーに改めて貼り付けを求めず、自動で活用する。
+
+#### A. キャラクターシート画像（必須で添付）
+- `characters/{カタカナ名}.png` — キャラ個別シート（896x1200px）
+- **メインキャラ + 重要サブキャラ**のシートを `--attach-image` で添付する
+- キャラの外見はこのシート画像が正。テキスト描写はシートの補助として使用
+
+#### B. 出来の良い漫画ページ（選定して添付）
+- `panels/page_NNN.png` から**出来の良いページを1-2枚選定**する
+- 選定基準:
+  - キャラクターの描写が正確で魅力的なページ
+  - 構図やカラーパレットが表紙映えするページ
+  - メインキャラが大きく描かれているページ
+- 選定した漫画ページを `--attach-image` で添付し、プロンプトに以下を追加:
+  ```
+  The attached manga pages show the actual art style and quality of the manga content.
+  The cover MUST match this art style, color palette, and character rendering quality.
+  ```
+- **添付画像の合計は4-5枚まで**（キャラシート2-3枚 + 漫画ページ1-2枚 が目安）
+
+#### C. キャラクター外見テキスト（プロンプトに埋め込み）
+- `character_prompts.md` からキャラの英語外見テキストを取得
+- YAMLプロンプトの `main_character.description` に埋め込む
 
 ---
 
@@ -402,6 +429,33 @@ constraints:
 - ユーザーにGeminiログイン確認を求める
 - 思考モードが有効か確認を推奨
 - 生成結果が気に入らない場合は、プロンプトを微調整して再生成
+
+### 参照画像の添付方法（--attach-image）
+
+nanobanana-proで画像生成する際、参照画像がある場合は `--attach-image` で添付する。
+これによりGeminiがキャラクターの外見やアートスタイルを正確に再現できる。
+
+```bash
+cd "C:\Users\baseb\dev\開発1\.claude\skills\nanobanana-pro"
+
+# 漫画制作フローからの場合（キャラシート + 漫画ページを添付）
+PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
+  --prompt "{YAMLプロンプト全文}" \
+  --attach-image "../../../output/manga-{slug}/characters/{メインキャラ名}.png" \
+  --attach-image "../../../output/manga-{slug}/characters/{サブキャラ名}.png" \
+  --attach-image "../../../output/manga-{slug}/panels/{出来の良いページ}.png" \
+  --output "../../../output/manga-{slug}/cover.png" \
+  --timeout 360
+
+# 一般的な場合（ユーザー提供の参照画像を添付）
+PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
+  --prompt "{YAMLプロンプト全文}" \
+  --attach-image "{参照画像パス}" \
+  --output "../../../output/ebook-{slug}/images/cover.png" \
+  --timeout 360
+```
+
+**添付画像の上限**: 合計4-5枚まで（バッチアップロードで一括送信）
 
 ---
 

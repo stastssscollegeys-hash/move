@@ -581,6 +581,7 @@ taisun_v2/.claude/
 |----------------------|-----------|------|
 | `hokan/表紙リサーチ/最強メタプロンプト_v2.md` | `.claude/skills/cover-master-ss/SKILL.md` | Kindle表紙 |
 | `output/line-banner/line_banner_meta_prompt_v2.md` | `.claude/skills/line-banner-ss/SKILL.md` | LINE登録バナー |
+| `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` | `.claude/skills/youtube-thumbnail-ss/SKILL.md` | YouTubeサムネイル |
 
 **運用ルール：**
 - メタプロンプトを修正・バージョンアップしたら、対応スキルのSKILL.mdにも同じ変更を反映する
@@ -597,9 +598,21 @@ taisun_v2/.claude/
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-- **事業者販売版（現行）**: ユーザーが自分でYouTube API / Anthropic APIキーを取得・設定して使う
+### 呼称ルール（重要）
+
+「YouTubeのツール」「分析ツール」「リサーチツール」と言ったら → **Render版（開発1内のWeb版）を指す**
+- ソースコード: `開発1/src/youtube-research/`, `開発1/public/youtube-research*`
+- デプロイ先: Render（無料枠）
+- APIガイド: `開発1/public/youtube-research-api-guide.html`
+
+「MCP」「youtube-research-mcp」と明示した場合のみ → `dev/youtube-research-mcp/` を指す
+
+### 構成
+
+- **事業者販売版（現行・Render版）**: ユーザーが自分でYouTube API / Anthropic APIキーを取得・設定して使う
 - このバージョンのソースコード（`src/youtube-research/`, `public/youtube-research*`）は上書き禁止
 - Web版デプロイ先: Render（無料枠）
+- **MCP版**: `dev/youtube-research-mcp/`（Claude Code内から使うMCPサーバー。別リポジトリ）
 - **会員制版**: `dev/youtube-research-members/` で新規作成（Next.js + Clerk + Supabase + Vercel）
 - **管理用MCP**: `dev/youtube-research-admin-mcp/` で新規作成（AI会員管理）
 - 設計原本: `docs/youtube-research-design.md`

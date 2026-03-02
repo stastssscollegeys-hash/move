@@ -1,11 +1,12 @@
 ---
 name: ebook-creator-ss
-description: 参考資料とリサーチを元に電子書籍の原稿（15,000字・5章構成）と全イメージ画像を一括生成する複合スキル。research-free + kindle-publishing + nanobanana-prompts + nanobanana-pro を統合。
+description: 参考資料とリサーチを元に電子書籍の原稿（25,000字・5章構成）と全イメージ画像を一括生成する複合スキル。research-free + kindle-publishing + nanobanana-prompts + nanobanana-pro を統合。既存原稿の拡充モード対応。
 ---
 
 # eBook Creator - 電子書籍一発生成スキル
 
-参考資料 → リサーチ → 原稿（15,000字）+ 図解（40〜60枚）+ DOCX を一括生成。
+参考資料 → リサーチ → 原稿（25,000字）+ 図解（40〜60枚）+ DOCX を一括生成。
+既存原稿がある場合は拡充モードで加筆も可能。
 
 ## Important: Gemini思考モード必須
 
@@ -23,41 +24,62 @@ description: 参考資料とリサーチを元に電子書籍の原稿（15,000�
 - 「〇〇というテーマで本を作って」
 - 「この資料を元に本にして」
 
-## 全体フロー（6フェーズ）
+## 全体フロー（8フェーズ）
 
 ```
+Phase 0: モード判定（新規 or 拡充）
+   │  既存の manuscript.md を検出 → 拡充モードを提案
+   ▼
 Phase 1: 参考資料の受け取り
    │  ユーザーから資料を受け取る（ファイル / URL / テキスト）
    ▼
 Phase 2: リサーチ
    │  参考資料のテーマについて深掘り調査
+   │  ※拡充モードではスキップ可能
    ▼
 Phase 3: 構成設計
    │  資料 + リサーチ結果から目次を作成 → ユーザー承認
+   │  ※拡充モードでは既存構成に新セクションを追加
    ▼
 Phase 4: 原稿執筆
-   │  15,000字を執筆 + 画像タグ挿入
+   │  25,000字を執筆 + 画像タグ挿入
+   │  ※拡充モードでは既存原稿に加筆
    ▼
 Phase 5: 画像一括生成
-   │  NanoBanana で40〜60枚の図解を生成
-   ▼
-Phase 5.5: 表紙作成
-   │  マンガ風帯付き表紙のヒアリング → プロンプト生成 → 画像生成
-   │  + Amazon提出用プロンプトを別ファイルとして出力
+   │  NanoBanana で40〜60枚の図解を生成（表紙は除く）
+   │  ※拡充モードでは新規追加分のみ生成
    ▼
 Phase 6: DOCX変換
    │  Pandoc で画像埋め込みWord形式に変換
+   │  → manuscript.docx（原稿+図解のWord、表紙なし）
+   ▼
+Phase 7: 漫画統合版リビルド（自動判定）
+   │  panels/ フォルダが存在する場合のみ実行
+   │  → manga_compiled.md を再生成
+   │  → final_book.docx を再ビルド
+   ▼
+Phase 8: 表紙作成（最終ステップ）
+   │  マンガ風帯付き表紙のヒアリング → プロンプト生成 → 画像生成
+   │  + Amazon提出用プロンプトを別ファイルとして出力
+   │  ※拡充モードではスキップ（既存表紙を維持）
+   │  ※漫画が cover.png を生成するため、表紙は必ず漫画の後に作る
    ▼
 完成！
+
+（オプション）初回漫画化する場合:
+  → manga-produce-kobetsu-ss / manga-produce-creator-ss を実行
+  → 同じ output/{slug}/ フォルダに漫画ファイルを追加
+  → Phase 7 → Phase 8 の順で実行
+  → final_book.docx（原稿+図解+漫画の統合Word）が最終成果物になる
 ```
 
 ## 生成物の仕様
 
 | 項目 | 内容 |
 |------|------|
-| 総文字数 | 約15,000字 |
+| 総文字数 | 約25,000字 |
 | 構成 | はじめに + 5章 + おわりに |
-| 1章あたり | 約2,500〜3,000字 |
+| 1章あたり | 約4,000〜5,000字 |
 | 表紙画像 | 1枚（マンガ風帯付き表紙） |
 | 章ヘッダー図解 | 5枚（章の全体像を示す図解） |
 | 本文中図解 | 各小見出し（###）ごとに最低1枚 + 難解箇所は追加 |
@@ -67,27 +89,98 @@ Phase 6: DOCX変換
 
 ## 出力先
 
+**1冊の書籍タイトルにつき1フォルダ（`output/{slug}/`）に全成果物を統合する。**
+電子書籍（本スキル）と漫画化（manga-produce-*-ss）が同じフォルダを共有する。
+
 ```
-output/ebook-{テーマslug}/
-├── manuscript.docx           # ★ 最終成果物（Word形式・画像埋め込み済み）
-├── manuscript.md             # Markdown版（画像リンク付き）
+output/{slug}/
+│
+│  ── Phase 4-6: 本スキル（ebook-creator-ss）が生成するファイル ──
+├── manuscript.md             # Markdown版（図解画像リンク付き）
 ├── manuscript_raw.md         # 中間ファイル（画像タグ付き原稿）
-├── research.md               # リサーチ結果まとめ
-├── cover_prompt_amazon.md    # ★ Amazon提出用 表紙生成プロンプト（単体成果物）
-└── images/
-    ├── cover.png             # 表紙（マンガ風帯付き・本文埋め込み用）
-    ├── ch1_header.png        # 第1章ヘッダー
-    ├── ch1_img1.png          # 第1章 図解1
-    ├── ch1_img2.png          # 第1章 図解2
-    ├── ...
-    ├── ch5_header.png        # 第5章ヘッダー
-    ├── ch5_img1.png          # 第5章 図解1
-    └── ...
+├── manuscript.docx           # 原稿+図解のみのWord（Phase 6）
+├── research.md               # リサーチ結果まとめ（Phase 2）
+├── images/                   # 図解画像（40〜60枚、Phase 5）
+│   ├── ch1_header.png        # 第1章ヘッダー
+│   ├── ch1_img1.png          # 第1章 図解1
+│   └── ...
+│
+│  ── 漫画化スキル（manga-produce-*-ss）が追加するファイル ──
+├── story_structure.md        # 漫画ストーリー構成案
+├── character_prompts.md      # キャラクター外見プロンプトDB
+├── page_prompts.md           # 漫画ページプロンプト
+├── characters/               # キャラクターシート画像
+├── panels/                   # 漫画ページ画像（896x1200px）
+│
+│  ── Phase 7: 漫画統合版リビルド ──
+├── manga_compiled.md         # 統合Markdown（原稿+漫画）
+├── final_book.docx           # ★ 最終成果物（原稿+図解+漫画の統合Word）
+│
+│  ── Phase 8: 表紙作成（cover-master-ss、最後に実行） ──
+├── images/cover.png          # 表紙画像（本文埋め込み用）
+└── cover_prompt_amazon.md    # Amazon KDP提出用 表紙プロンプト
 ```
 
-**最終成果物は `manuscript.docx`** + **`cover_prompt_amazon.md`**。
-- `manuscript.docx`: 表紙画像が埋め込まれたWordファイル
-- `cover_prompt_amazon.md`: Amazon KDP提出用の表紙を生成するためのプロンプト（NanoBananaやGemini Gemに貼り付けて使用）
+**本スキルの最終成果物:**
+- 漫画なし: `manuscript.docx`（原稿+図解+表紙のWord）+ `cover_prompt_amazon.md`
+- 漫画あり: `final_book.docx`（原稿+図解+漫画+表紙の統合Word）+ `cover_prompt_amazon.md`
+- 表紙は常に最後（Phase 8）に cover-master-ss で作成する
+
+---
+
+## Phase 0: モード判定（新規 or 拡充）
+
+### 手順
+
+1. `output/` 配下のフォルダを確認する
+2. ユーザーが指定したテーマに対応する既存の `output/{slug}/manuscript.md` が存在するか確認する
+3. 存在する場合、AskUserQuestion で「新規作成 / 拡充」を聞く
+
+### 判定ロジック
+
+```
+既存の manuscript.md がある？
+  ├── YES → 「拡充モード」を提案
+  │         ユーザーが承認 → 拡充モードで Phase 1 へ
+  │         ユーザーが新規を希望 → 通常モードで Phase 1 へ
+  └── NO  → 通常モードで Phase 1 へ
+```
+
+### 拡充モードの質問テンプレート
+
+```
+既存の原稿が見つかりました:
+  ファイル: output/{slug}/manuscript.md
+  現在の文字数: 約{N}字
+  章構成: {既存の章タイトル一覧}
+
+どうしますか？
+1. 拡充する（既存原稿に新しい素材を加えて加筆）
+2. 新規作成（ゼロから作り直す）
+```
+
+### 拡充モードの動作
+
+拡充モードが選択された場合、以下のフェーズが変化する:
+
+| フェーズ | 通常モード | 拡充モード |
+|---------|-----------|-----------|
+| Phase 1 | テーマ + 資料を受け取る | **追加素材のみ**受け取る |
+| Phase 2 | 5層リサーチを全実行 | **スキップ可能**（ユーザーに確認） |
+| Phase 3 | ゼロから目次作成 | 既存構成を読み込み、**追加セクションを提案** |
+| Phase 4 | 全文執筆 | **既存原稿を読み込み、加筆のみ**実行 |
+| Phase 5 | 全画像生成（表紙除く） | **新規追加分の画像のみ**生成 |
+| Phase 6 | DOCX変換 | DOCX再変換 |
+| Phase 7 | 漫画統合版リビルド | 漫画統合版リビルド |
+| Phase 8 | 表紙作成 | **スキップ**（既存表紙を維持） |
+
+### 拡充モードでの Phase 4 の注意点
+
+- 既存の `manuscript.md`（または `manuscript_raw.md`）を必ず Read で読んでから加筆する
+- 既存の文章は**変更しない**（追加・挿入のみ）
+- 新しいセクション（`###`）を追加する場合、既存の章構成の中に自然に挿入する
+- 追加した部分には新しい画像タグ（`<!-- [INLINE_IMAGE: ...] -->`）を埋め込む
+- 加筆後、全体の文字数が25,000字に近づくよう調整する
 
 ---
 
@@ -132,7 +225,7 @@ output/ebook-{テーマslug}/
 
 1. 参考資料からテーマ・キーワードを抽出する
 2. 以下の5層リサーチを**すべて**実行する
-3. リサーチ結果を `output/ebook-{slug}/research.md` に保存する
+3. リサーチ結果を `output/{slug}/research.md` に保存する
 4. リサーチ結果の要点をユーザーに共有し、Phase 3 へ進む
 
 ### 5層リサーチ（すべて実行すること）
@@ -394,12 +487,12 @@ Step 4: 統合・整理
 
 ---
 
-はじめに（800〜1,000字）
+はじめに（1,200〜1,500字）
   - この本の目的
   - 読者への約束
   - 本書の使い方
 
-第1章: {章タイトル}（2,500〜3,000字）
+第1章: {章タイトル}（4,000〜5,000字）
   キーポイント:
     1. {ポイント1}
     2. {ポイント2}
@@ -411,19 +504,19 @@ Step 4: 統合・整理
     - [INLINE] {ポイント3を説明する図解の説明}
     - [INLINE] {まとめや比較の図解の説明}
 
-第2章: {章タイトル}（2,500〜3,000字）
+第2章: {章タイトル}（4,000〜5,000字）
   （同上の形式）
 
-第3章: {章タイトル}（2,500〜3,000字）
+第3章: {章タイトル}（4,000〜5,000字）
   （同上の形式）
 
-第4章: {章タイトル}（2,500〜3,000字）
+第4章: {章タイトル}（4,000〜5,000字）
   （同上の形式）
 
-第5章: {章タイトル}（2,500〜3,000字）
+第5章: {章タイトル}（4,000〜5,000字）
   （同上の形式）
 
-おわりに（800〜1,000字）
+おわりに（1,200〜1,500字）
   - まとめ
   - 読者への次のステップ
   - 応援メッセージ
@@ -445,13 +538,14 @@ Step 4: 統合・整理
 
 1. Phase 3 で承認された目次 + 参考資料（Phase 1）+ リサーチ結果（Phase 2）に基づいて全原稿を執筆する
 2. 画像の挿入位置にタグを埋め込む
-3. 完成した原稿を `output/ebook-{slug}/manuscript_raw.md` に保存する
+3. 完成した原稿を `output/{slug}/manuscript_raw.md` に保存する
 
 ### 執筆ルール
 
-- **総文字数**: 約15,000字（はじめに + 5章 + おわりに）
-- **1章あたり**: 2,500〜3,000字
-- **はじめに/おわりに**: 各800〜1,000字
+- **総文字数**: 約25,000字（はじめに + 5章 + おわりに）
+- **1章あたり**: 4,000〜5,000字
+- **はじめに/おわりに**: 各1,200〜1,500字
+- **文字数の厳守**: AIは文字数を過少に生成しがち。各章の執筆後に文字数をカウントし、4,000字に満たない章は加筆すること
 - **文体**: **です・ます調で統一**（「〜です」「〜ます」「〜ください」）。親しみやすく丁寧な語り口
   - NG: 「〜だ」「〜である」「〜しよう」
   - OK: 「〜です」「〜になります」「〜してみましょう」「〜してください」
@@ -631,7 +725,7 @@ Step 4: 統合・整理
 
 ## はじめに
 
-{はじめに本文 800〜1,000字}
+{はじめに本文 1,200〜1,500字}
 
 \newpage
 
@@ -639,33 +733,33 @@ Step 4: 統合・整理
 
 <!-- [HEADER_IMAGE: {説明}] -->
 
-{本文 約500字}
+{本文 約600字}
 
 <!-- [INLINE_IMAGE: {説明}] -->
 
-{本文 約500字}
+{本文 約600字}
 
 \newpage
 
 ### 1.1 {節タイトル}
 
-{本文}
+{本文 約800字}
 
 <!-- [INLINE_IMAGE: {説明}] -->
 
-{本文}
+{本文 約800字}
 
 \newpage
 
 ### 1.2 {節タイトル}
 
-{本文}
+{本文 約800字}
 
 <!-- [INLINE_IMAGE: {説明}] -->
 
-{本文 約500字}
+{本文 約800字}
 
-...（2,500〜3,000字になるまで繰り返し）
+...（4,000〜5,000字になるまで繰り返し）
 
 \newpage
 
@@ -679,13 +773,13 @@ Step 4: 統合・整理
 
 ## おわりに
 
-{おわりに本文 800〜1,000字}
+{おわりに本文 1,200〜1,500字}
 ```
 
 **ポイント:**
 - `\newpage` は各章（`##`）の前、各節（`###`）の前に必ず入れる
 - 画像タグの前後には必ず空行1行ずつ
-- `<!-- [COVER_IMAGE] -->` はPhase 5.5で表紙画像に置換される
+- `<!-- [COVER_IMAGE] -->` はPhase 8で表紙画像に置換される
 
 ---
 
@@ -725,9 +819,9 @@ Flat vector design, modern business presentation style, clean Japanese typograph
 
 #### 表紙画像（本文埋め込み用）
 
-Phase 5.5 で生成した表紙画像（`cover.png`）をそのまま使用する。
+Phase 8 で生成した表紙画像（`cover.png`）をそのまま使用する。
 Phase 5 の時点では表紙タグ `<!-- [COVER_IMAGE] -->` を原稿冒頭に配置するだけでよい。
-実際の画像生成は Phase 5.5 で行う。
+実際の画像生成は Phase 8（漫画化の後）で行う。
 
 #### 章ヘッダー図解
 
@@ -1004,17 +1098,17 @@ cd /c/Users/baseb/dev/taisun_agent/.claude/skills/nanobanana-pro
 # 表紙
 python scripts/run.py image_generator.py \
   --prompt "{変換後プロンプト}" \
-  --output "../../output/ebook-{slug}/images/cover.png"
+  --output "../../output/{slug}/images/cover.png"
 
 # 章ヘッダー
 python scripts/run.py image_generator.py \
   --prompt "{変換後プロンプト}" \
-  --output "../../output/ebook-{slug}/images/ch1_header.png"
+  --output "../../output/{slug}/images/ch1_header.png"
 
 # 本文中図解
 python scripts/run.py image_generator.py \
   --prompt "{変換後プロンプト}" \
-  --output "../../output/ebook-{slug}/images/ch1_img1.png"
+  --output "../../output/{slug}/images/ch1_img1.png"
 ```
 
 ### 最終原稿の組み立て
@@ -1043,140 +1137,6 @@ DOCX変換時にページ幅に収まるようにする。
 
 ---
 
-## Phase 5.5: 表紙作成（マンガ風帯付き表紙）
-
-### 概要
-
-Gemini Gem のマンガ風Kindle表紙デザイン手法を統合。
-原稿内容から「活力のあるマンガ・アニメスタイル」の帯付き表紙を生成する。
-
-**成果物:**
-1. `images/cover.png` - 本文に埋め込む表紙画像（NanoBananaで生成）
-2. `cover_prompt_amazon.md` - Amazon KDP提出用の高品質表紙を別途生成するためのプロンプト
-
-### 手順
-
-#### Step 1: 表紙ヒアリング
-
-原稿（Phase 4）が完成した時点で、以下をユーザーに確認する:
-
-```
-表紙を作成します。以下を教えてください：
-
-1. キャラクター設定（あれば）:
-   - メインキャラクターの見た目・特徴
-   - なければデフォルト（テーマに合ったアニメキャラ）で作成します
-
-2. 出版社・レーベルのロゴ（あれば）:
-   - 帯に入れたい名前（例：「バナナ出版」「〇〇文庫」など）
-   - なければロゴなしで進めます
-
-3. 帯のキャッチコピー（お任せ or 指定）:
-   - お任せの場合、原稿から最もインパクトのあるフレーズを抽出します
-```
-
-#### Step 2: 表紙要素の抽出
-
-原稿（manuscript_raw.md）から以下を自動抽出する:
-
-| 要素 | 抽出元 | 例 |
-|------|--------|-----|
-| タイトル | Phase 3 の書籍タイトル | 「AI副業で月10万円稼ぐ完全ガイド」 |
-| キャッチコピー | 原稿中の最もインパクトのあるフレーズ | 「緊急出版！売上が10倍変わるAI仕事術」 |
-| サブコピー | 読者への価値提示 | 「初回限定特典付き！」 |
-| キャラクター描写 | テーマに合わせた設定 | 「ノートPCを持つ若いビジネスパーソン」 |
-| 吹き出しセリフ | 読者の共感を誘うフレーズ | 「初心者でも大丈夫！」 |
-| ビフォーアフター要素 | 原稿の問題→解決パターン | 「Before: 月収ゼロ → After: 月収10万円」 |
-| 背景カラー | ビジュアルトーン設定から | 「bright yellow and blue」 |
-| 帯カラー | テーマに合わせて決定 | 「glossy red」 |
-
-#### Step 3: プロンプト構築（マンガ風帯付き表紙テンプレート）
-
-以下のテンプレートで英語プロンプトを組み立てる:
-
-```
-Manga book cover design, vibrant anime style, professional quality print texture. At the top, a large, colorful, energetic manga-style title logo with sparks reads "{書籍タイトル}". Below it, a cheerful {キャラクター描写} is {アクション}. {キャラクター名があれば} is surrounded by dynamic manga panels showing "{ビフォー要素}" and "{アフター要素}" examples. A large speech bubble coming from the character reads "{吹き出しセリフ}". The background is a bright {背景カラー} speed line and starburst effect. At the very bottom, there is a distinct, {帯の質感} {帯カラー} paper obi (wraparound band) wrapped around the cover. The obi has large {帯テキストカラー} bold text reading "{キャッチコピー}" and smaller {帯サブテキストカラー} text "{サブコピー}". {出版社ロゴがある場合: Includes a small publisher logo icon reading "{ロゴ名}" in the bottom right corner of the obi.} Vertical aspect ratio --ar 2:3
-```
-
-#### Step 4: 画像生成（本文埋め込み用）
-
-nanobanana-pro で表紙を生成する:
-
-```bash
-cd /c/Users/baseb/dev/開発1/.claude/skills/nanobanana-pro
-
-python scripts/run.py image_generator.py \
-  --prompt "{Step 3で構築したプロンプト}" \
-  --output "../../output/ebook-{slug}/images/cover.png"
-```
-
-生成後、`manuscript.md` の冒頭にある `<!-- [COVER_IMAGE] -->` を以下に置換:
-```
-![表紙](images/cover.png)
-```
-
-#### Step 5: Amazon提出用プロンプトの出力
-
-Amazon KDP提出用の高品質表紙を別途生成できるよう、プロンプトを単体ファイルとして出力する。
-
-`output/ebook-{slug}/cover_prompt_amazon.md` に以下の形式で保存:
-
-```markdown
-# Amazon KDP提出用 表紙生成プロンプト
-
-## 書籍情報
-- タイトル: {書籍タイトル}
-- テーマ: {テーマ}
-- ターゲット読者: {想定読者}
-
-## 使い方
-1. このプロンプトを Google Gemini（NanoBanana / Imagen 3）に貼り付けて実行
-2. 生成された画像をダウンロード
-3. Amazon KDP の表紙アップロードで使用
-4. 推奨サイズ: 1600x2560px（縦横比 1:1.6）
-
-## 生成プロンプト
-
-{Step 3で構築した完全なプロンプト}
-
-## カスタマイズガイド
-
-### キャラクターを変更したい場合
-以下の部分を書き換えてください:
-> "a cheerful {キャラクター描写} is {アクション}"
-
-### 帯のキャッチコピーを変更したい場合
-以下の部分を書き換えてください:
-> "large {帯テキストカラー} bold text reading "{キャッチコピー}""
-
-### 出版社ロゴを追加/変更したい場合
-末尾に以下を追加してください:
-> Includes a small publisher logo icon reading "{ロゴ名}" in the bottom right corner of the obi.
-
-### 背景カラーを変更したい場合
-以下の部分を書き換えてください:
-> "bright {背景カラー} speed line and starburst effect"
-
-### 帯の色を変更したい場合
-以下の部分を書き換えてください:
-> "{帯の質感} {帯カラー} paper obi"
-```
-
-### デザイン要件（品質基準）
-
-生成する表紙は以下の要件を満たすこと:
-
-| 要素 | 要件 |
-|------|------|
-| スタイル | 活力にあふれた（Vibrant High Energy）マンガ・アニメスタイル |
-| 上部 | エネルギッシュなマンガ風タイトルロゴ |
-| 中央 | メインキャラクター + アクション + 吹き出し + ビフォーアフターのコマ |
-| 背景 | スピード線・集中線・スターバースト効果 |
-| 下部 | リアルな紙の帯（Obi/wraparound band）+ キャッチコピー + 出版社ロゴ（任意） |
-| アスペクト比 | 2:3（縦型） |
-
----
-
 ## Phase 6: DOCX変換（Word形式出力）
 
 ### 手順
@@ -1195,7 +1155,7 @@ DOCX変換の前に、`manuscript.md` が以下を満たしていることを確
 □ 各章（## 第N章）の直前に \newpage がある
 □ 各節（### N.M）の直前に \newpage がある
 □ すべての画像行の前後に空行が1行ずつある
-□ 表紙画像（cover.png）が冒頭に挿入されている
+□ 表紙タグ（<!-- [COVER_IMAGE] -->）が冒頭にある（表紙画像は Phase 8 で生成）
 ```
 
 不備があれば修正してから変換すること。
@@ -1203,7 +1163,7 @@ DOCX変換の前に、`manuscript.md` が以下を満たしていることを確
 ### 実行コマンド
 
 ```bash
-cd /c/Users/baseb/dev/開発1/output/ebook-{slug}
+cd /c/Users/baseb/dev/開発1/output/{slug}
 
 pandoc manuscript.md \
   -o manuscript.docx \
@@ -1230,12 +1190,11 @@ pandoc manuscript.md \
 ### 出力ファイル
 
 ```
-output/ebook-{slug}/
+output/{slug}/
 ├── manuscript.md             # Markdown版（画像リンク）
 ├── manuscript_raw.md         # 中間ファイル（画像タグ）
-├── manuscript.docx           # ← Word版（表紙+画像埋め込み済み・改ページ済み）
-├── cover_prompt_amazon.md    # ← Amazon KDP用 表紙プロンプト
-└── images/                   # 生成画像（cover.png含む）
+├── manuscript.docx           # ← Word版（図解画像埋め込み済み・改ページ済み）
+└── images/                   # 生成画像（図解のみ、表紙はPhase 8で追加）
 ```
 
 ### 補足
@@ -1250,6 +1209,136 @@ output/ebook-{slug}/
 
 ---
 
+## Phase 7: 漫画統合版リビルド（自動判定）
+
+### 概要
+
+原稿（manuscript.md）が更新された後、漫画化済みの場合は
+manga_compiled.md と final_book.docx を自動でリビルドする。
+
+**このフェーズは `panels/` フォルダが存在する場合のみ実行する。**
+panels/ が存在しない（まだ漫画化していない）場合はスキップする。
+
+### 判定ロジック
+
+```
+output/{slug}/panels/ が存在する？
+  ├── YES → Phase 7 を実行
+  │         manga_compiled.md を再生成
+  │         final_book.docx を再ビルド
+  └── NO  → Phase 7 をスキップ（Phase 6 で完了）
+```
+
+### 手順
+
+#### Step 1: 既存の manga_compiled.md の構造を読み取る
+
+```
+1. 既存の manga_compiled.md を Read で読む
+2. 漫画ページの挿入パターンを特定する:
+   - 各章の後にどの漫画ページ（panels/page_XXX.png）が挿入されているか
+   - ページ番号と章の対応関係を記録する
+```
+
+#### Step 2: manga_compiled.md を再生成
+
+```
+1. 更新された manuscript.md のテキストを読み込む
+2. Step 1 で記録した漫画ページの挿入パターンに従って、
+   テキストの間に漫画ページ参照を挿入する
+3. 以下の形式で漫画ページを挿入:
+
+   {章のテキスト}
+
+   \newpage
+
+   ![漫画 ページN](panels/page_XXX.png){ width=100% }
+
+   \newpage
+
+   {次の章のテキスト}
+
+4. 表紙画像のパスに注意:
+   - 表紙: cover.png（images/cover.png ではなく root直下）
+   - 本文中図解: images/ch1_img1.png 等（images/ プレフィックス付き）
+   - 漫画ページ: panels/page_XXX.png（panels/ プレフィックス付き）
+5. 生成した manga_compiled.md を保存する
+```
+
+#### Step 3: final_book.docx を再ビルド
+
+```
+1. output/{slug}/build_docx.py が存在するか確認する
+2. 存在する場合:
+   cd output/{slug}
+   python build_docx.py
+3. 存在しない場合:
+   Pandoc で直接変換する:
+   cd output/{slug}
+   pandoc manga_compiled.md \
+     -o final_book.docx \
+     --from markdown \
+     --to docx \
+     --resource-path=. \
+     --standalone \
+     --dpi=150
+4. 生成結果（ファイルサイズ・画像数・パラグラフ数）をユーザーに報告する
+```
+
+### Python パスの注意（Windows環境）
+
+Windows では `python` コマンドが通らない場合がある。
+以下の順で試行する:
+
+```bash
+# 1. python を試す
+python build_docx.py
+
+# 2. python3 を試す
+python3 build_docx.py
+
+# 3. フルパスで実行（Python 3.12 の一般的なインストール先）
+/c/Users/baseb/AppData/Local/Programs/Python/Python312/python.exe build_docx.py
+```
+
+### 出力ファイル
+
+```
+output/{slug}/
+├── manga_compiled.md         # ← 再生成（原稿+漫画の統合Markdown）
+└── final_book.docx           # ← 再ビルド（原稿+図解+漫画の統合Word）
+```
+
+---
+
+## Phase 8: 表紙作成（cover-master-ss を使用）※最終ステップ
+
+### 概要
+
+表紙は **cover-master-ss スキル**を使って作成する。
+漫画化スキルが cover.png を上書きするため、表紙は**必ず漫画の後**（Phase 7 の後）に作成する。
+
+### 手順
+
+1. **cover-master-ss スキルを呼び出す**（Skill ツールで実行）
+2. スキルが原稿情報・ジャンル・ターゲット等をヒアリング
+3. 5スタイル（テキスト型/イラスト型/マンガ型/プレミアム型/ハイブリッド型）から自動選択
+4. NanoBanana Pro 用 YAML プロンプト（Version A + B）を生成
+5. nanobanana-pro で画像を生成し `images/cover.png` として保存
+6. `manuscript.md` の `<!-- [COVER_IMAGE] -->` を `![表紙](images/cover.png){ width=100% }` に置換
+7. Amazon KDP 用の表紙プロンプトを `cover_prompt_amazon.md` として保存
+
+### 拡充モードでの扱い
+
+- 拡充モードでは Phase 8 を**スキップ**する（既存表紙を維持）
+- ユーザーが「表紙も作り直したい」と言った場合のみ実行する
+
+### 漫画化しない場合
+
+- 漫画化しない場合（Phase 7 スキップ時）は、Phase 6 の直後にこのフェーズを実行する
+
+---
+
 ## 関連スキル
 
 | スキル | 用途 | Phase |
@@ -1261,8 +1350,9 @@ output/ebook-{slug}/
 | `apify-research` | Instagram/SNSデータ取得 | Phase 2 |
 | `kindle-publishing` | 書籍構成テンプレートの参考 | Phase 3 |
 | `nanobanana-prompts` | 画像プロンプト最適化の4つの黄金ルール | Phase 5 |
-| `nanobanana-pro` | Gemini NanoBanana で画像生成 | Phase 5 |
+| `nanobanana-pro` | Gemini NanoBanana で画像生成 | Phase 5, 8 |
 | `doc-convert-pandoc` | Markdown → DOCX 変換 | Phase 6 |
+| `cover-master-ss` | Kindle表紙YAMLプロンプト生成（5スタイル対応） | Phase 8 |
 
 ## 使用例
 

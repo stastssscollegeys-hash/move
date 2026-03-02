@@ -12,7 +12,7 @@
 ## ebook-creator-ss との連携
 
 ```
-1. ebook-creator-ss で電子書籍作成（15,000字、5章構成）
+1. ebook-creator-ss で電子書籍作成（25,000字、5章構成）
 2. manga-produce-creator-ss で書籍を漫画化（15-25ページ）
 ```
 

@@ -70,11 +70,15 @@ description: 電子書籍を漫画化することに特化したスキル。章�
 └── テンプレ10.jpg    # テンプレ10: 上段横長+下段左縦長+右上下分割
 ```
 
-## 全体フロー（3ステップ + 画像生成）
+## 全体フロー（5ステップ + 画像生成）
+
+**前提: ebook-creator-ss が先に `output/{slug}/` フォルダを作成済み。**
+**本スキルは同じフォルダに漫画関連ファイルを追加していく。**
 
 ```
 Step 1: ストーリー構成案の作成
    │  ユーザーから原稿/文章を受け取る（必須）
+   │  ★ 元原稿は output/{slug}/manuscript.md にある
    │  神話の法則で感情曲線設計
    │  書籍の長さに合わせたコマ数で細かいカット割り台本作成
    │  → 確認なしで即Step 2へ
@@ -95,6 +99,18 @@ Step 3: ページ別プロンプト生成
    │  nanobanana-pro で全ページ順次生成
    │  生成後 896x1200px にリサイズ
    │  進捗トラッキング + 中断再開対応
+   ▼
+Step 4: 表紙作成（cover-master-ss 連携）
+   │  漫画ページ完成後、ユーザーに表紙作成を確認
+   │  cover-master-ss スキルを呼び出し
+   │  ★ all_characters.png を参照画像として自動提供
+   │  キャラクターの外見情報をcover-master-ssに引き継ぎ
+   ▼
+Step 5: DOCX統合（原稿+漫画ページの統合Word）
+   │  元の電子書籍原稿（manuscript.md）を読み込み
+   │  各章の末尾に対応する漫画ページを挿入
+   │  Pandoc で原稿テキスト+漫画統合DOCXに変換
+   │  final_book.docx として出力
    ▼
 完成！
 ```
@@ -196,7 +212,7 @@ Step 3: ページ別プロンプト生成
 
 ### 出力形式
 
-`output/manga-{slug}/story_structure.md` に保存:
+`output/{slug}/story_structure.md` に保存:
 
 ```markdown
 # 漫画ストーリー構成案（全{N}ページ）
@@ -301,7 +317,7 @@ cd "C:\Users\baseb\dev\開発1\.claude\skills\nanobanana-pro"
 
 PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
   --prompt "{キャラクターシートプロンプト}, --ar 16:9" \
-  --output "../../../output/manga-{slug}/characters/all_characters.png" \
+  --output "../../../output/{slug}/characters/all_characters.png" \
   --timeout 240
 ```
 
@@ -310,7 +326,7 @@ PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
 リサイズはファイルのある場所にcdしてから実行する（日本語パスの文字化け回避）。
 
 ```bash
-cd "{開発フォルダ}/output/manga-{slug}/characters"
+cd "{開発フォルダ}/output/{slug}/characters"
 
 PYTHONUTF8=1 PYTHONIOENCODING=utf-8 \
   "../../../.claude/skills/nanobanana-pro/.venv/Scripts/python.exe" -c "
@@ -337,7 +353,7 @@ Step 1のストーリーを元に、各ページのNanoBanana用プロンプト�
 - Step 1で決めたページ数（15〜25ページ）すべてを完成させる
 - 途中で確認を求めず、一気に全ページ分を出力する
 
-全ページ分を `output/manga-{slug}/page_prompts.md` に一括出力する。
+全ページ分を `output/{slug}/page_prompts.md` に一括出力する。
 
 ### プロンプトテンプレート
 
@@ -476,6 +492,49 @@ Template: {テンプレ1〜10から選択}
   └──────────┴─────┘
   ```
 
+### テンプレートバリエーション強制ルール（必須遵守）
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  同じテンプレを3ページ連続で使用することは絶対禁止                  │
+│  全体で最低4種類以上のテンプレートを使い分けること                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**ルール1: 連続使用制限**
+- 同じテンプレートは**最大2ページ連続**まで。3ページ連続は禁止
+- テンプレ8を3ページ連続で使いたい場合、間に別テンプレを1つ挟む
+
+**ルール2: 最低バリエーション数**
+- 全体ページ数に応じた最低テンプレ種類数:
+
+| 総ページ数 | 最低テンプレ種類数 |
+|-----------|------------------|
+| 5-10ページ | 3種類以上 |
+| 11-15ページ | 4種類以上 |
+| 16-20ページ | 5種類以上 |
+| 21ページ以上 | 6種類以上 |
+
+**ルール3: シーン別テンプレ推奨マッピング**
+
+| シーンの内容 | 推奨テンプレ | 理由 |
+|-------------|------------|------|
+| 章の冒頭・導入 | テンプレ3（上小+下大）| 小さい導入→大きいメインの流れ |
+| 会話が中心 | テンプレ5（3段）/ テンプレ7（2+1）| テンポよく会話を展開 |
+| 説明・解説シーン | テンプレ8（4コマ）/ テンプレ6（1+2）| 情報量を確保 |
+| 驚き・衝撃の瞬間 | テンプレ1（全面1コマ）/ テンプレ4（大+小）| インパクト最大化 |
+| クライマックス | テンプレ1（全面）/ テンプレ9 / テンプレ10 | 変則レイアウトで緊張感 |
+| まとめ・振り返り | テンプレ2（上下均等）/ テンプレ5（3段）| 落ち着いた構成 |
+| 感動・余韻 | テンプレ4（上大+下小）/ テンプレ1 | 余白で感情を表現 |
+
+**ルール4: ページ配分の目安（19ページの場合）**
+```
+テンプレ1（1コマ）: 1-2ページ（冒頭タイトルやクライマックス）
+テンプレ2-4（2コマ）: 3-4ページ（導入・対比・リアクション）
+テンプレ5-7（3コマ）: 4-5ページ（会話・テンポ重視）
+テンプレ8-10（4コマ）: 8-10ページ（情報量が多いシーン）
+```
+
 ### 読み順ルール（厳守）
 
 ```
@@ -541,8 +600,8 @@ cd "C:\Users\baseb\dev\開発1\.claude\skills\nanobanana-pro"
 
 PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
   --prompt "--ar 3:4 MUST generate in PORTRAIT orientation (taller than wide, 3:4 ratio). DO NOT use landscape. CRITICAL CHARACTER REFERENCE: The attached image 'all_characters.png' is the official character reference sheet. You MUST faithfully reproduce each character's appearance exactly as shown in the reference. ART STYLE CONSISTENCY: You MUST also match the art style, color palette, line quality, shading technique, and overall visual touch of the attached 'all_characters.png'. All panels must look like they belong to the same manga series with the same illustrator. {ページNの英語プロンプト全文} anime-style, modern manga illustration, soft light and smooth shading, delicate linework, expressive eyes, clean and bright overall tone, full color manga page. IMPORTANT: All characters MUST exactly match their appearance in the attached 'all_characters.png' reference sheet. The art style, line quality, coloring, and shading must also match the attached reference. --ar 3:4" \
-  --attach-image "../../../output/manga-{slug}/characters/all_characters.png" \
-  --output "../../../output/manga-{slug}/panels/page_NNN.png" \
+  --attach-image "../../../output/{slug}/characters/all_characters.png" \
+  --output "../../../output/{slug}/panels/page_NNN.png" \
   --timeout 240
 ```
 
@@ -561,7 +620,7 @@ PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python scripts/run.py image_generator.py \
 横長で出力された場合はリサイズせず、**再生成する**。
 
 ```bash
-cd "{開発フォルダ}/output/manga-{slug}/panels"
+cd "{開発フォルダ}/output/{slug}/panels"
 
 PYTHONUTF8=1 PYTHONIOENCODING=utf-8 \
   "../../../.claude/skills/nanobanana-pro/.venv/Scripts/python.exe" -c "
@@ -597,21 +656,264 @@ else:
 
 ---
 
-## 出力先
+## Step 4: 表紙作成（cover-master-ss 連携）
+
+### 概要
+
+漫画ページの画像一括生成が完了した後、**表紙作成**に進む。
+漫画で生成したキャラクターシート（`all_characters.png`）を参照画像として活用し、
+キャラクターの外見を表紙にも一貫して反映する。
+
+### 手順
+
+#### 1. ユーザーに表紙作成を確認
+
+漫画ページ生成完了後、以下を確認する:
 
 ```
-output/manga-{slug}/
-├── story_structure.md          # ストーリー構成案（全コマ詳細）
-├── character_prompts.md        # キャラクター外見プロンプトDB
-├── page_prompts.md             # 全ページのプロンプト（英語、セリフ部分のみ日本語）
+漫画ページの生成が完了しました！
+
+続けて表紙を作成しますか？
+漫画のキャラクターを活かした表紙を cover-master-ss で作ります。
+```
+
+AskUserQuestion で確認:
+- 「表紙を作る」→ Step 4 を続行
+- 「今はスキップ」→ Step 4 をスキップして完了
+
+#### 2. cover-master-ss に引き継ぐ情報
+
+cover-master-ss を呼び出す際に、以下の情報を自動的に提供する:
+
+| 情報 | 引き継ぎ元 | cover-master-ss での用途 |
+|------|-----------|------------------------|
+| 書籍タイトル | Step 1 のストーリー構成案 | Step 1: ヒアリング（タイトル） |
+| ジャンル・ターゲット | 元の電子書籍情報 | Step 1: ヒアリング |
+| キャラクター画像 | `characters/all_characters.png` | Step 2: 参照画像 |
+| キャラクター外見テキスト | `character_prompts.md` | Step 2: キャラ描写 |
+| 漫画ページサンプル | `panels/page_001.png` 等 | Step 2: スタイル参考 |
+
+#### 3. cover-master-ss の呼び出し
+
+Skill ツールで `cover-master-ss` を呼び出し、以下を伝える:
+
+```
+cover-master-ss で表紙を作成します。
+
+■ 書籍情報:
+- タイトル: {書籍タイトル}
+- ジャンル: {ジャンル}
+- ターゲット: {ターゲット読者}
+
+■ 参照画像（漫画から引き継ぎ）:
+- キャラクターシート: output/{slug}/characters/all_characters.png
+  → このキャラクターの外見を表紙にも反映してください
+
+■ キャラクター外見:
+{character_prompts.md の内容}
+
+■ 漫画スタイルとの統一:
+- 漫画ページと同じアートスタイル・色彩で表紙を作成
+- スタイルC（マンガ・アニメ型）を推奨
+```
+
+cover-master-ss のフローに従い、スタイル選択→カラーパレット→YAML生成→画像生成まで進める。
+
+#### 4. 表紙画像の保存
+
+cover-master-ss で生成された表紙画像は以下に保存する:
+
+```
+output/{slug}/
+├── cover.png                   # 表紙画像（本文埋め込み用）
+└── cover_prompt_amazon.md      # Amazon KDP提出用プロンプト
+```
+
+電子書籍と漫画は同じ `output/{slug}/` フォルダ内にあるため、
+表紙画像（cover.png）は自動的に共有される。
+
+---
+
+## Step 5: DOCX統合（原稿+漫画ページの統合Word）
+
+### 概要
+
+**元の電子書籍の原稿テキストと漫画ページを統合した1つのWordファイル（DOCX）を作成する。**
+漫画画像だけを並べるのではなく、各章の文章の後に対応する漫画ページを挿入し、
+「テキストで学ぶ → 漫画で理解を深める」という構成の完成品を出力する。
+
+### 前提条件
+
+- 元の電子書籍原稿（`output/{slug}/manuscript.md`）が同じフォルダに存在すること
+- Step 1の `story_structure.md` に章→漫画ページの対応が記載されていること
+- 全漫画ページ画像が `panels/` フォルダに揃っていること
+- 表紙画像（`cover.png`）が生成済みであること
+
+### 手順
+
+#### 1. 章→漫画ページの対応表を作成
+
+`story_structure.md` の「原稿の章構成」セクションから、各章に対応する漫画ページ番号を抽出する。
+
+例:
+```
+第1章 → 漫画ページ 1〜4
+第2章 → 漫画ページ 5〜7
+第3章 → 漫画ページ 8〜11
+第4章 → 漫画ページ 12〜16
+第5章 → 漫画ページ 17〜19
+```
+
+#### 2. 統合Markdownファイルの生成
+
+元の原稿（`manuscript.md`）をベースに、各章の末尾に対応する漫画ページを挿入した
+統合Markdownファイルを生成する。
+
+`output/{slug}/manga_compiled.md` を作成:
+
+```markdown
+![表紙](cover.png){ width=100% }
+
+\newpage
+
+## はじめに
+
+{はじめにの本文テキスト}
+
+\newpage
+
+## 第1章 {章タイトル}
+
+{第1章の本文テキスト（節・小見出し含む）}
+
+\newpage
+
+### 第1章 まんがでわかる
+
+![Page 1](panels/page_001.png){ width=100% }
+
+\newpage
+
+![Page 2](panels/page_002.png){ width=100% }
+
+\newpage
+
+![Page 3](panels/page_003.png){ width=100% }
+
+\newpage
+
+![Page 4](panels/page_004.png){ width=100% }
+
+\newpage
+
+## 第2章 {章タイトル}
+
+{第2章の本文テキスト}
+
+\newpage
+
+### 第2章 まんがでわかる
+
+![Page 5](panels/page_005.png){ width=100% }
+
+\newpage
+
+...（全章分繰り返し）
+
+\newpage
+
+## おわりに
+
+{おわりにの本文テキスト}
+```
+
+**統合ルール:**
+- 表紙（cover.png）を最初に配置
+- 元の原稿のテキスト構造（見出し・段落・箇条書き）を維持する
+- 元の原稿に含まれる図解画像（`images/` フォルダ内）も維持する
+  - 同じフォルダ内の `images/` を参照するため、パス修正は不要
+- 各章の本文テキストの後に「### 第N章 まんがでわかる」の見出しを追加
+- 見出しの後に対応する漫画ページを順番に挿入
+- 各漫画ページの間に `\newpage`（改ページ）を挿入
+- すべての画像に `{ width=100% }` を付与
+- 画像行の前後に必ず空行1行ずつ
+- 「はじめに」と「おわりに」には漫画を挿入しない
+
+#### 3. Pandoc でDOCX変換
+
+```bash
+cd "output/{slug}"
+
+pandoc manga_compiled.md \
+  -o final_book.docx \
+  --from markdown \
+  --to docx \
+  --resource-path=. \
+  --standalone \
+  --dpi=150
+```
+
+**Pandocが利用できない場合のフォールバック:**
+
+python-docxを使用してDOCXを生成する。
+Markdownのヘッダー（`##`, `###`）をWordの見出しスタイルに変換し、
+画像を埋め込み、`\newpage` を改ページに変換する。
+
+#### 4. 出力確認
+
+- `final_book.docx` が生成されたことを確認
+- ファイルサイズが妥当か確認（原稿テキスト+図解+漫画ページで30-50MB程度が目安）
+- テキストと漫画が正しい章順で統合されているか確認
+
+### 出力ファイル
+
+```
+output/{slug}/
+├── manga_compiled.md           # 中間Markdown（原稿+漫画統合済み）
+└── final_book.docx         # ★ 最終成果物（原稿テキスト+漫画ページ統合Word）
+```
+
+---
+
+## 出力先
+
+**電子書籍（ebook-creator-ss）と同じフォルダ（`output/{slug}/`）に漫画関連ファイルを追加する。**
+1冊の書籍タイトルにつき1フォルダで、原稿・図解・漫画すべてを統合管理する。
+
+```
+output/{slug}/
+│
+│  ── 電子書籍スキル（ebook-creator-ss）が先に生成済み ──
+├── manuscript.md             # 電子書籍原稿（Markdown）
+├── manuscript_raw.md         # 中間ファイル
+├── manuscript.docx           # 原稿+図解のみのWord（中間成果物）
+├── research.md               # リサーチ結果
+├── images/                   # 図解画像（40〜60枚）
+│   ├── ch1_header.png
+│   ├── ch1_img1.png
+│   └── ...
+│
+│  ── 本スキル（manga-produce-creator-ss）が追加するファイル ──
+├── story_structure.md        # ストーリー構成案（全コマ詳細）
+├── character_prompts.md      # キャラクター外見プロンプトDB
+├── page_prompts.md           # 全ページのプロンプト
 ├── characters/
-│   └── all_characters.png      # 全キャラ並んだ設計画（1600x900px, 16:9横長）
-├── panels/                     # 各ページ画像（896x1200px）
+│   └── all_characters.png    # 全キャラ並んだ設計画（1600x900px, 16:9横長）
+├── panels/                   # 漫画ページ画像（896x1200px）
 │   ├── page_001.png
 │   ├── page_002.png
 │   └── ...
-└── generate_panels.py          # バッチ生成スクリプト（オプション）
+├── cover.png                 # 漫画風表紙（Step 4で生成）
+├── cover_prompt.md           # 表紙プロンプト Version A + B
+├── cover_prompt_amazon.md    # Amazon KDP用プロンプト
+├── manga_compiled.md         # 中間Markdown：原稿テキスト+漫画統合済み
+├── final_book.docx           # ★ 最終成果物（原稿+図解+漫画の統合Word）
+└── generate_panels.py        # バッチ生成スクリプト（オプション）
 ```
+
+**最終成果物は `final_book.docx`**。
+- 元の原稿テキスト + 図解画像 + 各章末尾に漫画ページを挿入した統合Word
+- `manuscript.docx`（原稿+図解のみ）は中間成果物として残る
 
 ---
 
@@ -622,6 +924,9 @@ output/manga-{slug}/
 | `nanobanana-pro` | Gemini NanoBanana で画像生成 |
 | `custom-character` | キャラクター設計パターン参考 |
 | `nanobanana-prompts` | 画像プロンプト最適化の黄金ルール |
+| `cover-master-ss` | Step 4: 表紙作成（キャラシートを参照画像として連携） |
+| `doc-convert-pandoc` | Step 5: Markdown → DOCX 変換 |
+| `ebook-creator-ss` | 電子書籍作成（漫画化の前工程） |
 
 ## 使用例
 
@@ -646,8 +951,14 @@ AI: manga-produce-creator-ss スキルを起動
   1. 原稿ファイルを読み込む（manuscript.md）
   2. 章構成を解析（## 第1章、## 第2章...）
   3. 各章の重要ポイントを抽出
-  4. 各章3-5ページの漫画ストーリーを構成
-  5. キャラクター設計
-  6. ページ別プロンプト生成
+  4. 各章3-5ページの漫画ストーリーを構成（Step 1）
+  5. キャラクター設計（Step 2）
+  6. ページ別プロンプト生成（Step 3）
   7. 画像一括生成（15-25ページ）
+  8. cover-master-ss で表紙作成（Step 4）
+     → キャラクターシートを参照画像として自動連携
+     → 漫画と統一感のある表紙を生成
+  9. 原稿テキスト+漫画ページをDOCXに統合（Step 5）
+     → 元の電子書籍原稿に各章の漫画ページを挿入
+     → Pandocで原稿+漫画統合Word出力
 ```
