@@ -14,9 +14,12 @@ router.post('/api/search', handleSearch as any);                    // 検索+�
 router.post('/api/analyze-selected', handleAnalyzeSelected as any); // ターゲット+キーワード
 router.post('/api/trend', handleTrend as any);                      // トレンド判定
 
-// API Key Guide page
-router.get('/api-key-guide', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'youtube-research-api-guide.html'));
+// API Key Guide pages
+router.get('/youtube-api-guide', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'youtube-api-guide.html'));
+});
+router.get('/anthropic-api-guide', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'anthropic-api-guide.html'));
 });
 
 // Health check

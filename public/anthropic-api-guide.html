@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anthropic API キー取得ガイド - YouTube動画リサーチツール</title>
+  <link rel="stylesheet" href="/css/youtube-research.css">
+  <style>
+    .guide-container { max-width: 760px; margin: 0 auto; padding: 32px 16px; }
+    .guide-container h1 { font-size: 24px; margin-bottom: 8px; }
+    .guide-container h2 { font-size: 20px; margin-top: 32px; margin-bottom: 12px; color: var(--primary); }
+    .guide-container h3 { font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+    .step { background: var(--bg-card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+    .step-number { display: inline-block; background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 14px; margin-right: 8px; }
+    .step p { color: var(--text-secondary); font-size: 14px; line-height: 1.8; margin-top: 8px; }
+    .step a { color: var(--accent-blue); }
+    .note { background: var(--bg-input); border-left: 3px solid var(--accent-yellow); padding: 12px 16px; border-radius: 4px; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+    .back-link { display: inline-block; color: var(--accent-blue); text-decoration: none; margin-bottom: 24px; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    code { background: var(--bg-input); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .cost-table { margin-top: 12px; }
+    .cost-table td, .cost-table th { padding: 8px 12px; font-size: 13px; }
+    .console-link { display: inline-block; background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+    .console-link:hover { opacity: 0.9; }
+    .tip { background: var(--bg-input); border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+    <a href="/youtube-research" class="back-link">&larr; ツールに戻る</a>
+    <h1>Anthropic API キー取得ガイド</h1>
+    <p class="hint">AI分析機能（トレンド判定・ターゲット分析）に必要なAPIキーの取得手順です。</p>
+
+    <a href="https://console.anthropic.com/" target="_blank" class="console-link">Anthropic Console を開く &rarr;</a>
+
+    <div class="tip">
+      <strong>💡 エラーページが表示される場合</strong><br>
+      APIキーの作成画面やクレジット追加画面でエラーページが表示されることがあります。<br>
+      その場合は<strong>ブラウザのシークレットウィンドウ（プライベートウィンドウ）</strong>で
+      <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a> にアクセスし直すと解決できることがあります。<br>
+      ブラウザの拡張機能やキャッシュが干渉している可能性があるためです。
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">1</span>Anthropic Consoleにアクセス</h3>
+      <p><a href="https://console.anthropic.com/" target="_blank">https://console.anthropic.com/</a> にアクセスし、アカウントを作成またはログインします。</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">2</span>APIキーを作成</h3>
+      <p>ダッシュボードの「Settings」→「API Keys」を開きます。</p>
+      <p>「Create Key」をクリックし、名前（例: <code>youtube-research</code>）を入力して作成します。</p>
+      <p>表示されたキーをコピーします（<code>sk-ant-...</code> で始まる文字列）。</p>
+      <div class="note">
+        キーは作成時の1回しか表示されません。必ずコピーして安全な場所に保存してください。
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-number">3</span>クレジットを追加</h3>
+      <p>「Settings」→「Billing」でクレジットカードを登録し、APIクレジットを追加します。</p>
+      <p>最初は $5〜10 程度でOKです。</p>
+    </div>
+
+    <h3>料金について</h3>
+    <table class="cost-table">
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>使用モデル</td><td>Claude Sonnet（高速・低コスト）</td></tr>
+        <tr><td>入力</td><td>$3 / 100万トークン</td></tr>
+        <tr><td>出力</td><td>$15 / 100万トークン</td></tr>
+        <tr><td>1回の分析</td><td>約 $0.01〜0.05（1〜5円程度）</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      1回の分析は数円程度です。$5のクレジットで100回以上分析できます。
+    </div>
+
+    <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--bg-input);">
+      <p class="hint">キーを取得したら、ツール画面の「APIキー設定」に貼り付けて保存してください。</p>
+      <a href="/youtube-research" class="btn-primary" style="text-decoration:none;display:inline-block">ツールに戻る</a>
+    </div>
+  </div>
+</body>
+</html>
