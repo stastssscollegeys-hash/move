@@ -582,6 +582,7 @@ taisun_v2/.claude/
 | `hokan/表紙リサーチ/最強メタプロンプト_v2.md` | `.claude/skills/cover-master-ss/SKILL.md` | Kindle表紙 |
 | `output/line-banner/line_banner_meta_prompt_v2.md` | `.claude/skills/line-banner-ss/SKILL.md` | LINE登録バナー |
 | `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` | `.claude/skills/youtube-thumbnail-ss/SKILL.md` | YouTubeサムネイル |
+| `output/ebook-listings/ebook_listings_meta_prompt.md` | `.claude/skills/ebook-listings-ss/SKILL.md` | Kindle紹介文・メタデータ |
 
 **運用ルール：**
 - メタプロンプトを修正・バージョンアップしたら、対応スキルのSKILL.mdにも同じ変更を反映する
