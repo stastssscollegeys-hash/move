@@ -1685,6 +1685,20 @@ nanobanana-proを直接呼び出すことは禁止。
    → images/manga_summary.png に保存（896×1152px）
 ```
 
+### article.mdへの漫画挿入（必須）
+
+漫画生成後、`article.md` の**先頭（アイキャッチ画像の直後）**にまとめ漫画を挿入する:
+
+```markdown
+![アイキャッチ](images/eyecatch.png){ width=100% }
+
+![まとめ漫画](images/manga_summary.png){ width=100% }
+
+---
+```
+
+これにより Phase 10 の DOCX変換時にも漫画が自動的に含まれる。
+
 ---
 
 ## Phase 9: X投稿文作成

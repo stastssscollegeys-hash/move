@@ -826,8 +826,8 @@ output/{slug}/
 
 - 元の電子書籍原稿（`output/{slug}/manuscript.md`）が同じフォルダに存在すること
 - Step 1の `story_structure.md` に章→漫画ページの対応が記載されていること
-- 全漫画ページ画像が `panels/` フォルダに揃っていること（全ページ896x1200px）
-- 図解画像が `images/` フォルダに揃っていること
+- 全漫画ページ画像が `panels/` フォルダに揃っていること
+- 表紙画像（`cover.png`）が生成済みであること
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -843,35 +843,6 @@ output/{slug}/
 
 ### 手順
 
-#### 0. 全パネル画像の一括リサイズ（Step 4完了後に必須実行）
-
-Step 4で生成した全ページが896x1200pxかを確認し、リサイズする。
-
-```python
-# output/{slug}/panels/ で実行
-from PIL import Image
-import glob
-
-files = sorted(glob.glob('page_*.png'))
-for f in files:
-    img = Image.open(f)
-    w, h = img.size
-    if w > h:
-        print(f'ERROR: {f} is LANDSCAPE ({w}x{h}). Must regenerate.')
-        continue
-    if (w, h) != (896, 1200):
-        resized = img.resize((896, 1200), Image.LANCZOS)
-        resized.save(f, quality=95)
-        print(f'Resized {f}: {w}x{h} -> 896x1200')
-    else:
-        print(f'{f}: OK (896x1200)')
-print(f'Total: {len(files)} pages')
-```
-
-**ルール:**
-- 横長（width > height）→ リサイズ禁止、再生成する
-- 縦長だがサイズが違う（例: 765x1024）→ 896x1200にリサイズOK
-
 #### 1. 章→漫画ページの対応表を作成
 
 `story_structure.md` の「原稿の章構成」セクションから、各章に対応する漫画ページ番号を抽出する。
@@ -885,113 +856,74 @@ print(f'Total: {len(files)} pages')
 第5章 → 漫画ページ 17〜19
 ```
 
-#### 2. 統合Markdownファイルの生成（build_compiled.py）
+#### 2. 統合Markdownファイルの生成
 
-**Pythonスクリプトで自動生成する（手動編集は禁止）。**
-手動で原稿にページを差し込むとミスの原因になるため、必ずスクリプトで行う。
+元の原稿（`manuscript.md`）をベースに、各章の末尾に対応する漫画ページを挿入した
+統合Markdownファイルを生成する。
 
-`output/{slug}/build_compiled.py` を作成して実行する:
+`output/{slug}/manga_compiled.md` を作成:
 
-```python
-#!/usr/bin/env python3
-"""Build manga_compiled.md by inserting manga pages after each chapter."""
-import re
+```markdown
+![表紙](cover.png){ width=100% }
 
-INPUT = "manuscript.md"     # ★ manuscript_raw.md は使用禁止
-OUTPUT = "manga_compiled.md"
+\newpage
 
-# Step 1 の対応表をここに記入（story_structure.md から抽出）
-CHAPTER_PAGES = {
-    1: [1, 2, 3, 4],       # 第1章 → ページ1-4
-    2: [5, 6, 7],           # 第2章 → ページ5-7  ※ 実際の配分に合わせる
-    3: [8, 9, 10, 11],
-    4: [12, 13, 14, 15, 16],
-    5: [17, 18, 19],
-}
+## はじめに
 
-def make_manga_section(chapter_num, pages):
-    lines = []
-    lines.append("")
-    lines.append("\\newpage")
-    lines.append("")
-    lines.append(f"### 第{chapter_num}章 まんがでわかる")
-    lines.append("")
-    for i, page_num in enumerate(pages):
-        lines.append(f"![Page {page_num}](panels/page_{page_num:03d}.png){{ width=100% }}")
-        lines.append("")
-        if i < len(pages) - 1:
-            lines.append("\\newpage")
-            lines.append("")
-    return "\n".join(lines)
+{はじめにの本文テキスト}
 
-with open(INPUT, "r", encoding="utf-8") as f:
-    content = f.read()
+\newpage
 
-lines = content.split("\n")
-result = []
+## 第1章 {章タイトル}
 
-# 表紙画像を冒頭に（images/cover.png がある場合）
-# ※ 表紙パスはプロジェクトにより異なる。images/ 内か root直下か確認すること
-result.append("![表紙](images/cover.png){ width=100% }")
-result.append("")
-result.append("\\newpage")
-result.append("")
+{第1章の本文テキスト（節・小見出し含む）}
 
-current_chapter = 0
-chapter_pattern = re.compile(r"^## 第(\d+)章")
-owari_pattern = re.compile(r"^## おわりに")
+\newpage
 
-i = 0
-while i < len(lines):
-    line = lines[i]
-    chapter_match = chapter_pattern.match(line)
-    owari_match = owari_pattern.match(line)
+### 第1章 まんがでわかる
 
-    if chapter_match:
-        new_chapter = int(chapter_match.group(1))
-        if current_chapter > 0 and current_chapter in CHAPTER_PAGES:
-            result.append(make_manga_section(current_chapter, CHAPTER_PAGES[current_chapter]))
-            result.append("")
-            result.append("\\newpage")
-            result.append("")
-        current_chapter = new_chapter
-        result.append(line)
-    elif owari_match:
-        if current_chapter > 0 and current_chapter in CHAPTER_PAGES:
-            result.append(make_manga_section(current_chapter, CHAPTER_PAGES[current_chapter]))
-            result.append("")
-            result.append("\\newpage")
-            result.append("")
-        current_chapter = 0
-        result.append(line)
-    elif line.strip() == "<!-- [COVER_IMAGE] -->":
-        pass  # 表紙プレースホルダーはスキップ（冒頭で追加済み）
-    else:
-        result.append(line)
-    i += 1
+![Page 1](panels/page_001.png){ width=100% }
 
-with open(OUTPUT, "w", encoding="utf-8") as f:
-    f.write("\n".join(result))
+\newpage
 
-print(f"Created {OUTPUT} ({len(result)} lines)")
-```
+![Page 2](panels/page_002.png){ width=100% }
 
-実行:
-```bash
-cd "output/{slug}"
-python build_compiled.py
-```
+\newpage
 
-**生成後の確認（必須）:**
-```bash
-grep -c "images/" manga_compiled.md    # 図解の参照数（images/ 内の画像数と一致すべき）
-grep -c "panels/" manga_compiled.md    # 漫画パネルの参照数（全ページ数と一致すべき）
+![Page 3](panels/page_003.png){ width=100% }
+
+\newpage
+
+![Page 4](panels/page_004.png){ width=100% }
+
+\newpage
+
+## 第2章 {章タイトル}
+
+{第2章の本文テキスト}
+
+\newpage
+
+### 第2章 まんがでわかる
+
+![Page 5](panels/page_005.png){ width=100% }
+
+\newpage
+
+...（全章分繰り返し）
+
+\newpage
+
+## おわりに
+
+{おわりにの本文テキスト}
 ```
 
 **統合ルール:**
-- 表紙画像を最初に配置（パスは `images/cover.png` または `cover.png` を実態に合わせる）
+- 表紙（cover.png）を最初に配置
 - 元の原稿のテキスト構造（見出し・段落・箇条書き）を維持する
-- 元の原稿に含まれる図解画像（`![](images/...)`）もそのまま維持する
+- 元の原稿に含まれる図解画像（`images/` フォルダ内）も維持する
+  - 同じフォルダ内の `images/` を参照するため、パス修正は不要
 - 各章の本文テキストの後に「### 第N章 まんがでわかる」の見出しを追加
 - 見出しの後に対応する漫画ページを順番に挿入
 - 各漫画ページの間に `\newpage`（改ページ）を挿入
@@ -999,122 +931,38 @@ grep -c "panels/" manga_compiled.md    # 漫画パネルの参照数（全ペー
 - 画像行の前後に必ず空行1行ずつ
 - 「はじめに」と「おわりに」には漫画を挿入しない
 
-#### 3. DOCX変換（pypandoc + ASCIIパス変換）
+#### 3. Pandoc でDOCX変換
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  ⚠️ Windows + 日本語パスの問題                                     │
-│                                                                     │
-│  output/{slug}/ のパスに日本語（例: 開発1/）が含まれると           │
-│  Pandoc がファイルを読めずに変換失敗する。                          │
-│  必ず ASCII の一時ディレクトリにコピーしてから変換すること。        │
-│                                                                     │
-│  また pandoc コマンドは PATH に入っていないことが多い。             │
-│  pypandoc 経由で呼び出すのが安全。                                 │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-`output/{slug}/convert_to_docx.py` を作成して実行する:
-
-```python
-#!/usr/bin/env python3
-"""Convert manga_compiled.md to final_book.docx using pypandoc."""
-import os, sys, shutil, tempfile
-import pypandoc
-
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-MD_FILE = os.path.join(SRC_DIR, "manga_compiled.md")
-DOCX_FILE = os.path.join(SRC_DIR, "final_book.docx")
-
-# ASCII一時ディレクトリにコピー（日本語パス回避）
-TEMP_BASE = os.path.join(tempfile.gettempdir(), "pandoc_work")
-os.makedirs(TEMP_BASE, exist_ok=True)
-temp_dir = os.path.join(TEMP_BASE, "manga_build")
-if os.path.exists(temp_dir):
-    shutil.rmtree(temp_dir)
-os.makedirs(temp_dir)
-
-# Markdownファイルをコピー
-shutil.copy2(MD_FILE, os.path.join(temp_dir, "manga_compiled.md"))
-
-# panels/ と images/ をコピー
-for folder in ["panels", "images"]:
-    src = os.path.join(SRC_DIR, folder)
-    dst = os.path.join(temp_dir, folder)
-    if os.path.exists(src):
-        shutil.copytree(src, dst)
-        print(f"  Copied {folder}/ ({len(os.listdir(dst))} files)")
-
-# pypandoc で変換
-print("Converting to DOCX...")
-temp_md = os.path.join(temp_dir, "manga_compiled.md")
-temp_docx = os.path.join(temp_dir, "final_book.docx")
-
-try:
-    pypandoc.convert_file(
-        temp_md, 'docx', format='markdown',
-        outputfile=temp_docx,
-        extra_args=[f'--resource-path={temp_dir}', '--standalone']
-    )
-except Exception as e:
-    print(f"ERROR: {e}")
-    sys.exit(1)
-
-# 結果をコピーバック
-shutil.copy2(temp_docx, DOCX_FILE)
-size_mb = os.path.getsize(DOCX_FILE) / (1024 * 1024)
-print(f"Output: {DOCX_FILE} ({size_mb:.1f} MB)")
-
-# 一時ディレクトリ削除
-shutil.rmtree(temp_dir, ignore_errors=True)
-print("Done!")
-```
-
-実行:
 ```bash
 cd "output/{slug}"
-PYTHONIOENCODING=utf-8 PYTHONUTF8=1 python convert_to_docx.py
+
+pandoc manga_compiled.md \
+  -o final_book.docx \
+  --from markdown \
+  --to docx \
+  --resource-path=. \
+  --standalone \
+  --dpi=150
 ```
 
-#### 4. 出力検証（必須）
+**Pandocが利用できない場合のフォールバック:**
 
-DOCX内に図解画像と漫画ページの両方が埋め込まれていることを検証する。
+python-docxを使用してDOCXを生成する。
+Markdownのヘッダー（`##`, `###`）をWordの見出しスタイルに変換し、
+画像を埋め込み、`\newpage` を改ページに変換する。
 
-```python
-# output/{slug}/ で実行
-import zipfile
+#### 4. 出力確認
 
-with zipfile.ZipFile('final_book.docx', 'r') as z:
-    media = [f for f in z.namelist() if f.startswith('word/media/')]
-    print(f'DOCX内の埋め込み画像数: {len(media)}')
-
-    # 期待値: images/ 内の画像数 + panels/ 内のページ数
-    import os
-    expected_images = len(os.listdir('images'))
-    expected_panels = len(os.listdir('panels'))
-    expected_total = expected_images + expected_panels
-    print(f'期待値: images/{expected_images} + panels/{expected_panels} = {expected_total}')
-
-    if len(media) >= expected_total:
-        print('OK: 全画像が埋め込まれています')
-    else:
-        print(f'WARNING: 画像が不足しています（{len(media)} < {expected_total}）')
-        print('  → manuscript_raw.md を使っていないか確認してください')
-```
-
-**検証基準:**
-- DOCX内の画像数 ≧ `images/` の画像数 + `panels/` の画像数
-- ファイルサイズが20MB以上（図解+漫画で通常20-50MB）
-- 不足している場合は `manga_compiled.md` 内の画像参照数を確認する
+- `final_book.docx` が生成されたことを確認
+- ファイルサイズが妥当か確認（原稿テキスト+図解+漫画ページで30-50MB程度が目安）
+- テキストと漫画が正しい章順で統合されているか確認
 
 ### 出力ファイル
 
 ```
 output/{slug}/
-├── build_compiled.py           # manga_compiled.md 生成スクリプト
-├── convert_to_docx.py          # DOCX変換スクリプト（日本語パス対応）
-├── manga_compiled.md           # 中間Markdown（原稿+図解+漫画統合済み）
-└── final_book.docx             # ★ 最終成果物（原稿+図解+漫画の統合Word）
+├── manga_compiled.md           # 中間Markdown（原稿+漫画統合済み）
+└── final_book.docx         # ★ 最終成果物（原稿テキスト+漫画ページ統合Word）
 ```
 
 ---

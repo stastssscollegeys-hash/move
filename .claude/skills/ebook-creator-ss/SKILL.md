@@ -60,7 +60,7 @@ Phase 7: 漫画確認 → 漫画統合版リビルド（★必須確認ステッ
    │  └─────────────────────────────────────────────────────┘
    │  panels/ が存在する場合 → 漫画統合版リビルド
    │  panels/ が存在しない場合 → ユーザーに漫画制作の要否を確認
-   │    ├── 漫画を作る → manga-creator-ss 等で漫画制作 → リビルド
+   │    ├── 漫画を作る → manga-produce-kobetsu-ss で漫画制作 → リビルド
    │    └── 漫画なしで進む → Phase 8 へ
    ▼
 Phase 8: 表紙作成（最終ステップ）
@@ -95,8 +95,8 @@ Phase 8: 表紙作成（最終ステップ）
 output/{slug}/
 │
 │  ── Phase 4-6: 本スキル（ebook-creator-ss）が生成するファイル ──
-├── manuscript.md             # Markdown版（図解画像リンク付き）
-├── manuscript_raw.md         # 中間ファイル（画像タグ付き原稿）
+├── manuscript.md             # Markdown版（図解画像リンク付き）★ DOCX変換はこちらを使用
+├── manuscript_raw.md         # 中間ファイル（画像タグ付き原稿）※ DOCX変換に使用禁止
 ├── manuscript.docx           # 原稿+図解のみのWord（Phase 6）
 ├── research.md               # リサーチ結果まとめ（Phase 2）
 ├── images/                   # 図解画像（40〜60枚、Phase 5）
@@ -1146,6 +1146,12 @@ DOCX変換時にページ幅に収まるようにする。
 
 ### 変換前の最終チェック（必須）
 
+```
+⚠️ DOCX変換には必ず manuscript.md を使用する。manuscript_raw.md は使用禁止。
+   manuscript_raw.md は図解画像がHTMLコメント（プレースホルダー）のままで、
+   Wordに図解が含まれなくなる。
+```
+
 DOCX変換の前に、`manuscript.md` が以下を満たしていることを確認する:
 
 ```
@@ -1228,7 +1234,7 @@ panels/ が既に存在する場合は統合版リビルドを実行する。
 output/{slug}/panels/ が存在する？
   ├── YES → 漫画統合版リビルド（Step 1〜3）を実行 → Phase 8 へ
   └── NO  → ★ ユーザーに漫画制作の要否を確認（Step 0）
-              ├── 漫画を作る → manga-creator-ss 等で漫画制作
+              ├── 漫画を作る → manga-produce-kobetsu-ss で漫画制作
               │                → panels/ 完成後に Step 1〜3 を実行
               │                → Phase 8 へ
               └── 漫画なしで進む → Phase 8 へ
@@ -1242,12 +1248,12 @@ panels/ フォルダが存在しない場合、**必ず** AskUserQuestion でユ
 仕様書に漫画（冒頭漫画・中盤漫画等）の指定はありますか？
 漫画を作成する場合、表紙は漫画完成後に作成します。
 
-1. 漫画を作成する（manga-creator-ss 等で制作後、表紙へ進む）
+1. 漫画を作成する（manga-produce-kobetsu-ss で制作後、表紙へ進む）
 2. 漫画なしで表紙へ進む
 3. 漫画は後で作る（このセッションでは表紙まで先に進め、漫画は次回）
 ```
 
-- 選択肢1の場合: 漫画制作スキルを実行 → panels/ 完成後に Step 1〜3 → Phase 8
+- 選択肢1の場合: manga-produce-kobetsu-ss スキルを実行 → panels/ 完成後に Step 1〜3 → Phase 8
 - 選択肢2の場合: Phase 8 へ直接進む
 - 選択肢3の場合: Phase 8 へ進むが、SESSION_HANDOFF.md に「漫画未制作」と明記する
 
@@ -1263,6 +1269,17 @@ panels/ フォルダが存在しない場合、**必ず** AskUserQuestion でユ
 ```
 
 #### Step 2: manga_compiled.md を再生成
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ⚠️ 必ず manuscript.md を使用すること！                            │
+│                                                                     │
+│  manuscript.md     = 図解画像が ![](images/...) で埋め込み済み     │
+│  manuscript_raw.md = <!-- [INLINE_IMAGE] --> プレースホルダーのまま │
+│                                                                     │
+│  manuscript_raw.md を使うと図解画像がWordに含まれない！            │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ```
 1. 更新された manuscript.md のテキストを読み込む

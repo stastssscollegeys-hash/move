@@ -8,7 +8,7 @@ from pathlib import Path
 # Paths
 SKILL_ROOT = Path(__file__).parent.parent
 DATA_DIR = SKILL_ROOT / "data"
-BROWSER_PROFILE_DIR = DATA_DIR / "browser_profile"
+BROWSER_PROFILE_DIR = DATA_DIR / "browser_profile2"
 STATE_FILE = DATA_DIR / "state.json"
 AUTH_INFO_FILE = DATA_DIR / "auth_info.json"
 OUTPUT_DIR = SKILL_ROOT / "output"
