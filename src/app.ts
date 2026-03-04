@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { youtubeResearchRouter } from './youtube-research/routes';
+import { lpCreatorRouter } from './lp-creator-ss/routes';
 
 const app = express();
 
@@ -14,8 +15,9 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       imgSrc: ["'self'", 'i.ytimg.com'],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
       connectSrc: ["'self'"],
+      frameSrc: ["'self'", "blob:"],
     },
   },
 }));
@@ -36,6 +38,16 @@ const apiLimiter = rateLimit({
 });
 app.use('/youtube-research/api/', apiLimiter);
 
+// LP Creator: stricter rate limit (10 requests per 15 min — heavy Claude usage)
+const lpCreatorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { success: false, error: 'リクエスト数が上限に達しました。しばらくしてから再度お試しください。' },
+});
+app.use('/lp-creator/api/', lpCreatorLimiter);
+
 // Body parser with size limit
 app.use(express.json({ limit: '1mb' }));
 
@@ -46,5 +58,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/youtube-research', youtubeResearchRouter);
+app.use('/lp-creator', lpCreatorRouter);
 
 export default app;

@@ -289,6 +289,102 @@ nohup npx tsx src/server.ts > /tmp/yt-research-server.log 2>&1 &
 
 ---
 
+## 【進行中】はやかわさやか LPツール開発 — LP Creator セミナー簡易版（Stage 1）（2026-03-04〜）
+
+### 概要
+3つの入力（商品名・ターゲット・強み）からAIがコピーを生成し、プロ品質のLP（HTML/CSS）をリアルタイムに表示するWebアプリ。
+既存のYouTube Research ツール（`src/youtube-research/`）と同じ Express + 単一HTMLのパターン。
+
+### 3段階構成
+| Stage | 内容 | 状態 |
+|-------|------|------|
+| **Stage 1** | セミナー簡易版（3入力→LP） | **実装中** |
+| Stage 2 | テンプレート複数 + カスタマイズ | 未着手 |
+| Stage 3 | フル機能版（画像生成・A/Bテスト等） | 未着手 |
+
+### Stage 1 完了タスク
+- [x] types.ts — 型定義（LPGenerateRequest, LPCopyJSON 11セクション, SSEEvent）
+- [x] prompts.ts — AIDA/PAS/FAB/QUEST + 5心理トリガー + JSON出力スキーマ
+- [x] service.ts — Claude APIストリーミング、JSON抽出、デフォルト補完、HTML生成
+- [x] controller.ts — SSEハンドラー、バリデーション、エラー分類、設定API
+- [x] routes.ts — GET /, POST /api/generate, GET/POST /api/settings, GET /api/health
+- [x] public/lp-creator.html — 入力フォーム + ストリーミング表示 + iframe LPプレビュー
+- [x] public/lp-creator-settings.html — 管理画面（APIキー・モデル・トークン数設定）
+- [x] settings-store.ts — JSON永続化（data/lp-creator-settings.json）
+- [x] app.ts修正 — ルーター登録 + 専用レート制限（15分10回）+ CSP frameSrc
+- [x] tsconfig.yt.json修正 — lp-creator-ssをinclude追加
+- [x] .gitignore — data/ 追加
+
+### Stage 1 未完了タスク
+- [ ] 実際のAI生成テスト（APIキー設定→LP作成ボタン→ストリーミング→プレビュー確認）
+- [ ] 要件定義書のC.U.T.E.スコア項目との突き合わせ確認
+- [ ] Renderデプロイ
+- [ ] LP HTMLのダウンロード機能
+- [ ] エラーハンドリングの実機テスト
+
+### ファイル構成
+
+```
+src/lp-creator-ss/
+├── docs/
+│   ├── requirements.md    # 要件定義書（C.U.T.E. 98点）
+│   ├── decisions.md       # 設計判断ログ
+│   ├── critique.md        # レビュー指摘
+│   └── score.json         # スコア記録
+├── types.ts               # 型定義
+├── prompts.ts             # コピーライティングプロンプト
+├── service.ts             # Claude API連携・HTML生成
+├── controller.ts          # SSE・バリデーション・設定API
+├── settings-store.ts      # 設定永続化（→ data/lp-creator-settings.json）
+└── routes.ts              # Expressルーター
+
+public/
+├── lp-creator.html            # ユーザー向けLP作成画面
+└── lp-creator-settings.html   # 管理者向け設定画面
+```
+
+### URL
+- LP作成: `http://localhost:3000/lp-creator`
+- 管理設定: `http://localhost:3000/lp-creator/settings`
+- ヘルスチェック: `http://localhost:3000/lp-creator/api/health`
+
+### 設定の優先順位
+1. 管理画面で設定したAPIキー（`data/lp-creator-settings.json`）
+2. 環境変数 `ANTHROPIC_API_KEY`（フォールバック）
+
+### 技術方針
+| 項目 | 方針 |
+|------|------|
+| ストリーミング | SSE via fetch + ReadableStream（POSTのためEventSource不使用） |
+| LPプレビュー | iframe srcdoc（CSS完全分離） |
+| XSS対策 | escapeHtml()で全挿入値エスケープ |
+| APIキー | サーバーサイドのみ。ユーザーフォームには露出しない |
+| JSONパース失敗時 | 最大2回リトライ |
+| 欠落セクション | デフォルトテキストで補完 |
+
+### 今回のセッションでの進捗（2026-03-04 セッション2）
+
+1. **CSP修正**: `scriptSrc` に `'unsafe-inline'` 追加 → 管理画面のJS動作を修正
+2. **APIキー設定**: 管理画面で保存できるようになった。ただしユーザーのキーはclaude.aiサブスクのもので、APIキーではなかった（401エラー）
+3. **テスト生成ボタン追加**: `POST /api/generate-demo` エンドポイント + フロントに緑色の「テスト生成（API不要）」ボタン追加。デモデータでストリーミング→プレビューの全UI動作確認が可能
+4. **test-runner.ts**: CLIからデモデータでHTML生成（`node dist-yt/lp-creator-ss/test-runner.js --demo`）
+
+### テスト方針の議論（未決定）
+
+ユーザーはAPIコストを避けたい。以下の選択肢が議論された：
+- **Claude Code生成方式**: Claude Code（Opus）がコピーJSONを生成→サーバーがrenderHTML。サブスク内で完結するが、Opus品質になるため本番（Sonnet/Haiku）との品質差が懸念
+- **Anthropic API無料クレジット**: console.anthropic.com で$5無料クレジット取得→Haikuで数百回テスト可能
+- **結論**: 未決定。清水さんが次回判断する
+
+### 次のセッションでやること
+1. **テスト方式を決める**: Claude Code生成 or API無料クレジット or 両方
+2. AI生成テスト（LP作成ボタン→ストリーミング→プレビュー確認）
+3. LP生成の品質確認・プロンプト調整
+4. HTMLダウンロード機能の追加
+5. Renderデプロイ
+
+---
+
 ## 未コミットの変更
 
 1. `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` - v1.1更新

@@ -16,6 +16,27 @@ function clampMaxResults(value) {
         return 20;
     return Math.min(num, 50);
 }
+/** Extract a user-friendly error message from an error object */
+function extractErrorMessage(err, context) {
+    if (err instanceof Error) {
+        const msg = err.message;
+        // Anthropic API errors
+        if (msg.includes('401') || msg.includes('authentication') || msg.includes('invalid x-api-key'))
+            return 'Anthropic APIキーが無効です。正しいキーか確認してください。';
+        if (msg.includes('429') || msg.includes('rate limit'))
+            return 'APIレート制限に達しました。しばらくしてから再度お試しください。';
+        if (msg.includes('model'))
+            return `AIモデルのエラー: ${msg}`;
+        // YouTube API errors are already handled in service.ts with Japanese messages
+        if (msg.includes('YouTube') || msg.includes('APIキー') || msg.includes('クォータ'))
+            return msg;
+        // Generic but informative
+        console.error(`[${context}] Error:`, err);
+        return `エラーが発生しました: ${msg}`;
+    }
+    console.error(`[${context}] Unknown error:`, err);
+    return 'サーバー内部エラーが発生しました';
+}
 // Step 1: YouTube検索 + バズ比率（高速・Claude不要）
 async function handleSearch(req, res) {
     try {
@@ -44,8 +65,8 @@ async function handleSearch(req, res) {
         res.json(result);
     }
     catch (err) {
-        console.error('[handleSearch] Error:', err);
-        res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
+        const message = extractErrorMessage(err, 'handleSearch');
+        res.status(500).json({ success: false, error: message });
     }
 }
 exports.handleSearch = handleSearch;
@@ -70,8 +91,8 @@ async function handleAnalyzeSelected(req, res) {
         res.json(result);
     }
     catch (err) {
-        console.error('[handleAnalyzeSelected] Error:', err);
-        res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
+        const message = extractErrorMessage(err, 'handleAnalyzeSelected');
+        res.status(500).json({ success: false, error: message });
     }
 }
 exports.handleAnalyzeSelected = handleAnalyzeSelected;
@@ -92,8 +113,8 @@ async function handleTrend(req, res) {
         res.json(result);
     }
     catch (err) {
-        console.error('[handleTrend] Error:', err);
-        res.status(500).json({ success: false, error: 'サーバー内部エラーが発生しました' });
+        const message = extractErrorMessage(err, 'handleTrend');
+        res.status(500).json({ success: false, error: message });
     }
 }
 exports.handleTrend = handleTrend;

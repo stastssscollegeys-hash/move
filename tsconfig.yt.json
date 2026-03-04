@@ -15,6 +15,7 @@
   "include": [
     "src/app.ts",
     "src/server.ts",
-    "src/youtube-research/**/*.ts"
+    "src/youtube-research/**/*.ts",
+    "src/lp-creator-ss/**/*.ts"
   ]
 }

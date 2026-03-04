@@ -12,6 +12,9 @@ src/**/*.d.ts
 # 成果物フォルダ（同期しない）
 output/
 
+# LP Creator設定（APIキーを含むため）
+data/
+
 # upstream-merge レポート（一時生成物）
 upstream-merge-report.md
 
