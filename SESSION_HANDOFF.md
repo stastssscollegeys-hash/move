@@ -289,7 +289,7 @@ nohup npx tsx src/server.ts > /tmp/yt-research-server.log 2>&1 &
 
 ---
 
-## 【進行中】はやかわさやか LPツール開発 — LP Creator セミナー簡易版（Stage 1）（2026-03-04〜）
+## 【進行中】三浦さやか LPツール開発 — LP Creator セミナー簡易版（Stage 1）（2026-03-04〜）
 
 ### 概要
 3つの入力（商品名・ターゲット・強み）からAIがコピーを生成し、プロ品質のLP（HTML/CSS）をリアルタイムに表示するWebアプリ。
