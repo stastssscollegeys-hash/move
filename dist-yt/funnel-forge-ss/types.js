@@ -1,5 +1,5 @@
 "use strict";
 // ============================================================
-// UTAGE System SS - Type Definitions (Full UTAGE Feature Parity)
+// FunnelForge SS - Type Definitions
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });

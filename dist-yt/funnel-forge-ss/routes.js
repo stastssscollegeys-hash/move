@@ -1,6 +1,6 @@
 "use strict";
 // ============================================================
-// UTAGE System SS - Full API Routes
+// FunnelForge SS - Full API Routes
 // ============================================================
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -461,14 +461,14 @@ router.post('/api/checkout', async (req, res) => {
     if (!contact_id || !product_id)
         return res.status(400).json({ success: false, error: 'contact_id and product_id required' });
     const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
-    res.json(await stripeSvc.createCheckoutSession(contact_id, product_id, success_url || `${baseUrl}/utage/checkout-success`, cancel_url || `${baseUrl}/utage/checkout-cancel`));
+    res.json(await stripeSvc.createCheckoutSession(contact_id, product_id, success_url || `${baseUrl}/ff/checkout-success`, cancel_url || `${baseUrl}/ff/checkout-cancel`));
 });
 router.post('/api/customer-portal', async (req, res) => {
     const { contact_id, return_url } = req.body;
     if (!contact_id)
         return res.status(400).json({ success: false, error: 'contact_id required' });
     const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
-    res.json(await stripeSvc.createPortalSession(contact_id, return_url || `${baseUrl}/utage`));
+    res.json(await stripeSvc.createPortalSession(contact_id, return_url || `${baseUrl}/ff`));
 });
 // Stripe webhook (needs raw body - mounted separately in app.ts)
 // ============================================================
@@ -724,12 +724,12 @@ router.get('/p/:slug', async (req, res) => {
 // Frontend (SPA)
 // ============================================================
 router.get('/', (_req, res) => {
-    res.sendFile('utage-system.html', { root: 'public' });
+    res.sendFile('funnel-forge.html', { root: 'public' });
 });
 router.get('/checkout-success', (_req, res) => {
-    res.send('<html><body><h1>お支払いが完了しました</h1><p>ありがとうございます。<a href="/utage">戻る</a></p></body></html>');
+    res.send('<html><body><h1>お支払いが完了しました</h1><p>ありがとうございます。<a href="/ff">戻る</a></p></body></html>');
 });
 router.get('/checkout-cancel', (_req, res) => {
-    res.send('<html><body><h1>お支払いがキャンセルされました</h1><p><a href="/utage">戻る</a></p></body></html>');
+    res.send('<html><body><h1>お支払いがキャンセルされました</h1><p><a href="/ff">戻る</a></p></body></html>');
 });
 exports.default = router;

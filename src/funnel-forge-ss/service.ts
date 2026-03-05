@@ -1,5 +1,5 @@
 // ============================================================
-// UTAGE System SS - Core Services
+// FunnelForge SS - Core Services
 // Phase 1 MVP: CRM + Funnel + Email + LINE + Payment
 // ============================================================
 
@@ -416,7 +416,7 @@ export async function listDomainAuth(userId: string): Promise<ApiResponse<any[]>
 export async function addDomainAuth(userId: string, domain: string): Promise<ApiResponse<any>> {
   const db = getSupabase();
   // Generate DKIM selector and DNS records to verify
-  const dkimSelector = `utage${Date.now().toString(36)}`;
+  const dkimSelector = `ff${Date.now().toString(36)}`;
   const { data, error } = await db.from('email_domain_auth').insert({
     user_id: userId, domain,
     spf_record: `v=spf1 include:amazonses.com ~all`,

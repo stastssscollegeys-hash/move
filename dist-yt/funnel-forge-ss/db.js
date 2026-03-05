@@ -16,11 +16,11 @@ function getSupabase() {
     if (!isDemoMode()) {
         const { createClient } = require('@supabase/supabase-js');
         supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-        console.log('[UTAGE] Connected to Supabase');
+        console.log('[FunnelForge] Connected to Supabase');
     }
     else {
         supabase = demo_store_1.demoSupabase;
-        console.log('[UTAGE] Running in DEMO mode (in-memory store)');
+        console.log('[FunnelForge] Running in DEMO mode (in-memory store)');
     }
     return supabase;
 }

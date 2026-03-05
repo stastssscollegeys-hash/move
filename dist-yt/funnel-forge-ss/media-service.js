@@ -5,7 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteMedia = exports.listMedia = exports.confirmUpload = exports.getUploadUrl = void 0;
 const db_1 = require("./db");
-const BUCKET = 'utage-media';
+const BUCKET = 'funnel-forge-media';
 const MAX_FILE_SIZES = {
     image: 10 * 1024 * 1024, // 10MB
     video: 500 * 1024 * 1024, // 500MB

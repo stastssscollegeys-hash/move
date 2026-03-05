@@ -1,6 +1,6 @@
 "use strict";
 // ============================================================
-// UTAGE System SS - Core Services
+// FunnelForge SS - Core Services
 // Phase 1 MVP: CRM + Funnel + Email + LINE + Payment
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -417,7 +417,7 @@ exports.listDomainAuth = listDomainAuth;
 async function addDomainAuth(userId, domain) {
     const db = (0, db_1.getSupabase)();
     // Generate DKIM selector and DNS records to verify
-    const dkimSelector = `utage${Date.now().toString(36)}`;
+    const dkimSelector = `ff${Date.now().toString(36)}`;
     const { data, error } = await db.from('email_domain_auth').insert({
         user_id: userId, domain,
         spf_record: `v=spf1 include:amazonses.com ~all`,

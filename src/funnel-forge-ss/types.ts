@@ -1,5 +1,5 @@
 // ============================================================
-// UTAGE System SS - Type Definitions (Full UTAGE Feature Parity)
+// FunnelForge SS - Type Definitions
 // ============================================================
 
 // --- Auth & Users ---

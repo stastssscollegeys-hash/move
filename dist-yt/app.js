@@ -10,7 +10,7 @@ const cors_1 = __importDefault(require("cors"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const routes_1 = require("./youtube-research/routes");
 const routes_2 = require("./lp-creator-ss/routes");
-const routes_3 = __importDefault(require("./utage-system-ss/routes"));
+const routes_3 = __importDefault(require("./funnel-forge-ss/routes"));
 const app = (0, express_1.default)();
 // Security: Helmet with CSP configured for YouTube thumbnails
 app.use((0, helmet_1.default)({
@@ -49,8 +49,8 @@ const lpCreatorLimiter = (0, express_rate_limit_1.default)({
 });
 app.use('/lp-creator/api/', lpCreatorLimiter);
 // Stripe webhook needs raw body (before JSON parser)
-app.post('/utage/api/stripe-webhook', express_1.default.raw({ type: 'application/json' }), async (req, res) => {
-    const { handleWebhook } = require('./utage-system-ss/stripe-service');
+app.post('/ff/api/stripe-webhook', express_1.default.raw({ type: 'application/json' }), async (req, res) => {
+    const { handleWebhook } = require('./funnel-forge-ss/stripe-service');
     const signature = req.headers['stripe-signature'];
     const result = await handleWebhook(req.body.toString(), signature || '');
     res.status(result.success ? 200 : 400).json(result);
@@ -63,5 +63,5 @@ app.get('/health', (req, res) => {
 });
 app.use('/youtube-research', routes_1.youtubeResearchRouter);
 app.use('/lp-creator', routes_2.lpCreatorRouter);
-app.use('/utage', routes_3.default);
+app.use('/ff', routes_3.default);
 exports.default = app;

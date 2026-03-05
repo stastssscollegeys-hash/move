@@ -5,7 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { youtubeResearchRouter } from './youtube-research/routes';
 import { lpCreatorRouter } from './lp-creator-ss/routes';
-import utageRouter from './utage-system-ss/routes';
+import funnelForgeRouter from './funnel-forge-ss/routes';
 
 const app = express();
 
@@ -50,8 +50,8 @@ const lpCreatorLimiter = rateLimit({
 app.use('/lp-creator/api/', lpCreatorLimiter);
 
 // Stripe webhook needs raw body (before JSON parser)
-app.post('/utage/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const { handleWebhook } = require('./utage-system-ss/stripe-service');
+app.post('/ff/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const { handleWebhook } = require('./funnel-forge-ss/stripe-service');
   const signature = req.headers['stripe-signature'] as string;
   const result = await handleWebhook(req.body.toString(), signature || '');
   res.status(result.success ? 200 : 400).json(result);
@@ -68,6 +68,6 @@ app.get('/health', (req, res) => {
 
 app.use('/youtube-research', youtubeResearchRouter);
 app.use('/lp-creator', lpCreatorRouter);
-app.use('/utage', utageRouter);
+app.use('/ff', funnelForgeRouter);
 
 export default app;

@@ -287,6 +287,6 @@ exports.unsubscribeContact = unsubscribeContact;
 function generateUnsubscribeUrl(contactId, baseUrl) {
     // Simple signed unsubscribe link (in production: use HMAC signature)
     const token = Buffer.from(`${contactId}:${Date.now()}`).toString('base64url');
-    return `${baseUrl}/utage/api/unsubscribe?token=${token}&cid=${contactId}`;
+    return `${baseUrl}/ff/api/unsubscribe?token=${token}&cid=${contactId}`;
 }
 exports.generateUnsubscribeUrl = generateUnsubscribeUrl;

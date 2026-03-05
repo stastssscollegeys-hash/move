@@ -1,5 +1,5 @@
 -- ============================================================
--- UTAGE System SS - Full Database Schema (UTAGE Feature Parity)
+-- FunnelForge SS - Full Database Schema
 -- Supabase PostgreSQL
 -- ============================================================
 

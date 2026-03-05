@@ -6,7 +6,7 @@ import type { MediaFile, MediaUploadResponse, ApiResponse } from './types';
 
 import { getSupabase } from './db';
 
-const BUCKET = 'utage-media';
+const BUCKET = 'funnel-forge-media';
 const MAX_FILE_SIZES: Record<string, number> = {
   image: 10 * 1024 * 1024,    // 10MB
   video: 500 * 1024 * 1024,   // 500MB
