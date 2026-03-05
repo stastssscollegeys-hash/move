@@ -5,6 +5,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { youtubeResearchRouter } from './youtube-research/routes';
 import { lpCreatorRouter } from './lp-creator-ss/routes';
+import utageRouter from './utage-system-ss/routes';
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use(helmet({
 // Security: CORS
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
 
 // Security: Rate limiting
@@ -59,5 +60,6 @@ app.get('/health', (req, res) => {
 
 app.use('/youtube-research', youtubeResearchRouter);
 app.use('/lp-creator', lpCreatorRouter);
+app.use('/utage', utageRouter);
 
 export default app;

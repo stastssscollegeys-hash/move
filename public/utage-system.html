@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UTAGE System</title>
+  <style>
+    :root {
+      --primary: #6C5CE7;
+      --primary-light: #A29BFE;
+      --primary-dark: #5A4BD1;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #E17055;
+      --bg: #F8F9FE;
+      --card: #FFFFFF;
+      --text: #2D3436;
+      --text-light: #636E72;
+      --border: #E0E0E0;
+      --sidebar-w: 240px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w); background: var(--primary); color: #fff;
+      display: flex; flex-direction: column; z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px; font-size: 20px; font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .sidebar-logo span { font-size: 11px; opacity: 0.7; display: block; margin-top: 4px; }
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; cursor: pointer; transition: background 0.15s;
+      font-size: 14px; text-decoration: none; color: rgba(255,255,255,0.8);
+    }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .nav-item .icon { width: 20px; text-align: center; }
+    .nav-section { padding: 16px 20px 8px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
+
+    /* Main */
+    .main { margin-left: var(--sidebar-w); padding: 24px 32px; min-height: 100vh; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .page-title { font-size: 24px; font-weight: 700; }
+    .page-subtitle { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+
+    /* Stats Cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border-radius: 12px; padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .stat-label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+    .stat-change { font-size: 12px; margin-top: 4px; }
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--danger); }
+
+    /* Cards */
+    .card {
+      background: var(--card); border-radius: 12px; padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px;
+    }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; padding: 10px 12px; font-size: 12px; color: var(--text-light); border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+    .data-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .data-table tr:hover td { background: #F5F5FF; }
+
+    /* Tags */
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; background: var(--primary-light); color: #fff; margin: 2px; }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+      border: none; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Status badges */
+    .badge { padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-active { background: #E8F5E9; color: #2E7D32; }
+    .badge-draft { background: #FFF3E0; color: #E65100; }
+    .badge-paused { background: #EEEEEE; color: #616161; }
+
+    /* Page sections (hidden by default) */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { margin-bottom: 16px; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #fff; border-radius: 16px; padding: 32px; width: 480px; max-width: 90vw; }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-light); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; outline: none; transition: border-color 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 8px; color: #fff; font-size: 14px; z-index: 300; animation: slideIn 0.3s ease; }
+    .toast-success { background: var(--success); }
+    .toast-error { background: var(--danger); }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Setup banner */
+    .setup-banner { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; }
+    .setup-banner h3 { margin-bottom: 8px; }
+    .setup-banner p { opacity: 0.9; font-size: 14px; line-height: 1.6; }
+    .setup-steps { margin-top: 12px; }
+    .setup-steps li { margin: 4px 0; font-size: 13px; opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      UTAGE System
+      <span>Marketing Automation</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard"><span class="icon">📊</span> ダッシュボード</a>
+
+      <div class="nav-section">CRM</div>
+      <a class="nav-item" data-page="contacts"><span class="icon">👤</span> コンタクト</a>
+      <a class="nav-item" data-page="tags"><span class="icon">🏷️</span> タグ管理</a>
+      <a class="nav-item" data-page="segments"><span class="icon">🎯</span> セグメント</a>
+
+      <div class="nav-section">配信</div>
+      <a class="nav-item" data-page="email"><span class="icon">📧</span> メール配信</a>
+      <a class="nav-item" data-page="line"><span class="icon">💬</span> LINE配信</a>
+
+      <div class="nav-section">マーケティング</div>
+      <a class="nav-item" data-page="funnels"><span class="icon">🔄</span> ファネル</a>
+      <a class="nav-item" data-page="products"><span class="icon">💳</span> 商品・決済</a>
+
+      <div class="nav-section">設定</div>
+      <a class="nav-item" data-page="settings"><span class="icon">⚙️</span> 設定</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ダッシュボード</div>
+          <div class="page-subtitle">マーケティング全体の状況</div>
+        </div>
+      </div>
+
+      <div class="setup-banner" id="setup-banner">
+        <h3>UTAGE System セットアップ</h3>
+        <p>マーケティング自動化を始めるには、以下のステップを完了してください。</p>
+        <ol class="setup-steps">
+          <li>1. Supabaseプロジェクトを作成し、データベーススキーマを適用</li>
+          <li>2. 設定画面でSupabase URL / API Keyを入力</li>
+          <li>3. LINE / メール / Stripe の各APIキーを設定</li>
+          <li>4. 最初のファネルを作成して公開</li>
+        </ol>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">総コンタクト数</div>
+          <div class="stat-value" id="stat-contacts">0</div>
+          <div class="stat-change up" id="stat-contacts-change">+0 today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">今月の売上</div>
+          <div class="stat-value" id="stat-revenue">¥0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">メール送信数(今日)</div>
+          <div class="stat-value" id="stat-email">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">LINE送信数(今日)</div>
+          <div class="stat-value" id="stat-line">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">稼働中ファネル</div>
+          <div class="stat-value" id="stat-funnels">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacts -->
+    <div class="page-section" id="page-contacts">
+      <div class="page-header">
+        <div>
+          <div class="page-title">コンタクト</div>
+          <div class="page-subtitle">リード・顧客の管理</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('contact-modal')">+ 新規コンタクト</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr><th>名前</th><th>メール</th><th>LINE</th><th>タグ</th><th>スコア</th><th>ステータス</th><th>登録日</th></tr>
+          </thead>
+          <tbody id="contacts-table"></tbody>
+        </table>
+        <div class="empty-state" id="contacts-empty">
+          <div class="icon">👤</div>
+          <p>コンタクトがまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('contact-modal')">最初のコンタクトを追加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="page-section" id="page-tags">
+      <div class="page-header">
+        <div>
+          <div class="page-title">タグ管理</div>
+          <div class="page-subtitle">コンタクトの分類・セグメント用タグ</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('tag-modal')">+ 新規タグ</button>
+      </div>
+      <div class="card">
+        <div id="tags-list"></div>
+        <div class="empty-state" id="tags-empty">
+          <div class="icon">🏷️</div>
+          <p>タグがまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('tag-modal')">最初のタグを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segments -->
+    <div class="page-section" id="page-segments">
+      <div class="page-header">
+        <div><div class="page-title">セグメント</div><div class="page-subtitle">条件でコンタクトを絞り込み</div></div>
+      </div>
+      <div class="card">
+        <div class="empty-state"><div class="icon">🎯</div><p>Phase 2で実装予定</p></div>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="page-section" id="page-email">
+      <div class="page-header">
+        <div>
+          <div class="page-title">メール配信</div>
+          <div class="page-subtitle">ステップメール・一斉配信</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('email-modal')">+ 新規シナリオ</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>シナリオ名</th><th>トリガー</th><th>ステップ数</th><th>ステータス</th><th>更新日</th></tr></thead>
+          <tbody id="email-table"></tbody>
+        </table>
+        <div class="empty-state" id="email-empty">
+          <div class="icon">📧</div>
+          <p>メール配信シナリオがまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('email-modal')">最初のシナリオを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINE -->
+    <div class="page-section" id="page-line">
+      <div class="page-header">
+        <div>
+          <div class="page-title">LINE配信</div>
+          <div class="page-subtitle">ステップ配信・セグメント配信</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('line-modal')">+ 新規シナリオ</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>シナリオ名</th><th>トリガー</th><th>ステップ数</th><th>ステータス</th><th>更新日</th></tr></thead>
+          <tbody id="line-table"></tbody>
+        </table>
+        <div class="empty-state" id="line-empty">
+          <div class="icon">💬</div>
+          <p>LINE配信シナリオがまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('line-modal')">最初のシナリオを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Funnels -->
+    <div class="page-section" id="page-funnels">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ファネル</div>
+          <div class="page-subtitle">LP・セールスページの管理</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('funnel-modal')">+ 新規ファネル</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>ファネル名</th><th>ページ数</th><th>ステータス</th><th>更新日</th><th></th></tr></thead>
+          <tbody id="funnels-table"></tbody>
+        </table>
+        <div class="empty-state" id="funnels-empty">
+          <div class="icon">🔄</div>
+          <p>ファネルがまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('funnel-modal')">最初のファネルを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="page-section" id="page-products">
+      <div class="page-header">
+        <div>
+          <div class="page-title">商品・決済</div>
+          <div class="page-subtitle">Stripe連携の商品管理</div>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('product-modal')">+ 新規商品</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>商品名</th><th>価格</th><th>タイプ</th><th>ステータス</th></tr></thead>
+          <tbody id="products-table"></tbody>
+        </table>
+        <div class="empty-state" id="products-empty">
+          <div class="icon">💳</div>
+          <p>商品がまだありません</p>
+          <button class="btn btn-primary" onclick="showModal('product-modal')">最初の商品を登録</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page-section" id="page-settings">
+      <div class="page-header">
+        <div><div class="page-title">設定</div><div class="page-subtitle">API連携・アカウント設定</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Supabase接続</div>
+        <div class="form-group">
+          <label>Supabase URL</label>
+          <input type="text" id="setting-supabase-url" placeholder="https://xxxxx.supabase.co">
+        </div>
+        <div class="form-group">
+          <label>Supabase Service Key</label>
+          <input type="password" id="setting-supabase-key" placeholder="eyJhbGciOiJI...">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">LINE Messaging API</div>
+        <div class="form-group">
+          <label>Channel ID</label>
+          <input type="text" id="setting-line-channel-id" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Channel Secret</label>
+          <input type="password" id="setting-line-secret" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>Channel Access Token</label>
+          <input type="password" id="setting-line-token" placeholder="">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">メール配信 (Amazon SES)</div>
+        <div class="form-group">
+          <label>送信元メールアドレス</label>
+          <input type="email" id="setting-ses-from" placeholder="noreply@example.com">
+        </div>
+        <div class="form-group">
+          <label>AWS Access Key ID</label>
+          <input type="password" id="setting-ses-access-key" placeholder="">
+        </div>
+        <div class="form-group">
+          <label>AWS Secret Access Key</label>
+          <input type="password" id="setting-ses-secret-key" placeholder="">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Stripe (決済)</div>
+        <div class="form-group">
+          <label>Publishable Key</label>
+          <input type="text" id="setting-stripe-pk" placeholder="pk_live_...">
+        </div>
+        <div class="form-group">
+          <label>Secret Key</label>
+          <input type="password" id="setting-stripe-sk" placeholder="sk_live_...">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveSettings()">設定を保存</button>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="contact-modal">
+    <div class="modal">
+      <div class="modal-title">新規コンタクト</div>
+      <div class="form-group"><label>名前</label><input type="text" id="new-contact-name"></div>
+      <div class="form-group"><label>メールアドレス</label><input type="email" id="new-contact-email"></div>
+      <div class="form-group"><label>LINE User ID</label><input type="text" id="new-contact-line" placeholder="(任意)"></div>
+      <div class="form-group"><label>流入経路</label><input type="text" id="new-contact-source" placeholder="例: Instagram広告"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('contact-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitContact()">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="tag-modal">
+    <div class="modal">
+      <div class="modal-title">新規タグ</div>
+      <div class="form-group"><label>タグ名</label><input type="text" id="new-tag-name"></div>
+      <div class="form-group"><label>色</label><input type="color" id="new-tag-color" value="#6C5CE7"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('tag-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitTag()">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="funnel-modal">
+    <div class="modal">
+      <div class="modal-title">新規ファネル</div>
+      <div class="form-group"><label>ファネル名</label><input type="text" id="new-funnel-name" placeholder="例: 無料セミナー集客ファネル"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('funnel-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitFunnel()">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="email-modal">
+    <div class="modal">
+      <div class="modal-title">新規メールシナリオ</div>
+      <div class="form-group"><label>シナリオ名</label><input type="text" id="new-email-name" placeholder="例: 無料セミナー登録後ステップ"></div>
+      <div class="form-group">
+        <label>トリガー</label>
+        <select id="new-email-trigger">
+          <option value="optin">オプトイン（登録時）</option>
+          <option value="tag_added">タグ追加時</option>
+          <option value="purchase">購入時</option>
+          <option value="manual">手動</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('email-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitEmailScenario()">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="line-modal">
+    <div class="modal">
+      <div class="modal-title">新規LINEシナリオ</div>
+      <div class="form-group"><label>シナリオ名</label><input type="text" id="new-line-name" placeholder="例: 友だち追加ステップ配信"></div>
+      <div class="form-group">
+        <label>トリガー</label>
+        <select id="new-line-trigger">
+          <option value="follow">友だち追加</option>
+          <option value="tag_added">タグ追加時</option>
+          <option value="keyword">キーワード応答</option>
+          <option value="manual">手動</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('line-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitLineScenario()">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-title">新規商品</div>
+      <div class="form-group"><label>商品名</label><input type="text" id="new-product-name"></div>
+      <div class="form-group"><label>説明</label><textarea id="new-product-desc" rows="3"></textarea></div>
+      <div class="form-group"><label>価格 (円)</label><input type="number" id="new-product-price" min="0"></div>
+      <div class="form-group">
+        <label>決済タイプ</label>
+        <select id="new-product-type">
+          <option value="one_time">一括払い</option>
+          <option value="subscription">サブスクリプション</option>
+          <option value="installment">分割払い</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('product-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitProduct()">登録</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE = '/utage';
+
+    // --- Navigation ---
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('page-' + item.dataset.page).classList.add('active');
+      });
+    });
+
+    // --- Modal ---
+    function showModal(id) { document.getElementById(id).classList.add('show'); }
+    function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
+    });
+
+    // --- Toast ---
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // --- API helpers ---
+    async function api(method, path, body) {
+      const opts = { method, headers: { 'Content-Type': 'application/json', 'X-User-Id': 'demo-user-001' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(BASE + path, opts);
+      return res.json();
+    }
+
+    // --- Dashboard ---
+    async function loadDashboard() {
+      try {
+        const res = await api('GET', '/api/dashboard');
+        if (res.success && res.data) {
+          document.getElementById('stat-contacts').textContent = res.data.total_contacts.toLocaleString();
+          document.getElementById('stat-contacts-change').textContent = '+' + res.data.new_contacts_today + ' today';
+          document.getElementById('stat-revenue').textContent = '¥' + res.data.revenue_this_month.toLocaleString();
+          document.getElementById('stat-email').textContent = res.data.email_sent_today.toLocaleString();
+          document.getElementById('stat-line').textContent = res.data.line_sent_today.toLocaleString();
+          document.getElementById('stat-funnels').textContent = res.data.active_funnels.toLocaleString();
+          document.getElementById('setup-banner').style.display = 'none';
+        }
+      } catch (e) {
+        // Supabase not configured yet - show setup banner
+      }
+    }
+
+    // --- Contacts ---
+    async function loadContacts() {
+      try {
+        const res = await api('GET', '/api/contacts');
+        const tbody = document.getElementById('contacts-table');
+        const empty = document.getElementById('contacts-empty');
+        if (res.success && res.data && res.data.length > 0) {
+          empty.style.display = 'none';
+          tbody.innerHTML = res.data.map(c => `
+            <tr>
+              <td>${esc(c.name || '-')}</td>
+              <td>${esc(c.email || '-')}</td>
+              <td>${c.line_user_id ? '接続済み' : '-'}</td>
+              <td>${(c.tags || []).map(t => '<span class="tag">' + esc(t) + '</span>').join('')}</td>
+              <td>${c.score}</td>
+              <td><span class="badge badge-${c.status === 'active' ? 'active' : 'paused'}">${c.status}</span></td>
+              <td>${new Date(c.created_at).toLocaleDateString('ja-JP')}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '';
+          empty.style.display = 'block';
+        }
+      } catch (e) { /* not configured */ }
+    }
+
+    async function submitContact() {
+      const name = document.getElementById('new-contact-name').value.trim();
+      const email = document.getElementById('new-contact-email').value.trim();
+      const line_user_id = document.getElementById('new-contact-line').value.trim() || null;
+      const source = document.getElementById('new-contact-source').value.trim() || null;
+      if (!email && !line_user_id) return showToast('メールかLINE IDが必要です', 'error');
+      const res = await api('POST', '/api/contacts', { name, email, line_user_id, source });
+      if (res.success) { hideModal('contact-modal'); showToast('コンタクトを追加しました'); loadContacts(); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- Tags ---
+    async function submitTag() {
+      const name = document.getElementById('new-tag-name').value.trim();
+      const color = document.getElementById('new-tag-color').value;
+      if (!name) return showToast('タグ名を入力してください', 'error');
+      const res = await api('POST', '/api/tags', { name, color });
+      if (res.success) { hideModal('tag-modal'); showToast('タグを作成しました'); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- Funnels ---
+    async function submitFunnel() {
+      const name = document.getElementById('new-funnel-name').value.trim();
+      if (!name) return showToast('ファネル名を入力してください', 'error');
+      const res = await api('POST', '/api/funnels', { name });
+      if (res.success) { hideModal('funnel-modal'); showToast('ファネルを作成しました'); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- Email ---
+    async function submitEmailScenario() {
+      const name = document.getElementById('new-email-name').value.trim();
+      const trigger = document.getElementById('new-email-trigger').value;
+      if (!name) return showToast('シナリオ名を入力してください', 'error');
+      const res = await api('POST', '/api/email/scenarios', { name, trigger });
+      if (res.success) { hideModal('email-modal'); showToast('メールシナリオを作成しました'); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- LINE ---
+    async function submitLineScenario() {
+      const name = document.getElementById('new-line-name').value.trim();
+      const trigger = document.getElementById('new-line-trigger').value;
+      if (!name) return showToast('シナリオ名を入力してください', 'error');
+      const res = await api('POST', '/api/line/scenarios', { name, trigger });
+      if (res.success) { hideModal('line-modal'); showToast('LINEシナリオを作成しました'); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- Products ---
+    async function submitProduct() {
+      const name = document.getElementById('new-product-name').value.trim();
+      const description = document.getElementById('new-product-desc').value.trim();
+      const price = parseInt(document.getElementById('new-product-price').value) || 0;
+      const payment_type = document.getElementById('new-product-type').value;
+      if (!name || !price) return showToast('商品名と価格は必須です', 'error');
+      const res = await api('POST', '/api/products', { name, description, price, payment_type });
+      if (res.success) { hideModal('product-modal'); showToast('商品を登録しました'); }
+      else showToast(res.error, 'error');
+    }
+
+    // --- Settings ---
+    function saveSettings() {
+      showToast('設定を保存しました（サーバーサイド実装は次フェーズ）');
+    }
+
+    // --- Util ---
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // --- Init ---
+    loadDashboard();
+  </script>
+</body>
+</html>
