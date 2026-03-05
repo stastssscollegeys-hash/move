@@ -385,13 +385,23 @@ public/
 
 ---
 
-## 未コミットの変更
+## 設計書の整理（2026-03-05）
 
-1. `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` - v1.1更新
-2. `.claude/skills/youtube-thumbnail-ss/SKILL.md` - v1.1更新
-3. `.claude/CLAUDE.md` - メタプロンプト連動テーブル更新
-4. `output/ebook-claude-code/research.md` - ebook用リサーチ結果
-5. `SESSION_HANDOFF.md` - この引き継ぎ情報
+### specフォルダ構成（`.kiro/specs/`）
+```
+.kiro/specs/
+├── utage-system-ss/     ← UTAGEシステム要件定義（100点）
+└── lp-creator-ss/       ← LPツール要件定義（98点）
+```
+- `utage-system-ss`: 旧名 `marketing-automation-system` からリネーム
+- `lp-creator-ss`: `src/lp-creator-ss/docs/` から移動（コードと設計書を分離）
+- 旧 `.kiro/specs/lp-creator/`（古い版）は削除済み
+
+### ソースコード（`src/`）
+```
+src/lp-creator-ss/       ← LPツールのコード（docs/は.kiro/specs/に移動済み）
+src/youtube-research/    ← YouTubeリサーチツールのコード
+```
 
 ---
 
