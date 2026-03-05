@@ -49,6 +49,14 @@ const lpCreatorLimiter = rateLimit({
 });
 app.use('/lp-creator/api/', lpCreatorLimiter);
 
+// Stripe webhook needs raw body (before JSON parser)
+app.post('/utage/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const { handleWebhook } = require('./utage-system-ss/stripe-service');
+  const signature = req.headers['stripe-signature'] as string;
+  const result = await handleWebhook(req.body.toString(), signature || '');
+  res.status(result.success ? 200 : 400).json(result);
+});
+
 // Body parser with size limit
 app.use(express.json({ limit: '1mb' }));
 

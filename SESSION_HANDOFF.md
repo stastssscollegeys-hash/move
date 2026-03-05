@@ -472,11 +472,6 @@ UTAGE + L-STEP の国内MAツール機能を、海外ツール（ClickFunnels, G
 - AI統合（チャットボット・コンテンツ生成・RAG）
 - 予約管理（Cal.com）
 
-### 次のステップ
-1. `sdd-design` スキルで設計書を作成
-2. ADR（Architecture Decision Records）を作成
-3. Phase 1 MVP の実装開始
-
 ### 関連ファイル一覧
 ```
 .kiro/specs/utage-system-ss/
@@ -487,6 +482,56 @@ UTAGE + L-STEP の国内MAツール機能を、海外ツール（ClickFunnels, G
 docs/
 └── MA_SYSTEM_RESEARCH_REPORT.md  # 統合リサーチレポート
 ```
+
+---
+
+## 【進行中】UTAGE System SS 実装（2026-03-05）
+
+### 概要
+UTAGEの全機能を再現 + 海外ツールの機能も統合したマーケティング自動化システム。
+Express.js + Supabase（PostgreSQL）。**デモモード搭載（Supabase不要で動作）**。
+
+### 実装済み
+- **全30+ DBテーブル**: `src/utage-system-ss/database-full.sql`
+- **40+ TypeScript型**: `src/utage-system-ss/types.ts`
+- **100+ REST APIエンドポイント**: `src/utage-system-ss/routes.ts`
+- **デモモード**: Supabase未設定時に自動でインメモリデータストアを使用
+- **管理UI**: `public/utage-system.html`（サイドバー付き全機能管理画面）
+
+### サービス一覧
+| ファイル | 機能 |
+|---------|------|
+| `db.ts` | 共有DBクライアント（Supabase/デモ自動切替） |
+| `demo-store.ts` | インメモリデモデータ + Supabase互換QueryBuilder |
+| `service.ts` | CRM・ファネル・メール・LINE・決済・ダッシュボード |
+| `controller.ts` | APIハンドラー（認証チェック付き） |
+| `media-service.ts` | メディアアップロード（画像/動画/PDF/音声） |
+| `membership-service.ts` | 会員サイト（コース/レッスン/受講管理） |
+| `event-service.ts` | イベント・カレンダー予約 |
+| `webinar-service.ts` | ウェビナー（ライブ/オート/エバーグリーン） |
+| `affiliate-service.ts` | アフィリエイト（プログラム/パートナー/報酬） |
+| `analytics-service.ts` | アナリティクス・フォーム・Webhook |
+| `routes.ts` | 全APIルート定義 |
+| `types.ts` | 型定義 |
+
+### デモモードで動作確認済み
+```bash
+cd dev/開発1
+npx tsc -p tsconfig.yt.json  # ビルド
+node dist-yt/server.js       # サーバー起動
+# → http://localhost:3000/utage-system.html でUI表示
+# → /utage/api/status でステータス確認
+```
+
+デモデータ: 6連絡先、5タグ、3商品、4注文、2ファネル、メール/LINEシナリオ、コース、イベント、ウェビナー
+
+### 次のステップ
+1. Stripe決済連携（チェックアウトセッション + Webhook）
+2. LINE Webhookハンドラー
+3. メール送信（Amazon SES）
+4. ファネルページHTMLレンダラー
+5. Supabaseプロジェクト作成 + スキーマデプロイ
+6. Renderデプロイ
 
 ---
 

@@ -1,0 +1,183 @@
+"use strict";
+// ============================================================
+// Events & Calendar Booking Service
+// ============================================================
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.listBookings = exports.bookSlot = exports.getAvailableSlots = exports.createCalendarSlot = exports.listCalendarSlots = exports.markAttendance = exports.listReservations = exports.cancelReservation = exports.reserveEvent = exports.updateEvent = exports.getEvent = exports.createEvent = exports.listEvents = void 0;
+const db_1 = require("./db");
+// --- Events ---
+async function listEvents(userId) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('events').select('*, event_reservations(id)').eq('user_id', userId).order('start_at', { ascending: true });
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data: (data || []).map((e) => ({ ...e, reservation_count: (e.event_reservations || []).length })) };
+}
+exports.listEvents = listEvents;
+async function createEvent(userId, event) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('events').insert({
+        user_id: userId, name: event.name, description: event.description || '',
+        event_type: event.event_type || 'seminar_online',
+        venue: event.venue || null, meeting_url: event.meeting_url || null,
+        meeting_provider: event.meeting_provider || null,
+        start_at: event.start_at, end_at: event.end_at,
+        capacity: event.capacity || null, price: event.price || 0,
+        product_id: event.product_id || null,
+        reminder_config: event.reminder_config || { enabled: false, channels: [], timings: [] },
+    }).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.createEvent = createEvent;
+async function getEvent(eventId) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('events').select('*').eq('id', eventId).single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.getEvent = getEvent;
+async function updateEvent(eventId, updates) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('events').update(updates).eq('id', eventId).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.updateEvent = updateEvent;
+// --- Reservations ---
+async function reserveEvent(eventId, contactId, orderId) {
+    const db = (0, db_1.getSupabase)();
+    // Check capacity
+    const { data: event } = await db.from('events').select('capacity').eq('id', eventId).single();
+    if (event?.capacity) {
+        const { count } = await db.from('event_reservations').select('id', { count: 'exact', head: true }).eq('event_id', eventId).neq('status', 'cancelled');
+        if ((count || 0) >= event.capacity)
+            return { success: false, error: '定員に達しています' };
+    }
+    const paymentStatus = orderId ? 'paid' : (event?.price > 0 ? 'pending' : 'free');
+    const receiptNumber = orderId ? `REC-${Date.now().toString(36).toUpperCase()}` : null;
+    const { data, error } = await db.from('event_reservations').upsert({
+        event_id: eventId, contact_id: contactId,
+        payment_status: paymentStatus, order_id: orderId || null,
+        receipt_number: receiptNumber,
+    }, { onConflict: 'event_id,contact_id' }).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.reserveEvent = reserveEvent;
+async function cancelReservation(reservationId) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('event_reservations').update({ status: 'cancelled' }).eq('id', reservationId).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.cancelReservation = cancelReservation;
+async function listReservations(eventId) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('event_reservations').select('*, contacts(name, email, phone)').eq('event_id', eventId).order('reserved_at');
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.listReservations = listReservations;
+async function markAttendance(reservationId, status) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('event_reservations').update({ status }).eq('id', reservationId).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.markAttendance = markAttendance;
+// --- Calendar Slots ---
+async function listCalendarSlots(userId) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('calendar_slots').select('*').eq('user_id', userId).order('created_at');
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.listCalendarSlots = listCalendarSlots;
+async function createCalendarSlot(userId, slot) {
+    const db = (0, db_1.getSupabase)();
+    const { data, error } = await db.from('calendar_slots').insert({
+        user_id: userId, name: slot.name, duration_minutes: slot.duration_minutes || 30,
+        available_days: slot.available_days || [1, 2, 3, 4, 5],
+        available_hours: slot.available_hours || { start: '09:00', end: '18:00' },
+        buffer_minutes: slot.buffer_minutes || 15, max_per_day: slot.max_per_day || 8,
+        price: slot.price || 0, product_id: slot.product_id || null,
+    }).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.createCalendarSlot = createCalendarSlot;
+// --- Calendar Bookings ---
+async function getAvailableSlots(slotId, date) {
+    const db = (0, db_1.getSupabase)();
+    const { data: slot } = await db.from('calendar_slots').select('*').eq('id', slotId).single();
+    if (!slot)
+        return { success: false, error: 'Slot not found' };
+    const dayOfWeek = new Date(date).getDay();
+    if (!slot.available_days.includes(dayOfWeek))
+        return { success: true, data: [] };
+    // Get existing bookings for the date
+    const startOfDay = `${date}T00:00:00`;
+    const endOfDay = `${date}T23:59:59`;
+    const { data: bookings } = await db.from('calendar_bookings').select('start_at, end_at')
+        .eq('slot_id', slotId).neq('status', 'cancelled')
+        .gte('start_at', startOfDay).lte('start_at', endOfDay);
+    const bookedTimes = new Set((bookings || []).map((b) => b.start_at.slice(11, 16)));
+    // Generate available times
+    const { start, end } = slot.available_hours;
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    const available = [];
+    let currentMin = startH * 60 + startM;
+    const endMin = endH * 60 + endM;
+    const step = slot.duration_minutes + slot.buffer_minutes;
+    while (currentMin + slot.duration_minutes <= endMin) {
+        const timeStr = `${String(Math.floor(currentMin / 60)).padStart(2, '0')}:${String(currentMin % 60).padStart(2, '0')}`;
+        if (!bookedTimes.has(timeStr))
+            available.push(timeStr);
+        currentMin += step;
+    }
+    // Check max per day
+    const currentBookings = (bookings || []).length;
+    if (currentBookings >= slot.max_per_day)
+        return { success: true, data: [] };
+    return { success: true, data: available };
+}
+exports.getAvailableSlots = getAvailableSlots;
+async function bookSlot(slotId, contactId, startAt) {
+    const db = (0, db_1.getSupabase)();
+    const { data: slot } = await db.from('calendar_slots').select('*').eq('id', slotId).single();
+    if (!slot)
+        return { success: false, error: 'Slot not found' };
+    const endAt = new Date(new Date(startAt).getTime() + slot.duration_minutes * 60000).toISOString();
+    const { data, error } = await db.from('calendar_bookings').insert({
+        slot_id: slotId, contact_id: contactId, start_at: startAt, end_at: endAt,
+    }).select().single();
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.bookSlot = bookSlot;
+async function listBookings(userId, from, to) {
+    const db = (0, db_1.getSupabase)();
+    let q = db.from('calendar_bookings').select('*, calendar_slots!inner(user_id, name), contacts(name, email)')
+        .eq('calendar_slots.user_id', userId).order('start_at');
+    if (from)
+        q = q.gte('start_at', from);
+    if (to)
+        q = q.lte('start_at', to);
+    const { data, error } = await q;
+    if (error)
+        return { success: false, error: error.message };
+    return { success: true, data };
+}
+exports.listBookings = listBookings;

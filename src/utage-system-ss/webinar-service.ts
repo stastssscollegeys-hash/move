@@ -4,14 +4,7 @@
 
 import type { Webinar, WebinarAttendee, WebinarChat, WebinarPoll, ApiResponse } from './types';
 
-let supabase: any = null;
-function getSupabase() {
-  if (!supabase) {
-    const { createClient } = require('@supabase/supabase-js');
-    supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
-  }
-  return supabase;
-}
+import { getSupabase } from './db';
 
 // --- Webinars ---
 

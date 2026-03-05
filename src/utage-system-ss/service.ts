@@ -10,23 +10,7 @@ import type {
   ApiResponse,
 } from './types';
 
-// --- Supabase Client (lazy init) ---
-
-let supabase: any = null;
-
-function getSupabase() {
-  if (!supabase) {
-    // Dynamic import to avoid issues when Supabase isn't configured yet
-    const { createClient } = require('@supabase/supabase-js');
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_KEY;
-    if (!url || !key) {
-      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
-    }
-    supabase = createClient(url, key);
-  }
-  return supabase;
-}
+import { getSupabase } from './db';
 
 // ============================================================
 // CRM: Contacts
@@ -269,20 +253,27 @@ export async function getDashboardStats(userId: string): Promise<ApiResponse<Das
 
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
 
-  const [contacts, newToday, revenue, revenueMonth, funnels] = await Promise.all([
+  const [contacts, newToday, revenue, revenueMonth, funnels, emailSentToday, lineSentToday, webinars, courses, affiliateComm] = await Promise.all([
     db.from('contacts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     db.from('contacts').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', todayISO),
-    db.from('orders').select('amount').eq('status', 'paid').in('product_id',
-      db.from('products').select('id').eq('user_id', userId)
-    ),
-    db.from('orders').select('amount').eq('status', 'paid').gte('paid_at', monthStart).in('product_id',
-      db.from('products').select('id').eq('user_id', userId)
-    ),
+    db.from('orders').select('amount').eq('status', 'paid'),
+    db.from('orders').select('amount').eq('status', 'paid').gte('paid_at', monthStart),
     db.from('funnels').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'published'),
+    db.from('email_send_logs').select('id', { count: 'exact', head: true }).gte('created_at', todayISO),
+    db.from('line_send_logs').select('id', { count: 'exact', head: true }).gte('created_at', todayISO),
+    db.from('webinars').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'live'),
+    db.from('courses').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    db.from('affiliate_referrals').select('commission_amount').eq('status', 'approved').gte('created_at', monthStart),
   ]);
 
-  const totalRevenue = (revenue.data || []).reduce((sum: number, o: any) => sum + o.amount, 0);
-  const monthRevenue = (revenueMonth.data || []).reduce((sum: number, o: any) => sum + o.amount, 0);
+  const totalRevenue = (revenue.data || []).reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
+  const monthRevenue = (revenueMonth.data || []).reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
+  const totalCommission = (affiliateComm.data || []).reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
+
+  // Calculate conversion rate: orders / contacts
+  const convRate = (contacts.count || 0) > 0
+    ? Math.round(((revenue.data || []).length / (contacts.count || 1)) * 10000) / 100
+    : 0;
 
   return {
     success: true,
@@ -291,15 +282,15 @@ export async function getDashboardStats(userId: string): Promise<ApiResponse<Das
       new_contacts_today: newToday.count || 0,
       total_revenue: totalRevenue,
       revenue_this_month: monthRevenue,
-      email_sent_today: 0, // TODO: aggregate from email_send_logs
-      email_open_rate: 0,
-      line_sent_today: 0,
-      line_read_rate: 0,
+      email_sent_today: emailSentToday.count || 0,
+      email_open_rate: 0, // requires tracking pixel integration
+      line_sent_today: lineSentToday.count || 0,
+      line_read_rate: 0, // requires LINE webhook read events
       active_funnels: funnels.count || 0,
-      conversion_rate: 0,
-      active_webinars: 0,
-      active_courses: 0,
-      affiliate_commission_this_month: 0,
+      conversion_rate: convRate,
+      active_webinars: webinars.count || 0,
+      active_courses: courses.count || 0,
+      affiliate_commission_this_month: totalCommission,
     },
   };
 }
@@ -367,4 +358,87 @@ function matchesCondition(contact: any, cond: SegmentCondition): boolean {
     case 'in': return Array.isArray(cond.value) && cond.value.includes(val);
     default: return false;
   }
+}
+
+// ============================================================
+// Segment CRUD
+// ============================================================
+
+export async function listSegments(userId: string): Promise<ApiResponse<Segment[]>> {
+  const db = getSupabase();
+  const { data, error } = await db.from('segments').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
+}
+
+export async function createSegment(userId: string, segment: Partial<Segment>): Promise<ApiResponse<Segment>> {
+  const db = getSupabase();
+  const { data, error } = await db.from('segments').insert({
+    user_id: userId, name: segment.name,
+    conditions: segment.conditions || [], logic: segment.logic || 'AND',
+  }).select().single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
+}
+
+export async function updateSegment(segmentId: string, updates: Partial<Segment>): Promise<ApiResponse<Segment>> {
+  const db = getSupabase();
+  const { data, error } = await db.from('segments').update(updates).eq('id', segmentId).select().single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
+}
+
+export async function deleteSegment(segmentId: string): Promise<ApiResponse<null>> {
+  const db = getSupabase();
+  const { error } = await db.from('segments').delete().eq('id', segmentId);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function previewSegment(userId: string, conditions: SegmentCondition[], logic: 'AND' | 'OR'): Promise<ApiResponse<{ count: number; sample: any[] }>> {
+  const result = await evaluateSegment(userId, conditions, logic);
+  if (!result.success) return { success: false, error: result.error };
+  const contacts = result.data || [];
+  return { success: true, data: { count: contacts.length, sample: contacts.slice(0, 5) } };
+}
+
+// ============================================================
+// Email Domain Authentication (SPF/DKIM)
+// ============================================================
+
+export async function listDomainAuth(userId: string): Promise<ApiResponse<any[]>> {
+  const db = getSupabase();
+  const { data, error } = await db.from('email_domain_auth').select('*').eq('user_id', userId);
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
+}
+
+export async function addDomainAuth(userId: string, domain: string): Promise<ApiResponse<any>> {
+  const db = getSupabase();
+  // Generate DKIM selector and DNS records to verify
+  const dkimSelector = `utage${Date.now().toString(36)}`;
+  const { data, error } = await db.from('email_domain_auth').insert({
+    user_id: userId, domain,
+    spf_record: `v=spf1 include:amazonses.com ~all`,
+    dkim_selector: dkimSelector,
+    dkim_public_key: '(SESから自動生成されます)',
+    verification_status: 'pending',
+    dns_records: [
+      { type: 'TXT', name: `_dmarc.${domain}`, value: `v=DMARC1; p=none; rua=mailto:dmarc@${domain}` },
+      { type: 'TXT', name: domain, value: `v=spf1 include:amazonses.com ~all` },
+      { type: 'CNAME', name: `${dkimSelector}._domainkey.${domain}`, value: `${dkimSelector}.dkim.amazonses.com` },
+    ],
+  }).select().single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
+}
+
+export async function verifyDomain(domainId: string): Promise<ApiResponse<any>> {
+  const db = getSupabase();
+  // In production: call SES VerifyDomainIdentity API and check DNS records
+  const { data, error } = await db.from('email_domain_auth').update({
+    verification_status: 'verified', verified_at: new Date().toISOString(),
+  }).eq('id', domainId).select().single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
 }

@@ -5,14 +5,35 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import * as ctrl from './controller';
+import * as svc from './service';
 import * as mediaSvc from './media-service';
 import * as memberSvc from './membership-service';
 import * as eventSvc from './event-service';
 import * as webinarSvc from './webinar-service';
 import * as affiliateSvc from './affiliate-service';
 import * as analyticsSvc from './analytics-service';
+import * as stripeSvc from './stripe-service';
+import * as lineWebhook from './line-webhook';
+import * as broadcastSvc from './broadcast-service';
+import * as automationSvc from './automation-service';
+import * as lineChatSvc from './line-chat-service';
+import * as funnelRenderer from './funnel-renderer';
+import { isDemoMode } from './db';
 
 const router = Router();
+
+// Health (includes demo mode status)
+router.get('/api/status', (_req: Request, res: Response) => {
+  res.json({ success: true, data: { version: '1.0.0', demo: isDemoMode(), features: ['crm', 'funnel', 'email', 'line', 'sms', 'payment', 'membership', 'webinar', 'event', 'affiliate', 'analytics', 'forms', 'webhooks', 'media', 'broadcast', 'automation', 'chat', 'richmenu', 'csv_export', 'ab_test', 'page_renderer', 'segments', 'domain_auth', 'countdown_timer'] } });
+});
+
+// Auto-assign demo user in demo mode
+router.use((req: Request, _res: Response, next: Function) => {
+  if (isDemoMode() && !req.headers['x-user-id']) {
+    (req.headers as any)['x-user-id'] = 'demo-user-001';
+  }
+  next();
+});
 
 // Helper
 function uid(req: Request): string | null {
@@ -48,8 +69,6 @@ router.get('/api/funnels', ctrl.listFunnels);
 router.post('/api/funnels', ctrl.createFunnel);
 router.post('/api/funnels/:funnelId/pages', ctrl.createPage);
 router.patch('/api/funnels/pages/:pageId', ctrl.updatePage);
-router.get('/p/:slug', ctrl.getPublishedPage);
-
 // ============================================================
 // Email
 // ============================================================
@@ -362,10 +381,248 @@ router.get('/api/webhooks/:id/logs', async (req, res) => {
 });
 
 // ============================================================
+// Stripe Payments
+// ============================================================
+router.post('/api/checkout', async (req, res) => {
+  const { contact_id, product_id, success_url, cancel_url } = req.body;
+  if (!contact_id || !product_id) return res.status(400).json({ success: false, error: 'contact_id and product_id required' });
+  const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+  res.json(await stripeSvc.createCheckoutSession(
+    contact_id, product_id,
+    success_url || `${baseUrl}/utage/checkout-success`,
+    cancel_url || `${baseUrl}/utage/checkout-cancel`,
+  ));
+});
+router.post('/api/customer-portal', async (req, res) => {
+  const { contact_id, return_url } = req.body;
+  if (!contact_id) return res.status(400).json({ success: false, error: 'contact_id required' });
+  const baseUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+  res.json(await stripeSvc.createPortalSession(contact_id, return_url || `${baseUrl}/utage`));
+});
+// Stripe webhook (needs raw body - mounted separately in app.ts)
+
+// ============================================================
+// LINE Webhook
+// ============================================================
+router.post('/api/line/webhook', async (req, res) => {
+  const signature = req.headers['x-line-signature'] as string;
+  const body = JSON.stringify(req.body);
+
+  if (!lineWebhook.verifySignature(body, signature || '')) {
+    return res.status(401).json({ success: false, error: 'Invalid signature' });
+  }
+
+  await lineWebhook.handleWebhook(req.body.events || []);
+  res.status(200).json({ success: true });
+});
+
+// ============================================================
+// Email Broadcast (一斉送信)
+// ============================================================
+router.get('/api/email/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.listEmailBroadcasts(u));
+});
+router.post('/api/email/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await broadcastSvc.createEmailBroadcast(u, req.body));
+});
+router.post('/api/email/broadcasts/:id/send', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.sendEmailBroadcast(req.params.id, u));
+});
+router.post('/api/email/broadcasts/:id/schedule', async (req, res) => {
+  const { scheduled_at } = req.body;
+  if (!scheduled_at) return res.status(400).json({ success: false, error: 'scheduled_at required' });
+  res.json(await broadcastSvc.scheduleEmailBroadcast(req.params.id, scheduled_at));
+});
+
+// ============================================================
+// LINE Broadcast (一斉送信)
+// ============================================================
+router.get('/api/line/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.listLineBroadcasts(u));
+});
+router.post('/api/line/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await broadcastSvc.createLineBroadcast(u, req.body));
+});
+router.post('/api/line/broadcasts/:id/send', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.sendLineBroadcast(req.params.id, u));
+});
+
+// ============================================================
+// SMS Broadcast
+// ============================================================
+router.get('/api/sms/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.listSmsBroadcasts(u));
+});
+router.post('/api/sms/broadcasts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await broadcastSvc.createSmsBroadcast(u, req.body));
+});
+router.post('/api/sms/broadcasts/:id/send', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await broadcastSvc.sendSmsBroadcast(req.params.id, u));
+});
+
+// ============================================================
+// LINE Individual Chat (1対1トーク)
+// ============================================================
+router.get('/api/line/chats', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await lineChatSvc.listChats(u, parseInt(req.query.page as string) || 1));
+});
+router.get('/api/line/chats/:contactId/messages', async (req, res) => {
+  res.json(await lineChatSvc.getChatMessages(req.params.contactId, parseInt(req.query.page as string) || 1));
+});
+router.post('/api/line/chats/:contactId/send', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  const { message_type, content } = req.body;
+  res.json(await lineChatSvc.sendChatMessage(u, req.params.contactId, message_type || 'text', content || {}));
+});
+
+// ============================================================
+// Rich Menu Management (リッチメニュー)
+// ============================================================
+router.get('/api/line/rich-menus', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await lineChatSvc.listRichMenus(u));
+});
+router.post('/api/line/rich-menus', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await lineChatSvc.createRichMenu(u, req.body));
+});
+router.patch('/api/line/rich-menus/:id', async (req, res) => {
+  res.json(await lineChatSvc.updateRichMenu(req.params.id, req.body));
+});
+router.delete('/api/line/rich-menus/:id', async (req, res) => {
+  res.json(await lineChatSvc.deleteRichMenu(req.params.id));
+});
+router.post('/api/line/rich-menus/:id/set-default', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await lineChatSvc.setDefaultRichMenu(u, req.params.id));
+});
+
+// ============================================================
+// Workflow Automation
+// ============================================================
+router.get('/api/workflows', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await automationSvc.listWorkflows(u));
+});
+router.post('/api/workflows', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await automationSvc.createWorkflow(u, req.body));
+});
+router.patch('/api/workflows/:id', async (req, res) => {
+  res.json(await automationSvc.updateWorkflow(req.params.id, req.body));
+});
+router.post('/api/workflows/:id/toggle', async (req, res) => {
+  const { is_active } = req.body;
+  res.json(await automationSvc.toggleWorkflow(req.params.id, is_active));
+});
+router.delete('/api/workflows/:id', async (req, res) => {
+  res.json(await automationSvc.deleteWorkflow(req.params.id));
+});
+
+// ============================================================
+// Segments (セグメント管理)
+// ============================================================
+router.get('/api/segments', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await svc.listSegments(u));
+});
+router.post('/api/segments', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.status(201).json(await svc.createSegment(u, req.body));
+});
+router.patch('/api/segments/:id', async (req, res) => {
+  res.json(await svc.updateSegment(req.params.id, req.body));
+});
+router.delete('/api/segments/:id', async (req, res) => {
+  res.json(await svc.deleteSegment(req.params.id));
+});
+router.post('/api/segments/preview', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  const { conditions, logic } = req.body;
+  res.json(await svc.previewSegment(u, conditions || [], logic || 'AND'));
+});
+
+// ============================================================
+// Email Domain Authentication (SPF/DKIM認証)
+// ============================================================
+router.get('/api/email/domains', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  res.json(await svc.listDomainAuth(u));
+});
+router.post('/api/email/domains', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  const { domain } = req.body;
+  if (!domain) return res.status(400).json({ success: false, error: 'domain required' });
+  res.status(201).json(await svc.addDomainAuth(u, domain));
+});
+router.post('/api/email/domains/:id/verify', async (req, res) => {
+  res.json(await svc.verifyDomain(req.params.id));
+});
+
+// ============================================================
+// CSV Export
+// ============================================================
+router.get('/api/export/contacts', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  const result = await lineChatSvc.exportContactsCsv(u);
+  if (!result.success) return res.status(400).json(result);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="contacts.csv"');
+  res.send('\uFEFF' + result.data); // BOM for Excel
+});
+router.get('/api/export/orders', async (req, res) => {
+  const u = auth(req, res); if (!u) return;
+  const result = await lineChatSvc.exportOrdersCsv(u);
+  if (!result.success) return res.status(400).json(result);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="orders.csv"');
+  res.send('\uFEFF' + result.data);
+});
+
+// ============================================================
+// Unsubscribe (配信停止 - 特定電子メール法準拠)
+// ============================================================
+router.get('/api/unsubscribe', async (req, res) => {
+  const contactId = req.query.cid as string;
+  if (!contactId) return res.status(400).send('Invalid request');
+  await automationSvc.unsubscribeContact(contactId, 'email');
+  res.send('<html><body style="text-align:center;padding:60px;font-family:sans-serif"><h1>配信停止が完了しました</h1><p>今後メールは届きません。</p></body></html>');
+});
+
+// ============================================================
+// Funnel Page Renderer (公開ページ表示)
+// ============================================================
+router.get('/p/:slug', async (req, res) => {
+  const visitorId = req.cookies?.vid || `v-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const result = await funnelRenderer.servePublishedPage(req.params.slug, visitorId);
+  if (!result.success) return res.status(404).send('<h1>ページが見つかりません</h1>');
+  // Set visitor cookie
+  res.cookie('vid', visitorId, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true });
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(result.data);
+});
+
+// ============================================================
 // Frontend (SPA)
 // ============================================================
 router.get('/', (_req, res) => {
   res.sendFile('utage-system.html', { root: 'public' });
+});
+router.get('/checkout-success', (_req, res) => {
+  res.send('<html><body><h1>お支払いが完了しました</h1><p>ありがとうございます。<a href="/utage">戻る</a></p></body></html>');
+});
+router.get('/checkout-cancel', (_req, res) => {
+  res.send('<html><body><h1>お支払いがキャンセルされました</h1><p><a href="/utage">戻る</a></p></body></html>');
 });
 
 export default router;
