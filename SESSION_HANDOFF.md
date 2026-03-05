@@ -416,4 +416,68 @@ public/
 
 ---
 
+## 【完了】マーケティング自動化システム 要件定義（2026-03-05）
+
+### 概要
+UTAGE + L-STEP の国内MAツール機能を、海外ツール（ClickFunnels, GoHighLevel, WebinarJam等）と組み合わせた統合マーケティング自動化システムの要件定義を完了。
+
+### 完了した作業
+1. **統合リサーチレポート**: `docs/MA_SYSTEM_RESEARCH_REPORT.md`
+   - 国内ツール（UTAGE, L-STEP, Expa, Elme, MyASP等）の機能分析
+   - 海外ツール（ClickFunnels, GoHighLevel, WebinarJam等）の機能分析
+   - 実装方法（MCP, Skills, API, Reddit/OSS）の調査
+   - 技術スタック提案、機能マトリクス（51機能）、4フェーズ実装ロードマップ
+
+2. **要件定義書**: `.kiro/specs/marketing-automation-system/requirements.md`
+   - EARS準拠、C.U.T.E.スコア **100/100**
+   - 53要件: 機能44件(REQ-001~044) + NFR 4件(REQ-900~903) + セキュリティ3件(REQ-050~052) + 運用2件(REQ-053~054)
+   - スコア結果: `.kiro/specs/marketing-automation-system/score.json`
+   - 採点詳細: `.kiro/specs/marketing-automation-system/critique.md`
+
+### 技術スタック（要件定義で決定）
+| 役割 | ツール |
+|------|--------|
+| フロントエンド | Next.js 14+ (App Router) |
+| バックエンド | Node.js + Hono |
+| DB | Supabase (PostgreSQL) |
+| キャッシュ | Redis (Upstash) |
+| 分析DB | ClickHouse |
+| メール | Amazon SES |
+| SMS/WhatsApp | Twilio |
+| LINE | LINE Messaging API |
+| 決済 | Stripe API (公式MCP対応) |
+| ウェビナー | Zoom API (ライブ) + 自作 (エバーグリーン) |
+| 予約 | Cal.com (OSS, セルフホスト) |
+| ワークフロー | Temporal or n8n |
+| AI | Claude API (Haiku: チャットボット, Sonnet: コンテンツ生成) |
+| デプロイ | Cloudflare Workers/Pages |
+
+### 主要機能カテゴリ
+- マルチチャネルメッセージング（LINE/メール/SMS/WhatsApp）
+- ファネルビルダー（ドラッグ&ドロップ、React DnD）
+- 決済・サブスク管理（Stripe）
+- ウェビナー（ライブ+オートウェビナー+ポップアップオファー）
+- 会員サイト（ドリップコンテンツ配信）
+- CRM（タグ・スコアリング・クロス分析・ファネル分析）
+- AI統合（チャットボット・コンテンツ生成・RAG）
+- 予約管理（Cal.com）
+
+### 次のステップ
+1. `sdd-design` スキルで設計書を作成
+2. ADR（Architecture Decision Records）を作成
+3. Phase 1 MVP の実装開始
+
+### 関連ファイル一覧
+```
+.kiro/specs/marketing-automation-system/
+├── requirements.md   # 要件定義書（100点）
+├── score.json        # スコア結果
+└── critique.md       # 採点詳細
+
+docs/
+└── MA_SYSTEM_RESEARCH_REPORT.md  # 統合リサーチレポート
+```
+
+---
+
 *このファイルはセッション終了時に更新されます*
