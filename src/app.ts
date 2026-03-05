@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { youtubeResearchRouter } from './youtube-research/routes';
 import { lpCreatorRouter } from './lp-creator-ss/routes';
 import funnelForgeRouter from './funnel-forge-ss/routes';
+import enrollyRouter from './enrolly-ss/routes';
 
 const app = express();
 
@@ -69,5 +70,6 @@ app.get('/health', (req, res) => {
 app.use('/youtube-research', youtubeResearchRouter);
 app.use('/lp-creator', lpCreatorRouter);
 app.use('/ff', funnelForgeRouter);
+app.use('/enrolly', enrollyRouter);
 
 export default app;

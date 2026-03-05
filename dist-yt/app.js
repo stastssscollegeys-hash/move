@@ -11,6 +11,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const routes_1 = require("./youtube-research/routes");
 const routes_2 = require("./lp-creator-ss/routes");
 const routes_3 = __importDefault(require("./funnel-forge-ss/routes"));
+const routes_4 = __importDefault(require("./enrolly-ss/routes"));
 const app = (0, express_1.default)();
 // Security: Helmet with CSP configured for YouTube thumbnails
 app.use((0, helmet_1.default)({
@@ -64,4 +65,5 @@ app.get('/health', (req, res) => {
 app.use('/youtube-research', routes_1.youtubeResearchRouter);
 app.use('/lp-creator', routes_2.lpCreatorRouter);
 app.use('/ff', routes_3.default);
+app.use('/enrolly', routes_4.default);
 exports.default = app;

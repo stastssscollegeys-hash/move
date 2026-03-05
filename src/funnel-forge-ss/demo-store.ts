@@ -28,6 +28,12 @@ const store: Record<string, any[]> = {
   workflows: [], reminder_logs: [],
   email_domain_auth: [], custom_domains: [],
   bundle_courses: [], google_sheet_exports: [],
+  // Enrolly tables
+  enrolly_courses: [], enrolly_modules: [], enrolly_lessons: [],
+  enrolly_enrollments: [], enrolly_lesson_progress: [], enrolly_videos: [],
+  enrolly_quizzes: [], enrolly_quiz_attempts: [],
+  enrolly_discussions: [], enrolly_discussion_replies: [],
+  enrolly_certificates: [], enrolly_issued_certificates: [],
 };
 
 // Seed demo data
