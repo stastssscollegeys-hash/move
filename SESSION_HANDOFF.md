@@ -428,11 +428,11 @@ UTAGE + L-STEP の国内MAツール機能を、海外ツール（ClickFunnels, G
    - 実装方法（MCP, Skills, API, Reddit/OSS）の調査
    - 技術スタック提案、機能マトリクス（51機能）、4フェーズ実装ロードマップ
 
-2. **要件定義書**: `.kiro/specs/marketing-automation-system/requirements.md`
+2. **要件定義書**: `.kiro/specs/utage-system-ss/requirements.md`
    - EARS準拠、C.U.T.E.スコア **100/100**
    - 53要件: 機能44件(REQ-001~044) + NFR 4件(REQ-900~903) + セキュリティ3件(REQ-050~052) + 運用2件(REQ-053~054)
-   - スコア結果: `.kiro/specs/marketing-automation-system/score.json`
-   - 採点詳細: `.kiro/specs/marketing-automation-system/critique.md`
+   - スコア結果: `.kiro/specs/utage-system-ss/score.json`
+   - 採点詳細: `.kiro/specs/utage-system-ss/critique.md`
 
 ### 技術スタック（要件定義で決定）
 | 役割 | ツール |
@@ -469,7 +469,7 @@ UTAGE + L-STEP の国内MAツール機能を、海外ツール（ClickFunnels, G
 
 ### 関連ファイル一覧
 ```
-.kiro/specs/marketing-automation-system/
+.kiro/specs/utage-system-ss/
 ├── requirements.md   # 要件定義書（100点）
 ├── score.json        # スコア結果
 └── critique.md       # 採点詳細
