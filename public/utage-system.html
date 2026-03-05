@@ -149,12 +149,32 @@
       <div class="nav-section">配信</div>
       <a class="nav-item" data-page="email"><span class="icon">📧</span> メール配信</a>
       <a class="nav-item" data-page="line"><span class="icon">💬</span> LINE配信</a>
+      <a class="nav-item" data-page="sms"><span class="icon">📱</span> SMS配信</a>
 
       <div class="nav-section">マーケティング</div>
       <a class="nav-item" data-page="funnels"><span class="icon">🔄</span> ファネル</a>
       <a class="nav-item" data-page="products"><span class="icon">💳</span> 商品・決済</a>
+      <a class="nav-item" data-page="webinars"><span class="icon">🎥</span> ウェビナー</a>
 
-      <div class="nav-section">設定</div>
+      <div class="nav-section">コンテンツ</div>
+      <a class="nav-item" data-page="courses"><span class="icon">🎓</span> 会員サイト</a>
+      <a class="nav-item" data-page="media"><span class="icon">📁</span> メディア管理</a>
+      <a class="nav-item" data-page="forms"><span class="icon">📝</span> フォーム</a>
+
+      <div class="nav-section">予約・イベント</div>
+      <a class="nav-item" data-page="events"><span class="icon">📅</span> イベント</a>
+      <a class="nav-item" data-page="calendar"><span class="icon">🗓️</span> 予約管理</a>
+
+      <div class="nav-section">パートナー</div>
+      <a class="nav-item" data-page="affiliate"><span class="icon">🤝</span> アフィリエイト</a>
+
+      <div class="nav-section">分析</div>
+      <a class="nav-item" data-page="analytics"><span class="icon">📈</span> 分析・計測</a>
+      <a class="nav-item" data-page="adtracking"><span class="icon">🎯</span> 広告計測</a>
+
+      <div class="nav-section">連携・設定</div>
+      <a class="nav-item" data-page="webhooks"><span class="icon">🔗</span> Webhook連携</a>
+      <a class="nav-item" data-page="domains"><span class="icon">🌐</span> ドメイン設定</a>
       <a class="nav-item" data-page="settings"><span class="icon">⚙️</span> 設定</a>
     </nav>
   </div>
@@ -348,6 +368,173 @@
       </div>
     </div>
 
+    <!-- SMS -->
+    <div class="page-section" id="page-sms">
+      <div class="page-header"><div><div class="page-title">SMS配信</div><div class="page-subtitle">Twilio経由のSMS一斉配信</div></div></div>
+      <div class="card"><div class="empty-state"><div class="icon">📱</div><p>SMS配信機能（Twilio連携）</p><button class="btn btn-outline">準備中</button></div></div>
+    </div>
+
+    <!-- Webinars -->
+    <div class="page-section" id="page-webinars">
+      <div class="page-header">
+        <div><div class="page-title">ウェビナー</div><div class="page-subtitle">ライブ・自動ウェビナー・ポップアップオファー</div></div>
+        <button class="btn btn-primary" onclick="showModal('webinar-modal')">+ 新規ウェビナー</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>ウェビナー名</th><th>タイプ</th><th>日時</th><th>参加者</th><th>ステータス</th></tr></thead>
+          <tbody id="webinars-table"></tbody>
+        </table>
+        <div class="empty-state" id="webinars-empty"><div class="icon">🎥</div><p>ウェビナーがまだありません</p>
+          <p style="font-size:13px;margin-top:8px;">ライブウェビナー（Zoom連携）/ 自動ウェビナー（録画再生）/ エバーグリーン（常時開催）</p>
+          <button class="btn btn-primary" onclick="showModal('webinar-modal')" style="margin-top:12px">最初のウェビナーを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Courses (Membership) -->
+    <div class="page-section" id="page-courses">
+      <div class="page-header">
+        <div><div class="page-title">会員サイト</div><div class="page-subtitle">コース・レッスン・ドリップ配信・進捗管理</div></div>
+        <button class="btn btn-primary" onclick="showModal('course-modal')">+ 新規コース</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>コース名</th><th>レッスン数</th><th>受講者</th><th>アクセス</th><th>ステータス</th></tr></thead>
+          <tbody id="courses-table"></tbody>
+        </table>
+        <div class="empty-state" id="courses-empty"><div class="icon">🎓</div><p>コースがまだありません</p>
+          <p style="font-size:13px;margin-top:8px;">動画・PDF・テキストのレッスンを作成し、ドリップ配信で段階的に公開できます</p>
+          <button class="btn btn-primary" onclick="showModal('course-modal')" style="margin-top:12px">最初のコースを作成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Management -->
+    <div class="page-section" id="page-media">
+      <div class="page-header">
+        <div><div class="page-title">メディア管理</div><div class="page-subtitle">画像・動画・PDF・音声のアップロード管理</div></div>
+        <button class="btn btn-primary" onclick="document.getElementById('media-upload-input').click()">+ アップロード</button>
+        <input type="file" id="media-upload-input" style="display:none" accept="image/*,video/*,audio/*,.pdf" multiple onchange="handleMediaUpload(this)">
+      </div>
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button class="btn btn-sm btn-outline media-filter active" data-type="all">すべて</button>
+          <button class="btn btn-sm btn-outline media-filter" data-type="image">画像</button>
+          <button class="btn btn-sm btn-outline media-filter" data-type="video">動画</button>
+          <button class="btn btn-sm btn-outline media-filter" data-type="pdf">PDF</button>
+          <button class="btn btn-sm btn-outline media-filter" data-type="audio">音声</button>
+        </div>
+        <div id="media-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;"></div>
+        <div class="empty-state" id="media-empty"><div class="icon">📁</div><p>メディアファイルがまだありません</p>
+          <p style="font-size:13px;margin-top:8px;">画像・動画・PDF・音声をアップロードして、ファネルや会員サイトで使用できます</p>
+          <button class="btn btn-primary" onclick="document.getElementById('media-upload-input').click()" style="margin-top:12px">ファイルをアップロード</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forms -->
+    <div class="page-section" id="page-forms">
+      <div class="page-header">
+        <div><div class="page-title">フォーム</div><div class="page-subtitle">アンケート・申込フォーム・回答フォーム</div></div>
+        <button class="btn btn-primary">+ 新規フォーム</button>
+      </div>
+      <div class="card"><div class="empty-state"><div class="icon">📝</div><p>フォームがまだありません</p>
+        <p style="font-size:13px;margin-top:8px;">アンケート・申込み・フィードバック・クイズ形式に対応。回答は顧客管理に自動紐付けされます</p>
+      </div></div>
+    </div>
+
+    <!-- Events -->
+    <div class="page-section" id="page-events">
+      <div class="page-header">
+        <div><div class="page-title">イベント</div><div class="page-subtitle">セミナー・個別相談・グループセッション</div></div>
+        <button class="btn btn-primary" onclick="showModal('event-modal')">+ 新規イベント</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>イベント名</th><th>タイプ</th><th>日時</th><th>定員</th><th>予約数</th><th>ステータス</th></tr></thead>
+          <tbody id="events-table"></tbody>
+        </table>
+        <div class="empty-state" id="events-empty"><div class="icon">📅</div><p>イベントがまだありません</p>
+          <p style="font-size:13px;margin-top:8px;">オンライン/オフラインセミナー、個別相談をZoom/Google Meet連携で管理。リマインダ自動配信・領収書発行にも対応</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar Booking -->
+    <div class="page-section" id="page-calendar">
+      <div class="page-header">
+        <div><div class="page-title">予約管理</div><div class="page-subtitle">カレンダー予約・個別相談の予約枠設定</div></div>
+        <button class="btn btn-primary">+ 予約枠を作成</button>
+      </div>
+      <div class="card"><div class="empty-state"><div class="icon">🗓️</div><p>予約枠がまだありません</p>
+        <p style="font-size:13px;margin-top:8px;">カレンダー形式の予約受付。曜日・時間帯・定員・バッファ時間を設定可能</p>
+      </div></div>
+    </div>
+
+    <!-- Affiliate -->
+    <div class="page-section" id="page-affiliate">
+      <div class="page-header">
+        <div><div class="page-title">アフィリエイト</div><div class="page-subtitle">パートナー管理・報酬計算・承認・ランキング</div></div>
+        <button class="btn btn-primary">+ プログラム作成</button>
+      </div>
+      <div class="card"><div class="empty-state"><div class="icon">🤝</div><p>アフィリエイトプログラムがまだありません</p>
+        <p style="font-size:13px;margin-top:8px;">固定報酬/パーセント報酬・二次アフィリエイト対応。パートナーのランキング表示も可能</p>
+      </div></div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="page-section" id="page-analytics">
+      <div class="page-header"><div><div class="page-title">分析・計測</div><div class="page-subtitle">流入経路分析・クロス分析・コンバージョン計測・URLクリック計測</div></div></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">流入経路別 登録数</div><div class="stat-value">-</div></div>
+        <div class="stat-card"><div class="stat-label">コンバージョン率</div><div class="stat-value">-</div></div>
+        <div class="stat-card"><div class="stat-label">クリック数(今日)</div><div class="stat-value">-</div></div>
+        <div class="stat-card"><div class="stat-label">売上(流入経路別)</div><div class="stat-value">-</div></div>
+      </div>
+      <div class="card"><div class="card-title">クロス分析</div><p style="color:var(--text-light);font-size:14px;">流入経路 x コンバージョン、タグ x 購入 など、複数軸を掛け合わせた分析</p></div>
+    </div>
+
+    <!-- Ad Tracking -->
+    <div class="page-section" id="page-adtracking">
+      <div class="page-header">
+        <div><div class="page-title">広告計測</div><div class="page-subtitle">UTM計測URL作成・広告別の登録数・売上追跡</div></div>
+        <button class="btn btn-primary">+ 計測URL作成</button>
+      </div>
+      <div class="card"><div class="empty-state"><div class="icon">🎯</div><p>広告計測URLがまだありません</p>
+        <p style="font-size:13px;margin-top:8px;">各広告媒体・クリエイティブごとの登録数・売上を正確に計測できます</p>
+      </div></div>
+    </div>
+
+    <!-- Webhooks -->
+    <div class="page-section" id="page-webhooks">
+      <div class="page-header">
+        <div><div class="page-title">Webhook連携</div><div class="page-subtitle">外部サービスへのリアルタイム通知・Zapier/Googleスプレッドシート連携</div></div>
+        <button class="btn btn-primary">+ エンドポイント追加</button>
+      </div>
+      <div class="card"><div class="empty-state"><div class="icon">🔗</div><p>Webhookエンドポイントがまだありません</p>
+        <p style="font-size:13px;margin-top:8px;">コンタクト作成・購入完了・フォーム送信などのイベントを外部にリアルタイム転送</p>
+      </div></div>
+    </div>
+
+    <!-- Domains -->
+    <div class="page-section" id="page-domains">
+      <div class="page-header">
+        <div><div class="page-title">ドメイン設定</div><div class="page-subtitle">独自ドメイン・SSL証明書・メール認証(DKIM/DMARC)</div></div>
+        <button class="btn btn-primary">+ ドメイン追加</button>
+      </div>
+      <div class="card">
+        <div class="card-title">ファネル用ドメイン</div>
+        <div class="empty-state"><div class="icon">🌐</div><p>独自ドメインがまだ設定されていません</p>
+          <p style="font-size:13px;margin-top:8px;">CNAMEレコード設定でSSL証明書を自動発行。複数ドメイン対応</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">メール認証 (DKIM/DMARC/SPF)</div>
+        <div class="empty-state"><p>メール到達率を上げるためのDNS認証設定</p></div>
+      </div>
+    </div>
+
     <!-- Settings -->
     <div class="page-section" id="page-settings">
       <div class="page-header">
@@ -513,6 +700,77 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="webinar-modal">
+    <div class="modal">
+      <div class="modal-title">新規ウェビナー</div>
+      <div class="form-group"><label>ウェビナー名</label><input type="text" id="new-webinar-name" placeholder="例: 集客セミナー"></div>
+      <div class="form-group">
+        <label>タイプ</label>
+        <select id="new-webinar-type">
+          <option value="live">ライブ（Zoom連携）</option>
+          <option value="auto">自動ウェビナー（録画再生）</option>
+          <option value="evergreen">エバーグリーン（常時開催）</option>
+        </select>
+      </div>
+      <div class="form-group"><label>開催日時</label><input type="datetime-local" id="new-webinar-date"></div>
+      <div class="form-group"><label>最大参加者数</label><input type="number" id="new-webinar-max" placeholder="500"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('webinar-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="hideModal('webinar-modal');showToast('ウェビナーを作成しました')">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="course-modal">
+    <div class="modal">
+      <div class="modal-title">新規コース</div>
+      <div class="form-group"><label>コース名</label><input type="text" id="new-course-name" placeholder="例: マーケティング基礎講座"></div>
+      <div class="form-group"><label>説明</label><textarea id="new-course-desc" rows="3"></textarea></div>
+      <div class="form-group">
+        <label>アクセス</label>
+        <select id="new-course-access">
+          <option value="paid">有料（商品と紐付け）</option>
+          <option value="free">無料</option>
+          <option value="bundle">バンドル（複数コースセット）</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('course-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="hideModal('course-modal');showToast('コースを作成しました')">作成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal">
+      <div class="modal-title">新規イベント</div>
+      <div class="form-group"><label>イベント名</label><input type="text" id="new-event-name" placeholder="例: 無料セミナー"></div>
+      <div class="form-group">
+        <label>タイプ</label>
+        <select id="new-event-type">
+          <option value="seminar_online">オンラインセミナー</option>
+          <option value="seminar_offline">オフラインセミナー</option>
+          <option value="consultation">個別相談</option>
+          <option value="group_session">グループセッション</option>
+        </select>
+      </div>
+      <div class="form-group"><label>開催日時</label><input type="datetime-local" id="new-event-date"></div>
+      <div class="form-group"><label>定員</label><input type="number" id="new-event-capacity" placeholder="30"></div>
+      <div class="form-group">
+        <label>会議ツール</label>
+        <select id="new-event-provider">
+          <option value="">なし</option>
+          <option value="zoom">Zoom</option>
+          <option value="google_meet">Google Meet</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal('event-modal')">キャンセル</button>
+        <button class="btn btn-primary" onclick="hideModal('event-modal');showToast('イベントを作成しました')">作成</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const BASE = '/utage';
 
@@ -663,6 +921,26 @@
 
     // --- Util ---
     function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // --- Media Upload (placeholder) ---
+    function handleMediaUpload(input) {
+      const files = input.files;
+      if (!files.length) return;
+      for (const file of files) {
+        const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : 'pdf';
+        showToast(file.name + ' をアップロード中...（Supabase Storage連携後に実動作）');
+      }
+      input.value = '';
+    }
+
+    // Media filter buttons
+    document.querySelectorAll('.media-filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.media-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // TODO: filter media grid by data-type
+      });
+    });
 
     // --- Init ---
     loadDashboard();

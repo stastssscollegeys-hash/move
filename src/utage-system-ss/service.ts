@@ -297,6 +297,9 @@ export async function getDashboardStats(userId: string): Promise<ApiResponse<Das
       line_read_rate: 0,
       active_funnels: funnels.count || 0,
       conversion_rate: 0,
+      active_webinars: 0,
+      active_courses: 0,
+      affiliate_commission_this_month: 0,
     },
   };
 }
