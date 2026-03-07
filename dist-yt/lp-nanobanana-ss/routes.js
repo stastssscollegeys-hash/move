@@ -23,6 +23,8 @@ router.get('/gemini-api-guide', (_req, res) => {
 });
 // API endpoints
 router.post('/api/generate', controller_1.handleGenerate);
+router.get('/api/status/:jobId', controller_1.handleGetStatus);
+router.post('/api/cancel/:jobId', controller_1.handleCancelJob);
 router.post('/api/retry-section', controller_1.handleRetrySection);
 router.post('/api/parse-input', controller_1.handleParseInput);
 router.post('/api/test-keys', controller_1.handleTestKeys);

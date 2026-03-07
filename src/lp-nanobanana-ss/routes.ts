@@ -2,7 +2,7 @@
 
 import { Router, Request, Response } from 'express';
 import path from 'path';
-import { handleGenerate, handleRetrySection, handleHealth, handleParseInput, handleTestKeys } from './controller';
+import { handleGenerate, handleGetStatus, handleRetrySection, handleCancelJob, handleHealth, handleParseInput, handleTestKeys } from './controller';
 
 const router = Router();
 
@@ -21,6 +21,8 @@ router.get('/gemini-api-guide', (_req: Request, res: Response) => {
 
 // API endpoints
 router.post('/api/generate', handleGenerate as any);
+router.get('/api/status/:jobId', handleGetStatus as any);
+router.post('/api/cancel/:jobId', handleCancelJob as any);
 router.post('/api/retry-section', handleRetrySection as any);
 router.post('/api/parse-input', handleParseInput as any);
 router.post('/api/test-keys', handleTestKeys as any);

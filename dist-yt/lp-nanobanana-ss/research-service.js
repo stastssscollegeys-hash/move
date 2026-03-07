@@ -18,13 +18,13 @@ class ResearchService {
      * Analyze a reference LP URL for design elements only.
      * Returns DesignSettings with colors, layout, and section styles extracted from the reference.
      */
-    async analyzeReferenceLP(url) {
+    async analyzeReferenceLP(url, lpType) {
         console.log('[LP-Research] Taking screenshot of reference LP:', url);
         // Take screenshot with puppeteer
         const screenshotBase64 = await this.takeScreenshot(url);
         console.log('[LP-Research] Analyzing design elements with Claude Vision...');
         // Analyze design with Claude Vision - explicitly design-only
-        const design = await this.analyzeDesign(screenshotBase64);
+        const design = await this.analyzeDesign(screenshotBase64, lpType);
         return { design, screenshotBase64 };
     }
     /** Take full-page screenshot of URL */
@@ -54,7 +54,15 @@ class ResearchService {
         }
     }
     /** Analyze screenshot for design elements only using Claude Vision */
-    async analyzeDesign(screenshotBase64) {
+    async analyzeDesign(screenshotBase64, lpType) {
+        // Build dynamic section_styles template from LP type definitions
+        const sectionDefs = (0, types_1.getSectionDefs)(lpType);
+        const sectionStylesExample = {};
+        for (const meta of sectionDefs) {
+            const key = `section_${meta.id}_${meta.name.replace(/-/g, '_')}`;
+            sectionStylesExample[key] = `セクション${meta.id}（${meta.nameJa}）のビジュアルスタイル英語記述`;
+        }
+        const sectionStylesJson = JSON.stringify(sectionStylesExample, null, 4);
         const response = await this.claudeClient.messages.create({
             model: 'claude-sonnet-4-6',
             max_tokens: 4096,
@@ -74,12 +82,20 @@ class ResearchService {
                             text: `このランディングページのスクリーンショットから、**デザイン要素のみ**を分析してください。
 
 【重要】コピーライティングの内容（文章・キャッチコピー・セールスコピー）は一切抽出しないでください。
+【絶対禁止】以下の要素は画像生成プロンプトに絶対に反映しないでください:
+- タイムスタンプ・日時表示（「2024年○月○日」「残り○日」等の具体的な日付）
+- 具体的な数値データ（「満足度98%」「○○人が参加」等）
+- 個人名・企業名・ブランド名・ロゴ
+- 認定マーク・資格バッジ・受賞歴の具体的な名称
+- 電話番号・メールアドレス・住所等の連絡先情報
+- 著作権表示・コピーライト表記
+
 分析対象はビジュアルデザインのみです:
 - 配色（背景色、アクセントカラー、テキストカラー、CTAボタンの色など）をHEXコードで
 - レイアウト構造（カラム数、余白、セクション間隔の印象）
 - セクションごとのビジュアルスタイル（背景パターン、装飾、カード形状など）
 
-以下のJSON形式で出力してください:
+このLPは${sectionDefs.length}セクション構成です。以下のJSON形式で出力してください:
 
 \`\`\`json
 {
@@ -108,15 +124,7 @@ class ResearchService {
     "hero_height": "value",
     "section_gap": "value"
   },
-  "section_styles": {
-    "section_1_fv": "ビジュアルスタイルの英語記述（配色・背景・レイアウトのみ、コピー内容は含めない）",
-    "section_2_problem": "...",
-    "section_3_solution": "...",
-    "section_4_benefit": "...",
-    "section_5_testimonial": "...",
-    "section_6_pricing": "...",
-    "section_7_cta": "..."
-  }
+  "section_styles": ${sectionStylesJson}
 }
 \`\`\`
 

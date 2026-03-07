@@ -1,20 +1,21 @@
 // ===== LP NanoBanana SS - Copy Generation Service =====
 
 import Anthropic from '@anthropic-ai/sdk';
-import { LPSections } from './types';
 import { buildCopyFullPrompt } from './prompts';
-import type { LPType } from './types';
+import { LPType, getSectionDefs } from './types';
 
 export class CopyService {
   private apiKey: string;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model?: string) {
     this.apiKey = apiKey;
+    this.model = model || 'claude-haiku-4-5-20251001';
   }
 
   /**
    * Generate LP copy via Claude API (non-streaming for reliability).
-   * Returns parsed 7-section copy.
+   * Returns parsed sections as Record<string, string> with dynamic keys.
    */
   async generate(
     productName: string,
@@ -24,16 +25,17 @@ export class CopyService {
     onChunk: (text: string) => void,
     price?: string,
     description?: string,
-  ): Promise<LPSections> {
-    const fullPrompt = buildCopyFullPrompt(productName, target, strength, lpType, price, description);
+    ctaText?: string,
+  ): Promise<Record<string, string>> {
+    const fullPrompt = buildCopyFullPrompt(productName, target, strength, lpType, price, description, ctaText);
 
-    console.log('[LP-Copy] Sending request to Claude API...');
+    console.log(`[LP-Copy] Sending request to Claude API (model: ${this.model})...`);
     const startTime = Date.now();
 
     // Use same pattern as handleParseInput (no timeout, no system param)
     const client = new Anthropic({ apiKey: this.apiKey });
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: this.model,
       max_tokens: 4096,
       messages: [{ role: 'user', content: fullPrompt }],
     });
@@ -46,11 +48,11 @@ export class CopyService {
     // Send the complete text as a single chunk for preview
     if (text) onChunk(text);
 
-    return this.parseResponse(text);
+    return this.parseResponse(text, lpType);
   }
 
-  /** Extract JSON from AI response */
-  private parseResponse(raw: string): LPSections {
+  /** Extract JSON from AI response and validate sections */
+  private parseResponse(raw: string, lpType: LPType): Record<string, string> {
     // Remove markdown code fences
     const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
     const jsonStr = fenceMatch ? fenceMatch[1].trim() : raw;
@@ -62,17 +64,16 @@ export class CopyService {
 
     const parsed = JSON.parse(jsonMatch[0]);
 
-    // Validate all 7 sections exist
-    const required = [
-      'section1_fv', 'section2_problem', 'section3_solution',
-      'section4_benefit', 'section5_testimonial', 'section6_pricing', 'section7_cta',
-    ];
-    for (const key of required) {
+    // Validate sections exist based on LP type
+    const sectionDefs = getSectionDefs(lpType);
+    for (const meta of sectionDefs) {
+      const key = `section${meta.id}_${meta.name.replace(/-/g, '_')}`;
       if (!parsed[key] || typeof parsed[key] !== 'string') {
-        throw new Error(`セクション ${key} が見つかりません`);
+        console.warn(`[LP-Copy] Section ${key} (${meta.nameJa}) not found in response, using placeholder`);
+        parsed[key] = meta.nameJa;
       }
     }
 
-    return parsed as LPSections;
+    return parsed as Record<string, string>;
   }
 }

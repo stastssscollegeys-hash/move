@@ -5,14 +5,15 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import sharp from 'sharp';
 import { SectionMeta } from './types';
 
-/** Gemini model for image generation (NanoBanana 2 / Gemini 3.1 Flash Image) */
-const GEMINI_MODEL = 'gemini-3.1-flash-image-preview';
+const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
 
 export class ImageService {
   private ai: GoogleGenAI;
+  private model: string;
 
-  constructor(geminiApiKey: string) {
+  constructor(geminiApiKey: string, model?: string) {
     this.ai = new GoogleGenAI({ apiKey: geminiApiKey });
+    this.model = model?.trim() || DEFAULT_MODEL;
   }
 
   /**
@@ -23,7 +24,7 @@ export class ImageService {
     prompt: string,
     sectionMeta: SectionMeta,
   ): Promise<string> {
-    console.log(`[LP-IMG] Generating section ${sectionMeta.id}: ${sectionMeta.nameJa} via Gemini API`);
+    console.log(`[LP-IMG] Generating section ${sectionMeta.id}: ${sectionMeta.nameJa} via ${this.model}`);
 
     const fullPrompt = `Generate a high-quality LP (landing page) section image.
 Aspect ratio: ${sectionMeta.aspectRatio} (${sectionMeta.width}x${sectionMeta.height}px)
@@ -40,7 +41,7 @@ ${prompt}`;
 
     const response = await Promise.race([
       this.ai.models.generateContent({
-        model: GEMINI_MODEL,
+        model: this.model,
         contents: fullPrompt,
         config: {
           responseModalities: [Modality.IMAGE, Modality.TEXT],

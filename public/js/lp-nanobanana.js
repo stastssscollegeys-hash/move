@@ -1,4 +1,4 @@
-// ===== ワンクリックLP画像クリエイター - Frontend Logic =====
+// ===== LP NanoBanana Creator - Frontend Logic (Polling + Dynamic Sections) =====
 
 (function () {
   'use strict';
@@ -7,28 +7,60 @@
   const state = {
     generating: false,
     sections: {},      // { 1: { status, base64, prompt, error }, ... }
+    sectionDefs: [],   // [{ id, name, nameJa }, ...] — set from server response
     copyText: '',
     startTime: null,
-    sectionTimes: [],
     bulkParsed: false,
     elapsedTimer: null,
-    currentPhase: null, // 'copy' | 'design' | 'image' | 'done' | null
-    phaseStartTime: null, // timestamp when current phase started
-    copyChunkCount: 0,    // number of copy chunks received
-    imageStartTimes: {},  // { sectionId: timestamp } — when each image started
-    imageDurations: [],   // completed image durations in seconds
+    pollTimer: null,
+    jobId: null,
+    receivedSections: new Set(),
+    lastPhase: null,
+    lpType: 'education',
   };
 
-  // --- Constants ---
-  const SECTION_NAMES = [
-    'ファーストビュー',
-    '問題提起',
-    '解決策',
-    'ベネフィット',
-    'お客様の声',
-    '特典・料金',
-    'CTA',
-  ];
+  // --- Per-LP-type section definitions (mirrors server types.ts) ---
+  const SECTION_DEFS_BY_TYPE = {
+    'education': [
+      { id: 1, name: 'headline',      nameJa: 'ヘッドライン' },
+      { id: 2, name: 'problem',       nameJa: '問題提起' },
+      { id: 3, name: 'solution',      nameJa: '解決策提示' },
+      { id: 4, name: 'authority',     nameJa: '権威性確立' },
+      { id: 5, name: 'details',       nameJa: '詳細説明' },
+      { id: 6, name: 'social-proof',  nameJa: '社会的証明' },
+      { id: 7, name: 'urgency',       nameJa: '緊急性演出' },
+      { id: 8, name: 'pricing',       nameJa: '価格戦略' },
+      { id: 9, name: 'cta',           nameJa: '行動促進' },
+    ],
+    'product-interest': [
+      { id: 1, name: 'first-view',    nameJa: 'ファーストビュー' },
+      { id: 2, name: 'testimonial',   nameJa: 'お客様の声' },
+      { id: 3, name: 'problem',       nameJa: '問題提起と共感' },
+      { id: 4, name: 'story',         nameJa: '開発者ストーリー' },
+      { id: 5, name: 'solution',      nameJa: '解決策・商品紹介' },
+      { id: 6, name: 'cta',           nameJa: '行動喚起' },
+    ],
+    'expose': [
+      { id: 1, name: 'denial',        nameJa: '現状否定と疑念' },
+      { id: 2, name: 'truth',         nameJa: '真実の存在示唆' },
+      { id: 3, name: 'special',       nameJa: '読者の特別性認定' },
+      { id: 4, name: 'urgency',       nameJa: '希少性と緊急性' },
+      { id: 5, name: 'decision',      nameJa: '最終決断の促進' },
+    ],
+    'cutting-edge': [
+      { id: 1, name: 'headline',      nameJa: 'ヘッドライン' },
+      { id: 2, name: 'problem',       nameJa: '問題提起・共感' },
+      { id: 3, name: 'crisis',        nameJa: '危機感の増幅' },
+      { id: 4, name: 'gap',           nameJa: '経済的格差の提示' },
+      { id: 5, name: 'solution',      nameJa: '解決策の提示' },
+      { id: 6, name: 'offer',         nameJa: '無料オファーと特典' },
+      { id: 7, name: 'urgency',       nameJa: '緊急性と価格' },
+      { id: 8, name: 'cta',           nameJa: 'CTA' },
+      { id: 9, name: 'postscript',    nameJa: '追伸' },
+    ],
+  };
+
+  const POLL_INTERVAL = 2000;
 
   // --- DOM refs ---
   const $ = (sel) => document.querySelector(sel);
@@ -44,11 +76,15 @@
     setupRadioCards();
     setupCharCounters();
     setupModal();
+    updateSectionPreview();
 
     $('#btn-generate').addEventListener('click', startGeneration);
+    $('#btn-stop').addEventListener('click', stopGeneration);
     $('#btn-download').addEventListener('click', downloadZip);
     $('#btn-parse').addEventListener('click', parseBulkInput);
     $('#btn-test-keys').addEventListener('click', testApiKeys);
+    $('#btn-regenerate-all').addEventListener('click', regenerateAll);
+    setupCtaRadios();
 
     // Save API keys on blur
     $('#claude-api-key').addEventListener('blur', saveApiKeys);
@@ -84,6 +120,17 @@
     }
   }
 
+  // --- Section preview when LP type changes ---
+  function updateSectionPreview() {
+    const lpType = document.querySelector('input[name="lp-type"]:checked')?.value || 'education';
+    const defs = SECTION_DEFS_BY_TYPE[lpType] || SECTION_DEFS_BY_TYPE['education'];
+    const previewEl = $('#section-preview');
+    if (!previewEl) return;
+
+    previewEl.innerHTML = `<span class="section-preview-label">${defs.length}セクション構成:</span> ` +
+      defs.map(d => `<span class="section-preview-tag">${d.id}. ${d.nameJa}</span>`).join(' ');
+  }
+
   // --- Bulk Input Parsing ---
   async function parseBulkInput() {
     const rawText = $('#bulk-input').value.trim();
@@ -114,7 +161,6 @@
 
         state.bulkParsed = true;
 
-        // Trigger char counter updates
         $$('[data-maxlen]').forEach(input => {
           input.dispatchEvent(new Event('input'));
         });
@@ -199,10 +245,32 @@
         $$('.radio-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         card.querySelector('input[type="radio"]').checked = true;
+        updateSectionPreview();
       });
     });
     const first = $('.radio-card');
     if (first) { first.classList.add('selected'); first.querySelector('input').checked = true; }
+  }
+
+  function setupCtaRadios() {
+    const select = $('#cta-text-select');
+    const customInput = $('#cta-custom-text');
+    if (!select) return;
+    select.addEventListener('change', () => {
+      const isCustom = select.value === 'custom';
+      customInput.style.display = isCustom ? 'block' : 'none';
+      if (isCustom) customInput.focus();
+    });
+  }
+
+  /** Get selected CTA text */
+  function getCtaText() {
+    const select = $('#cta-text-select');
+    if (!select) return '';
+    if (select.value === 'custom') {
+      return $('#cta-custom-text').value.trim() || '';
+    }
+    return select.value;
   }
 
   function setupCharCounters() {
@@ -229,8 +297,6 @@
 
   // --- Step Flow Management ---
   function setStepState(stepId, stepState) {
-    // stepId: 'step-copy', 'step-design', 'step-image'
-    // stepState: 'waiting', 'active', 'done', 'error'
     const el = $(`#${stepId}`);
     if (!el) return;
 
@@ -278,7 +344,6 @@
     const panel = $('#progress-panel');
     if (panel) panel.classList.add('active');
 
-    // Hide placeholder
     const placeholder = $('#col-right-placeholder');
     if (placeholder) placeholder.classList.add('hidden');
   }
@@ -296,6 +361,18 @@
     }
   }
 
+  /** Get section name by id from current sectionDefs */
+  function getSectionName(id) {
+    const def = state.sectionDefs.find(d => d.id === id);
+    return def ? def.nameJa : `セクション${id}`;
+  }
+
+  /** Get section file name by id from current sectionDefs */
+  function getSectionFileName(id) {
+    const def = state.sectionDefs.find(d => d.id === id);
+    return def ? def.name : `section${id}`;
+  }
+
   // --- Generation ---
   async function startGeneration() {
     if (state.generating) return;
@@ -308,6 +385,8 @@
     const lpType = document.querySelector('input[name="lp-type"]:checked')?.value || 'education';
     const price = $('#price').value.trim();
     const description = $('#description').value.trim();
+    const claudeModel = $('#claude-model').value;
+    const geminiModel = $('#gemini-model').value;
     const referenceUrl = $('#reference-url').value.trim();
 
     // Validation
@@ -319,29 +398,32 @@
 
     saveApiKeys();
 
+    // Set section defs for this LP type
+    state.lpType = lpType;
+    state.sectionDefs = SECTION_DEFS_BY_TYPE[lpType] || SECTION_DEFS_BY_TYPE['education'];
+
     state.generating = true;
     state.startTime = Date.now();
-    state.phaseStartTime = Date.now();
-    state.sectionTimes = [];
     state.copyText = '';
     state.sections = {};
-    state.currentPhase = 'copy';
-    state.copyChunkCount = 0;
-    state.imageStartTimes = {};
-    state.imageDurations = [];
+    state.jobId = null;
+    state.receivedSections = new Set();
+    state.lastPhase = null;
 
-    // Init section states
-    for (let i = 1; i <= 7; i++) {
-      state.sections[i] = { status: 'waiting', base64: null, prompt: null, error: null };
+    // Init section states based on LP type
+    for (const def of state.sectionDefs) {
+      state.sections[def.id] = { status: 'waiting', base64: null, prompt: null, error: null };
     }
 
     // UI updates
     $('#btn-generate').disabled = true;
     $('#btn-generate').textContent = '生成中...';
+    $('#btn-stop').style.display = 'inline-flex';
     showProgressPanel();
     showResults();
     updateAllSectionCards();
     $('#download-bar').classList.remove('active');
+    $('#feedback-bar').classList.remove('active');
 
     // Set initial step states
     setStepState('step-copy', 'active');
@@ -353,277 +435,263 @@
 
     // Show copy preview box
     setCopyPreview('');
-
-    // Update copy preview header
     const header = $('#copy-preview-box .copy-preview-header span');
     if (header) header.textContent = 'AIがコピーを執筆中...';
 
-    // Start elapsed time timer
+    // Start elapsed time display timer
     if (state.elapsedTimer) clearInterval(state.elapsedTimer);
-    state.elapsedTimer = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
-      const phaseElapsed = Math.floor((Date.now() - state.phaseStartTime) / 1000);
-      const elapsedStr = formatTime(elapsed);
-
-      let mainText = '';
-      let pct = 0;
-      switch (state.currentPhase) {
-        case 'copy': {
-          // Show elapsed time and chunking status — no fake percentage
-          if (state.copyChunkCount > 0) {
-            pct = 10; // chunks are flowing = ~10% of total
-            mainText = `コピー生成中... ${formatTime(phaseElapsed)}経過`;
-            setStepStatusText('step-copy', `執筆中... (${state.copyChunkCount}チャンク)`);
-          } else {
-            pct = 5;
-            if (phaseElapsed < 10) {
-              mainText = `コピー生成中... API接続中`;
-              setStepStatusText('step-copy', 'API接続中...');
-            } else {
-              mainText = `コピー生成中... ${formatTime(phaseElapsed)}経過 (応答待ち)`;
-              setStepStatusText('step-copy', `${formatTime(phaseElapsed)} 応答待ち...`);
-            }
-          }
-          break;
-        }
-        case 'design': {
-          pct = 18;
-          if (phaseElapsed < 5) {
-            mainText = `デザイン分析中...`;
-          } else {
-            mainText = `デザイン分析中... ${formatTime(phaseElapsed)}経過`;
-          }
-          setStepStatusText('step-design', `分析中... ${formatTime(phaseElapsed)}`);
-          break;
-        }
-        case 'image': {
-          const completed = Object.values(state.sections).filter(s => s.status === 'complete').length;
-          const failed = Object.values(state.sections).filter(s => s.status === 'error').length;
-          const done = completed + failed;
-          const imgPct = Math.floor((done / 7) * 100);
-
-          // Calculate ETA from actual image generation times
-          let etaText = '';
-          if (state.imageDurations.length > 0 && done < 7) {
-            const avgDuration = state.imageDurations.reduce((a, b) => a + b, 0) / state.imageDurations.length;
-            // Also account for currently-generating section's elapsed time
-            const remaining = (7 - done) * avgDuration;
-            etaText = ` (残り約${formatTime(Math.floor(remaining))})`;
-          } else if (done === 0 && phaseElapsed >= 5) {
-            // No images done yet, estimate from first image elapsed
-            const estPerImage = 25;
-            const firstRemain = Math.max(0, estPerImage - phaseElapsed);
-            const totalRemain = firstRemain + (6 * estPerImage);
-            etaText = ` (残り約${formatTime(Math.floor(totalRemain))})`;
-          }
-
-          // Total progress: 25% (copy+design) + 75% * (done/7)
-          pct = 25 + Math.floor(75 * done / 7);
-          mainText = `画像生成 ${completed}/7完了 ${imgPct}%${etaText}`;
-          setStepStatusText('step-image', `${completed}/7 完了 (${imgPct}%)`);
-          break;
-        }
-        case 'done':
-          mainText = '完了!';
-          pct = 100;
-          break;
-        default:
-          mainText = '準備中...';
-          pct = 0;
-      }
-
-      updateProgressBar(pct, 100);
-      updateProgressText(mainText, elapsedStr);
-    }, 1000);
+    state.elapsedTimer = setInterval(updateElapsedDisplay, 1000);
 
     try {
-      const body = {
-        productName, target, strength, lpType, price, description, referenceUrl,
-        claudeApiKey: claudeKey,
-        geminiApiKey: geminiKey,
-      };
-
-      console.log('[LP-NB] Starting generation request...');
-
-      const response = await fetch('/lp-nanobanana/api/generate', {
+      // POST to start the job
+      const resp = await fetch('/lp-nanobanana/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          productName, target, strength, lpType, price, description, referenceUrl,
+          ctaText: getCtaText(),
+          claudeApiKey: claudeKey,
+          claudeModel,
+          geminiApiKey: geminiKey,
+          geminiModel,
+        }),
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${response.status}`);
+      const result = await resp.json();
+
+      if (!result.success) {
+        showAlert(result.error || 'サーバーエラー');
+        finishGeneration();
+        return;
       }
 
-      console.log('[LP-NB] SSE stream connected, reading events...');
+      state.jobId = result.jobId;
 
-      // Read SSE stream
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let receivedComplete = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const event = JSON.parse(line.slice(6));
-              console.log('[LP-NB] SSE event:', event.type, event.data?.id || '');
-              if (event.type === 'all_complete') receivedComplete = true;
-              handleSSEEvent(event);
-            } catch (e) {
-              console.warn('[LP-NB] Malformed SSE event:', line);
-            }
-          }
-        }
+      // Use server-provided section defs if available
+      if (result.sectionDefs) {
+        state.sectionDefs = result.sectionDefs;
       }
 
-      // Stream ended without all_complete — mark remaining as error
-      if (!receivedComplete) {
-        console.warn('[LP-NB] Stream ended unexpectedly without all_complete');
-        setStepState('step-image', 'error');
-        for (let i = 1; i <= 7; i++) {
-          if (state.sections[i] && state.sections[i].status === 'waiting') {
-            state.sections[i].status = 'error';
-            state.sections[i].error = 'サーバー接続が切断されました';
-            updateSectionCard(i);
-          }
-        }
-      }
+      console.log('[LP-NB] Job started:', state.jobId, 'sections:', state.sectionDefs.length);
+
+      // Start polling
+      state.pollTimer = setInterval(pollStatus, POLL_INTERVAL);
+      pollStatus();
+
     } catch (err) {
-      console.error('[LP-NB] Generation error:', err);
+      console.error('[LP-NB] Failed to start generation:', err);
       showAlert('エラー: ' + err.message);
-      // Mark current step as error
-      if (state.currentPhase === 'copy') setStepState('step-copy', 'error');
-      else if (state.currentPhase === 'design') setStepState('step-design', 'error');
-      else if (state.currentPhase === 'image') setStepState('step-image', 'error');
-      // Mark all waiting sections as error
-      for (let i = 1; i <= 7; i++) {
-        if (state.sections[i] && state.sections[i].status === 'waiting') {
-          state.sections[i].status = 'error';
-          state.sections[i].error = err.message;
-          updateSectionCard(i);
-        }
-      }
-    } finally {
-      state.generating = false;
-      if (state.elapsedTimer) { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
-      $('#btn-generate').disabled = false;
-      $('#btn-generate').textContent = 'LPを生成する';
+      finishGeneration();
     }
   }
 
-  function handleSSEEvent(event) {
-    switch (event.type) {
-      case 'copy_chunk':
-        state.copyText += event.data;
-        state.copyChunkCount++;
-        setCopyPreview(state.copyText);
-        break;
+  /** Poll job status */
+  async function pollStatus() {
+    if (!state.jobId) return;
 
-      case 'copy_complete':
-        state.currentPhase = 'design';
-        state.phaseStartTime = Date.now();
-        setStepState('step-copy', 'done');
-        setStepStatusText('step-copy', '完了');
-        setStepState('step-design', 'active');
-        hideCopyPreview();
-        break;
+    try {
+      const receivedParam = state.receivedSections.size > 0
+        ? '?received=' + Array.from(state.receivedSections).join(',')
+        : '';
 
-      case 'research_start':
-        state.currentPhase = 'design';
-        state.phaseStartTime = Date.now();
-        setStepState('step-design', 'active');
-        if (event.data.mode === 'auto-design') {
-          setStepStatusText('step-design', '自動デザイン分析中...');
-        } else {
-          setStepStatusText('step-design', '参考LP分析中...');
-        }
-        break;
+      const resp = await fetch(`/lp-nanobanana/api/status/${state.jobId}${receivedParam}`);
+      const result = await resp.json();
 
-      case 'research_complete':
-        setStepState('step-design', 'done');
-        if (event.data.warning) {
-          setStepStatusText('step-design', 'デフォルト使用');
-        } else {
-          setStepStatusText('step-design', '完了');
-        }
-        break;
-
-      case 'image_start': {
-        const id = event.data.id;
-        if (state.currentPhase !== 'image') {
-          state.currentPhase = 'image';
-          state.phaseStartTime = Date.now();
-        }
-        state.sections[id].status = 'generating';
-        state.imageStartTimes[id] = Date.now();
-        setStepState('step-design', 'done');
-        setStepState('step-image', 'active');
-        setStepStatusText('step-image', `${id}/7: ${event.data.name} 生成中...`);
-        updateSectionCard(id);
-        break;
+      if (!result.success) {
+        console.warn('[LP-NB] Poll error:', result.error);
+        return;
       }
 
-      case 'image_complete': {
-        const id = event.data.id;
-        state.sections[id].status = 'complete';
-        state.sections[id].base64 = event.data.base64;
-        state.sectionTimes.push(Date.now());
-        // Track duration for ETA calculation
-        if (state.imageStartTimes[id]) {
-          const duration = (Date.now() - state.imageStartTimes[id]) / 1000;
-          state.imageDurations.push(duration);
+      const data = result.data;
+      applyJobState(data);
+
+      // Stop polling when done or error
+      if (data.phase === 'done' || data.phase === 'error') {
+        stopPolling();
+        finishGeneration();
+      }
+    } catch (err) {
+      console.warn('[LP-NB] Poll request failed:', err.message);
+    }
+  }
+
+  /** Apply server job state to UI */
+  function applyJobState(data) {
+    const phase = data.phase;
+    const totalSections = state.sectionDefs.length;
+
+    // Update step states based on phase transitions
+    if (phase !== state.lastPhase) {
+      switch (phase) {
+        case 'copy':
+          setStepState('step-copy', 'active');
+          break;
+        case 'design':
+          setStepState('step-copy', 'done');
+          setStepState('step-design', 'active');
+          hideCopyPreview();
+          break;
+        case 'image':
+          setStepState('step-copy', 'done');
+          setStepState('step-design', 'done');
+          setStepState('step-image', 'active');
+          hideCopyPreview();
+          break;
+        case 'done':
+          setStepState('step-copy', 'done');
+          setStepState('step-design', 'done');
+          setStepState('step-image', 'done');
+          hideCopyPreview();
+          break;
+        case 'error':
+          if (state.lastPhase === 'copy' || !state.lastPhase) setStepState('step-copy', 'error');
+          else if (state.lastPhase === 'design') setStepState('step-design', 'error');
+          else setStepState('step-image', 'error');
+          break;
+      }
+      state.lastPhase = phase;
+    }
+
+    // Update status text for current phase
+    if (data.statusText) {
+      if (phase === 'copy') setStepStatusText('step-copy', data.statusText);
+      else if (phase === 'design') setStepStatusText('step-design', data.statusText);
+      else if (phase === 'image') setStepStatusText('step-image', data.statusText);
+    }
+
+    // Copy preview
+    if (data.copyText && data.copyText !== state.copyText) {
+      state.copyText = data.copyText;
+      setCopyPreview(state.copyText);
+    }
+
+    // Update sections
+    for (const [idStr, sec] of Object.entries(data.sections)) {
+      const id = parseInt(idStr);
+      const localSec = state.sections[id];
+      if (!localSec) continue;
+
+      // Always update prompt if server provides it (even for already-received sections)
+      if (sec.prompt && !localSec.prompt) {
+        localSec.prompt = sec.prompt;
+      }
+
+      if (sec.status !== localSec.status) {
+        localSec.status = sec.status;
+
+        if (sec.status === 'complete' && sec.base64) {
+          localSec.base64 = sec.base64;
+          if (sec.prompt) localSec.prompt = sec.prompt;
+          state.receivedSections.add(id);
         }
+        if (sec.status === 'error') {
+          localSec.error = sec.error;
+          if (sec.prompt) localSec.prompt = sec.prompt;
+        }
+
         updateSectionCard(id);
+      }
+    }
+
+    // Show feedback bar as soon as any section is complete (even during generation)
+    const anySuccess = Object.values(state.sections).some(s => s.status === 'complete');
+    if (anySuccess) {
+      $('#feedback-bar').classList.add('active');
+    }
+
+    // Download bar only when fully done
+    if (phase === 'done' && anySuccess) {
+      $('#download-bar').classList.add('active');
+    }
+  }
+
+  /** Update elapsed display (runs on a 1s timer) */
+  function updateElapsedDisplay() {
+    if (!state.startTime) return;
+
+    const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+    const elapsedStr = formatTime(elapsed);
+    const totalSections = state.sectionDefs.length;
+
+    const phase = state.lastPhase || 'copy';
+    let mainText = '';
+    let pct = 0;
+
+    switch (phase) {
+      case 'copy':
+        pct = 5;
+        mainText = `コピー生成中... ${elapsedStr}経過`;
+        break;
+      case 'design':
+        pct = 18;
+        mainText = `デザイン分析中... ${elapsedStr}経過`;
+        break;
+      case 'image': {
         const completed = Object.values(state.sections).filter(s => s.status === 'complete').length;
-        const pct = Math.floor((completed / 7) * 100);
-        setStepStatusText('step-image', `${completed}/7 完了 (${pct}%)`);
+        const failed = Object.values(state.sections).filter(s => s.status === 'error').length;
+        const done = completed + failed;
+        pct = 25 + Math.floor(75 * done / totalSections);
+        mainText = `画像生成 ${completed}/${totalSections}完了`;
         break;
       }
-
-      case 'image_error': {
-        const id = event.data.id;
-        state.sections[id].status = 'error';
-        state.sections[id].error = event.data.error;
-        state.sections[id].prompt = event.data.prompt;
-        updateSectionCard(id);
+      case 'done':
+        pct = 100;
+        const successCount = Object.values(state.sections).filter(s => s.status === 'complete').length;
+        mainText = `完了! ${successCount}/${totalSections}セクション成功`;
         break;
-      }
-
-      case 'all_complete':
-        state.currentPhase = 'done';
-        setStepState('step-image', 'done');
-        setStepStatusText('step-image', `${event.data.success}/${event.data.total} 完了`);
-        updateProgressBar(100, 100);
-        updateProgressText(`完了! ${event.data.success}/${event.data.total}セクション成功`, formatTime(Math.floor((Date.now() - state.startTime) / 1000)));
-        if (event.data.success > 0) {
-          $('#download-bar').classList.add('active');
-        }
-        break;
-
       case 'error':
-        // Mark current step as error
-        if (state.currentPhase === 'copy') setStepState('step-copy', 'error');
-        else if (state.currentPhase === 'design') setStepState('step-design', 'error');
-        else setStepState('step-image', 'error');
-        // Mark all waiting sections as error
-        for (let i = 1; i <= 7; i++) {
-          if (state.sections[i] && state.sections[i].status === 'waiting') {
-            state.sections[i].status = 'error';
-            state.sections[i].error = event.data;
-            updateSectionCard(i);
-          }
-        }
+        mainText = 'エラーが発生しました';
         break;
+    }
+
+    updateProgressBar(pct, 100);
+    updateProgressText(mainText, elapsedStr);
+  }
+
+  function stopPolling() {
+    if (state.pollTimer) {
+      clearInterval(state.pollTimer);
+      state.pollTimer = null;
+    }
+  }
+
+  function finishGeneration() {
+    state.generating = false;
+    stopPolling();
+    if (state.elapsedTimer) { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
+    $('#btn-generate').disabled = false;
+    $('#btn-generate').textContent = 'LPを生成する';
+    $('#btn-stop').style.display = 'none';
+
+    // Stop all generating animations (replace with stopped state)
+    for (const [idStr, sec] of Object.entries(state.sections)) {
+      if (sec.status === 'generating') {
+        sec.status = 'error';
+        sec.error = '生成が停止されました';
+        updateSectionCard(parseInt(idStr));
+      }
+    }
+
+    updateElapsedDisplay();
+  }
+
+  /** Stop generation — cancel the running job */
+  async function stopGeneration() {
+    if (!state.jobId) return;
+
+    const btn = $('#btn-stop');
+    btn.disabled = true;
+    btn.textContent = '停止中...';
+
+    try {
+      await fetch(`/lp-nanobanana/api/cancel/${state.jobId}`, { method: 'POST' });
+      showAlert('生成を停止しました', 'success');
+    } catch (err) {
+      console.error('[LP-NB] Cancel failed:', err);
+      showAlert('停止に失敗しました: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '生成を停止';
     }
   }
 
@@ -631,50 +699,59 @@
   function showResults() {
     const container = $('.results-section');
     container.classList.add('active');
-    if (!container.querySelector('.lp-section')) {
-      let html = '<div class="lp-preview">';
-      for (let i = 1; i <= 7; i++) {
-        html += `
-          <div class="lp-section" data-section="${i}">
-            <div class="lp-section-content" data-body="${i}">
-              <div class="lp-section-placeholder">
-                <div class="placeholder-label">${i}. ${SECTION_NAMES[i - 1]}</div>
-                <span class="section-status waiting" data-status="${i}">\u23F3 待機中</span>
-              </div>
+
+    // Always rebuild section cards based on current LP type
+    let html = '<div class="lp-preview">';
+    for (const def of state.sectionDefs) {
+      const i = def.id;
+      html += `
+        <div class="lp-section" data-section="${i}">
+          <div class="lp-section-content" data-body="${i}">
+            <div class="lp-section-placeholder">
+              <div class="placeholder-label">${i}. ${def.nameJa}</div>
+              <span class="section-status waiting" data-status="${i}">\u23F3 待機中</span>
             </div>
-            <div class="lp-section-overlay">
-              <span class="overlay-label">${i}. ${SECTION_NAMES[i - 1]}</span>
-              <div class="overlay-actions">
-                <button class="btn-section-dl" onclick="window.__downloadSection(${i})" title="この画像をダウンロード">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.5l-3.5-3.5h2.5v-5h2v5h2.5l-3.5 3.5z"/><path d="M2 12h12v2h-12z"/></svg>
-                  保存
-                </button>
-                <button class="btn-section-zoom" onclick="window.__openModal(document.querySelector('[data-body=&quot;${i}&quot;] img')?.src)" title="拡大表示">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 014.38 8.82l3.65 3.65a.75.75 0 01-1.06 1.06l-3.65-3.65A5.5 5.5 0 116.5 1zm0 1.5a4 4 0 100 8 4 4 0 000-8z"/></svg>
-                  拡大
-                </button>
-              </div>
+          </div>
+          <div class="lp-section-overlay">
+            <span class="overlay-label">${i}. ${def.nameJa}</span>
+            <div class="overlay-actions">
+              <button class="btn-section-dl" onclick="window.__downloadSection(${i})" title="この画像をダウンロード">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.5l-3.5-3.5h2.5v-5h2v5h2.5l-3.5 3.5z"/><path d="M2 12h12v2h-12z"/></svg>
+                保存
+              </button>
+              <button class="btn-section-zoom" onclick="window.__openModal(document.querySelector('[data-body=&quot;${i}&quot;] img')?.src)" title="拡大表示">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 014.38 8.82l3.65 3.65a.75.75 0 01-1.06 1.06l-3.65-3.65A5.5 5.5 0 116.5 1zm0 1.5a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                拡大
+              </button>
+              <button class="btn-section-prompt" onclick="window.__showPrompt(${i})" title="プロンプトを表示">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1H2zm0 3h10v1H2zm0 3h12v1H2zm0 3h8v1H2z"/></svg>
+                プロンプト
+              </button>
+              <button class="btn-section-regen" onclick="window.__regenerateSection(${i})" title="フィードバック付き再生成">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M13.65 2.35a8 8 0 10.35 11.3l-1.41-1.41a6 6 0 11-.27-8.47L10 6h6V0l-2.35 2.35z"/></svg>
+                再生成
+              </button>
             </div>
-          </div>`;
-      }
-      html += '</div>';
-      container.innerHTML = html;
+          </div>
+        </div>`;
     }
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   function updateAllSectionCards() {
-    for (let i = 1; i <= 7; i++) updateSectionCard(i);
+    for (const def of state.sectionDefs) updateSectionCard(def.id);
   }
 
   function updateSectionCard(id) {
     const sec = state.sections[id];
     if (!sec) return;
 
+    const name = getSectionName(id);
     const bodyEl = $(`[data-body="${id}"]`);
     const sectionEl = $(`.lp-section[data-section="${id}"]`);
     if (!bodyEl || !sectionEl) return;
 
-    // Remove all status classes, add current
     sectionEl.classList.remove('is-waiting', 'is-generating', 'is-complete', 'is-error');
     sectionEl.classList.add('is-' + sec.status);
 
@@ -682,7 +759,7 @@
       case 'waiting':
         bodyEl.innerHTML = `
           <div class="lp-section-placeholder">
-            <div class="placeholder-label">${id}. ${SECTION_NAMES[id - 1]}</div>
+            <div class="placeholder-label">${id}. ${name}</div>
             <span class="section-status waiting">\u23F3 待機中</span>
           </div>`;
         break;
@@ -690,7 +767,7 @@
         bodyEl.innerHTML = `
           <div class="lp-section-placeholder generating">
             <div class="generating-animation">
-              <div class="gen-text">${SECTION_NAMES[id - 1]} を生成中<span class="gen-dots"></span></div>
+              <div class="gen-text">${name} を生成中<span class="gen-dots"></span></div>
               <div class="running-scene">
                 <div class="running-rabbit">
                   <div class="rabbit-body">
@@ -712,12 +789,12 @@
           </div>`;
         break;
       case 'complete':
-        bodyEl.innerHTML = `<img src="data:image/png;base64,${sec.base64}" alt="セクション${id}" onclick="window.__openModal(this.src)" />`;
+        bodyEl.innerHTML = `<img src="data:image/png;base64,${sec.base64}" alt="${name}" onclick="window.__openModal(this.src)" />`;
         break;
       case 'error':
         bodyEl.innerHTML = `
           <div class="lp-section-placeholder error">
-            <div class="placeholder-label">${id}. ${SECTION_NAMES[id - 1]}</div>
+            <div class="placeholder-label">${id}. ${name}</div>
             <div class="error-msg">${sec.error || '不明なエラー'}</div>
             <button class="btn-retry" onclick="window.__retrySection(${id})">リトライ</button>
           </div>`;
@@ -740,6 +817,107 @@
     setTimeout(() => div.remove(), 4000);
   }
 
+  // --- Show Prompt (editable + regenerate) ---
+  window.__showPrompt = function (id) {
+    const sec = state.sections[id];
+    if (!sec?.prompt) return showAlert('プロンプトがまだありません');
+
+    const name = getSectionName(id);
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:#1e1e2e;color:#e0e0e0;border-radius:12px;max-width:700px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+
+    const headerEl = document.createElement('div');
+    headerEl.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #333;';
+    headerEl.innerHTML = `<span style="font-weight:600;font-size:1rem;">Section ${id}: ${name} のプロンプト</span>`;
+
+    const btnGroup = document.createElement('div');
+    btnGroup.style.cssText = 'display:flex;gap:8px;';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = 'コピー';
+    copyBtn.style.cssText = 'background:#3b82f6;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:0.85rem;';
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        copyBtn.textContent = 'コピー済み!';
+        setTimeout(() => { copyBtn.textContent = 'コピー'; }, 2000);
+      });
+    });
+
+    const regenBtn = document.createElement('button');
+    regenBtn.textContent = 'このプロンプトで再生成';
+    regenBtn.style.cssText = 'background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;';
+    regenBtn.addEventListener('click', async () => {
+      const geminiKey = $('#gemini-api-key').value.trim();
+      if (!geminiKey) { showAlert('Gemini APIキーを設定してください'); return; }
+
+      const editedPrompt = textarea.value.trim();
+      if (!editedPrompt) { showAlert('プロンプトが空です'); return; }
+
+      regenBtn.disabled = true;
+      regenBtn.textContent = '生成中...';
+
+      sec.prompt = editedPrompt;
+      sec.status = 'generating';
+      sec.error = null;
+      updateSectionCard(id);
+
+      try {
+        const resp = await fetch('/lp-nanobanana/api/retry-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sectionId: id,
+            lpType: state.lpType,
+            prompt: editedPrompt,
+            geminiApiKey: geminiKey,
+            geminiModel: $('#gemini-model').value,
+          }),
+        });
+        const result = await resp.json();
+        if (result.success) {
+          sec.status = 'complete';
+          sec.base64 = result.data.base64;
+          updateSectionCard(id);
+          showAlert(`${name} の再生成が完了しました`, 'success');
+          const anySuccess = Object.values(state.sections).some(s => s.status === 'complete');
+          if (anySuccess) $('#download-bar').classList.add('active');
+        } else {
+          sec.status = 'error';
+          sec.error = result.error;
+          updateSectionCard(id);
+          showAlert(result.error || '再生成に失敗しました');
+        }
+      } catch (err) {
+        sec.status = 'error';
+        sec.error = err.message;
+        updateSectionCard(id);
+        showAlert('再生成エラー: ' + err.message);
+      }
+
+      regenBtn.disabled = false;
+      regenBtn.textContent = 'このプロンプトで再生成';
+      overlay.remove();
+    });
+
+    btnGroup.appendChild(copyBtn);
+    btnGroup.appendChild(regenBtn);
+    headerEl.appendChild(btnGroup);
+
+    const textarea = document.createElement('textarea');
+    textarea.style.cssText = 'padding:20px;margin:0;flex:1;font-size:0.8rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;font-family:monospace;background:#1e1e2e;color:#e0e0e0;border:none;resize:none;outline:none;overflow:auto;';
+    textarea.value = sec.prompt;
+
+    modal.appendChild(headerEl);
+    modal.appendChild(textarea);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  };
+
   // --- Retry ---
   window.__retrySection = async function (id) {
     const sec = state.sections[id];
@@ -756,7 +934,13 @@
       const resp = await fetch('/lp-nanobanana/api/retry-section', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sectionId: id, prompt: sec.prompt, geminiApiKey: geminiKey }),
+        body: JSON.stringify({
+          sectionId: id,
+          lpType: state.lpType,
+          prompt: sec.prompt,
+          geminiApiKey: geminiKey,
+          geminiModel: $('#gemini-model').value,
+        }),
       });
       const result = await resp.json();
       if (result.success) {
@@ -781,7 +965,7 @@
   window.__downloadSection = function (id) {
     const sec = state.sections[id];
     if (!sec?.base64) return showAlert('画像がまだ生成されていません');
-    const sectionFileNames = ['first-view', 'problem', 'solution', 'benefit', 'testimonial', 'pricing', 'cta'];
+    const fileName = getSectionFileName(id);
     const binary = atob(sec.base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -789,7 +973,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `section_${String(id).padStart(2, '0')}_${sectionFileNames[id - 1]}.png`;
+    a.download = `section_${String(id).padStart(2, '0')}_${fileName}.png`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -797,6 +981,139 @@
   // --- Modal ---
   window.__openModal = function (src) {
     if (src) openModal(src);
+  };
+
+  // --- Regenerate All with Feedback ---
+  async function regenerateAll() {
+    const feedback = $('#feedback-text').value.trim();
+    if (!feedback) return showAlert('修正リクエストを入力してください');
+
+    const geminiKey = $('#gemini-api-key').value.trim();
+    if (!geminiKey) return showAlert('Gemini APIキーを設定してください');
+
+    const sectionsWithPrompt = Object.entries(state.sections)
+      .filter(([, s]) => s.prompt)
+      .map(([id]) => parseInt(id));
+
+    if (sectionsWithPrompt.length === 0) return showAlert('再生成できるセクションがありません');
+
+    const btn = $('#btn-regenerate-all');
+    btn.disabled = true;
+    btn.textContent = '再生成中...';
+
+    for (const id of sectionsWithPrompt) {
+      await regenerateSectionWithFeedback(id, feedback);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '全セクション再生成';
+    showAlert(`${sectionsWithPrompt.length}セクションの再生成が完了しました`, 'success');
+  }
+
+  /** Regenerate a single section with feedback appended to prompt */
+  async function regenerateSectionWithFeedback(id, feedback) {
+    const sec = state.sections[id];
+    if (!sec?.prompt) return;
+
+    const geminiKey = $('#gemini-api-key').value.trim();
+    if (!geminiKey) return;
+
+    const modifiedPrompt = sec.prompt + `\n\n【ユーザーからの修正リクエスト】\n以下のフィードバックを反映して画像を改善してください:\n${feedback}`;
+
+    sec.status = 'generating';
+    sec.error = null;
+    updateSectionCard(id);
+
+    try {
+      const resp = await fetch('/lp-nanobanana/api/retry-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sectionId: id,
+          lpType: state.lpType,
+          prompt: modifiedPrompt,
+          geminiApiKey: geminiKey,
+          geminiModel: $('#gemini-model').value,
+        }),
+      });
+      const result = await resp.json();
+      if (result.success) {
+        sec.status = 'complete';
+        sec.base64 = result.data.base64;
+        updateSectionCard(id);
+      } else {
+        sec.status = 'error';
+        sec.error = result.error;
+        updateSectionCard(id);
+      }
+    } catch (err) {
+      sec.status = 'error';
+      sec.error = err.message;
+      updateSectionCard(id);
+    }
+  }
+
+  // --- Per-section Regenerate with Feedback ---
+  window.__regenerateSection = function (id) {
+    const sec = state.sections[id];
+    if (!sec?.prompt) return showAlert('プロンプトがまだありません');
+
+    const geminiKey = $('#gemini-api-key').value.trim();
+    if (!geminiKey) return showAlert('Gemini APIキーを設定してください');
+
+    const name = getSectionName(id);
+
+    // Show feedback input dialog
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:#1e1e2e;color:#e0e0e0;border-radius:12px;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+
+    const headerEl = document.createElement('div');
+    headerEl.style.cssText = 'padding:16px 20px;border-bottom:1px solid #333;font-weight:600;font-size:1rem;';
+    headerEl.textContent = `${id}. ${name} を再生成`;
+
+    const bodyEl = document.createElement('div');
+    bodyEl.style.cssText = 'padding:20px;';
+
+    const textarea = document.createElement('textarea');
+    textarea.rows = 3;
+    textarea.placeholder = '修正したいポイントを入力（例: もっと高級感を出して / 文字を大きく）';
+    textarea.style.cssText = 'width:100%;padding:10px 14px;border:1px solid #444;border-radius:8px;font-size:0.9rem;font-family:inherit;background:#2a2a3e;color:#e0e0e0;resize:vertical;';
+
+    // Pre-fill from main feedback textarea if it has content
+    const mainFeedback = $('#feedback-text').value.trim();
+    if (mainFeedback) textarea.value = mainFeedback;
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:10px;margin-top:14px;';
+
+    const regenBtn = document.createElement('button');
+    regenBtn.textContent = '再生成する';
+    regenBtn.style.cssText = 'flex:1;padding:10px;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;';
+    regenBtn.addEventListener('click', async () => {
+      const fb = textarea.value.trim();
+      if (!fb) { showAlert('修正ポイントを入力してください'); return; }
+      overlay.remove();
+      await regenerateSectionWithFeedback(id, fb);
+      showAlert(`${name} の再生成が完了しました`, 'success');
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.style.cssText = 'padding:10px 20px;background:#444;color:#e0e0e0;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;';
+    cancelBtn.addEventListener('click', () => overlay.remove());
+
+    btnRow.appendChild(regenBtn);
+    btnRow.appendChild(cancelBtn);
+    bodyEl.appendChild(textarea);
+    bodyEl.appendChild(btnRow);
+    modal.appendChild(headerEl);
+    modal.appendChild(bodyEl);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
   };
 
   // --- Download ZIP ---
@@ -811,14 +1128,14 @@
       return showAlert('JSZipが読み込まれていません');
     }
 
-    const sectionNames = ['first-view', 'problem', 'solution', 'benefit', 'testimonial', 'pricing', 'cta'];
     const zip = new JSZip();
 
     for (const { id, base64 } of completed) {
+      const fileName = getSectionFileName(id);
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      zip.file(`section_${String(id).padStart(2, '0')}_${sectionNames[id - 1]}.png`, bytes);
+      zip.file(`section_${String(id).padStart(2, '0')}_${fileName}.png`, bytes);
     }
 
     const blob = await zip.generateAsync({ type: 'blob' });

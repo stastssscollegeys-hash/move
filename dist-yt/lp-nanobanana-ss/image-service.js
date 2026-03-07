@@ -8,18 +8,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ImageService = void 0;
 const genai_1 = require("@google/genai");
 const sharp_1 = __importDefault(require("sharp"));
-/** Gemini model for image generation (NanoBanana 2 / Gemini 3.1 Flash Image) */
-const GEMINI_MODEL = 'gemini-3.1-flash-image-preview';
+const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
 class ImageService {
-    constructor(geminiApiKey) {
+    constructor(geminiApiKey, model) {
         this.ai = new genai_1.GoogleGenAI({ apiKey: geminiApiKey });
+        this.model = model?.trim() || DEFAULT_MODEL;
     }
     /**
      * Generate a single section image using Gemini API.
      * Returns base64 PNG string resized to 1080px width.
      */
     async generateSectionImage(prompt, sectionMeta) {
-        console.log(`[LP-IMG] Generating section ${sectionMeta.id}: ${sectionMeta.nameJa} via Gemini API`);
+        console.log(`[LP-IMG] Generating section ${sectionMeta.id}: ${sectionMeta.nameJa} via ${this.model}`);
         const fullPrompt = `Generate a high-quality LP (landing page) section image.
 Aspect ratio: ${sectionMeta.aspectRatio} (${sectionMeta.width}x${sectionMeta.height}px)
 Style: ${sectionMeta.styleKeywords}
@@ -31,7 +31,7 @@ ${prompt}`;
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('画像生成がタイムアウトしました（120秒）。もう一度お試しください。')), 120000));
         const response = await Promise.race([
             this.ai.models.generateContent({
-                model: GEMINI_MODEL,
+                model: this.model,
                 contents: fullPrompt,
                 config: {
                     responseModalities: [genai_1.Modality.IMAGE, genai_1.Modality.TEXT],
