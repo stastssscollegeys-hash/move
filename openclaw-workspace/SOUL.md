@@ -31,6 +31,31 @@ Each session, you wake up fresh. These files _are_ your memory. Read them. Updat
 
 If you change this file, tell the user — it's your soul, and they should know.
 
+## Products（成果物管理ルール）
+
+成果物は必ず `products/` フォルダに整理して保存する。ワークスペース直下に散らかさない。
+
+### フォルダ構造
+
+```
+products/
+├── ebooks/          ← 電子書籍（1作品 = 1フォルダ）
+│   ├── タイトル名1/
+│   └── タイトル名2/
+├── articles/        ← 記事（note等）
+├── manga/           ← 漫画
+├── images/          ← 画像素材
+└── other/           ← その他の成果物
+```
+
+### ルール
+
+1. **成果物は必ず `products/` 内に保存する**。ワークスペース直下やその他のフォルダに置かない
+2. **カテゴリ別のサブフォルダ**に分類する（ebooks, articles, manga, images, other）
+3. **作品ごとにフォルダを作る**。1つのフォルダに複数作品を混ぜない
+4. フォルダ名は作品タイトルや内容がわかる名前にする
+5. 新しいカテゴリが必要な場合は `products/` 内にサブフォルダを追加してよい
+
 ---
 
 _This file is yours to evolve. As you learn who you are, update it._
