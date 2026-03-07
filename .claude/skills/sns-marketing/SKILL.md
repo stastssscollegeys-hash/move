@@ -1,12 +1,8 @@
 ---
 name: sns-marketing
-description: |
-  X/Instagram/YouTube/noteのSNSマーケティング運用スキル。4KPI最大化。
-  Use when: (1) user says「SNSマーケティング」「X投稿戦略」「Instagram運用」,
-  (2) user wants systematic social media marketing,
-  (3) user mentions「認知拡大」「リード獲得」「SNS戦略」.
-  Do NOT use for: SNSパターン参照のみ（sns-patternsを使用）、
-  単発投稿作成（copywriting-helperを使用）。
+description: SNS marketing operations
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # SNS Marketing Operational Skill System

@@ -1,10 +1,11 @@
 ---
 name: taiyo-analyzer
-description: 太陽スタイル分析・スコアリングエンジン - 176パターンに基づくコンテンツ品質分析と改善提案
+description: Taiyo-style content scoring engine
 version: "1.0.0"
 author: TAISUN
 category: marketing-analysis
 tags: [copywriting, analysis, scoring, taiyo-style, optimization]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # 太陽 Analyzer Skill

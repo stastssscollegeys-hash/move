@@ -1,3 +1,11 @@
+---
+name: opencode-ralph-loop
+description: OpenCode iterative dev support
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+model: sonnet
+disable-model-invocation: true
+---
+
 # OpenCode Ralph Loop - 反復開発支援
 
 **opt-in、既定OFF、乱用禁止**の反復開発スキルです。

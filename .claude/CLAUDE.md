@@ -86,6 +86,7 @@
 | note + 画像 + 記事 / note記事を一発で | note-article-creator-ss |
 | 漫画 + 一括 + 生成 / 漫画を作って / マンガ一括 | manga-creator-ss |
 | メルマガ / メールマガジン / 配信メール | merumaga-ss |
+| スライド / プレゼン / PPTX / パワポ / 発表資料 | slide-creator-ss |
 
 設定ファイル: `.claude/hooks/config/skill-mapping.json`
 
@@ -100,7 +101,7 @@ AIエージェント、MCPツール、マーケティングスキルを完全統
 | Component | Count | Active | Description |
 |-----------|-------|--------|-------------|
 | **Agents** | 82 | 11 | AIT42 + Taiyou統合エージェント |
-| **Skills** | 68 | 57 | マーケティング・クリエイティブ・インフラ |
+| **Skills** | 69 | 58 | マーケティング・クリエイティブ・インフラ |
 | **Commands** | 84 | 51 | ショートカットコマンド |
 | **MCP Servers** | 36 | - | 外部サービス連携 |
 | **MCP Tools** | 227 | - | 自動化ツール群 |
@@ -182,7 +183,7 @@ taisun_v2/.claude/
 ### Specialized Tools (16+)
 - Data analyst, Researcher, Automation architect, etc.
 
-## Skill Categories (67 Skills)
+## Skill Categories (68 Skills)
 
 ### Marketing & Sales (12)
 | Skill | Description |
@@ -217,6 +218,11 @@ taisun_v2/.claude/
 | `diagram-illustration` | 図解作成 |
 | `custom-character` | キャラクター設定 |
 | `sns-marketing` | SNSマーケティング |
+
+### Ideation & Strategy (1)
+| Skill | Description |
+|-------|-------------|
+| `debate-ss` | AIディベート（3ペルソナ×3ラウンド） |
 
 ### AI Image & Video (5)
 | Skill | Description |
@@ -465,6 +471,7 @@ taisun_v2/.claude/
 - 日本語優先
 - 技術用語は英語可
 - マーケティング専門用語を適切に使用
+- **一人称「僕」は使用禁止**（「私」も不要。主語を省略するか「こちら」等を使う）
 
 
 <claude-mem-context>
@@ -525,3 +532,102 @@ taisun_v2/.claude/
 - 開発1にないファイルの場合 → 新規ファイルとしてコピー
 - 開発1で独自に追加・変更したスキル（`-ss`サフィックス付き等）・設定・ルールは**絶対に消さない**
 - 丸ごとコピーで上書きすることは**絶対禁止**
+
+## Git同期時の必須手順
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  git fetch を実行せずにリモートとの差分を判断するのは絶対禁止       │
+│  git status だけ見て「同期済み」と判断するのは絶対禁止              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**なぜ git fetch が必須か：**
+- `git status` はローカルにキャッシュされたリモート情報としか比較しない
+- 別PCからpushされた新しいコミットは `git fetch` しないと検出できない
+- `git status` で「up to date」と表示されても、実際にはリモートが先に進んでいることがある
+
+**正しい同期手順：**
+1. `git fetch origin`（リモートの最新情報を取得）
+2. `git pull origin main`（GitHubの最新をローカルに取得）
+3. `git add → git commit → git push`（ローカルの変更をGitHubに送信）
+
+## ローカル専用ストレージ禁止ルール
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ~/.claude/plans/ や ~/.claude/projects/ はPC固有（git管理外）       │
+│  重要な設計情報・決定事項はここに残さない                            │
+│  必ず git管理下のファイルに反映すること                              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+- ユーザーはPCを移動する。ローカル専用データは次のPCでは見えない
+- Claude Codeのプランモードは `~/.claude/plans/` に自動保存するが、**内容は必ず `docs/` 配下にも反映する**
+- プラン作成後・セッション終了前に、プラン内容が `docs/` や `SESSION_HANDOFF.md` に書かれているか確認する
+- Praetorianのコンパクトもローカル専用なので、重要な決定は `DECISION_LOG.md` に書く
+- **git管理下だけが信頼できるデータ保存先**
+
+## メタプロンプト → スキル連動ルール
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  メタプロンプトが更新されたら、対応するスキルも必ず同期更新する      │
+│  スキルだけ更新・メタプロンプトだけ更新は禁止（常にセットで）        │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+| メタプロンプト（原本） | 対応スキル | 備考 |
+|----------------------|-----------|------|
+| `hokan/表紙リサーチ/最強メタプロンプト_v2.md` | `.claude/skills/cover-master-ss/SKILL.md` | Kindle表紙 |
+| `output/line-banner/line_banner_meta_prompt_v2.md` | `.claude/skills/line-banner-ss/SKILL.md` | LINE登録バナー |
+| `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` | `.claude/skills/youtube-thumbnail-ss/SKILL.md` | YouTubeサムネイル |
+| `output/ebook-listings/ebook_listings_meta_prompt.md` | `.claude/skills/ebook-listings-ss/SKILL.md` | Kindle紹介文・メタデータ |
+
+**運用ルール：**
+- メタプロンプトを修正・バージョンアップしたら、対応スキルのSKILL.mdにも同じ変更を反映する
+- スキル側にしかない情報（When to Use, 関連スキル, 使用例等）はスキル固有なので維持する
+- メタプロンプトの原本は**別ファイルとして保持**する（上書きではなく新バージョンを別ファイルで作成）
+- 今後新しいメタプロンプト＋スキルのペアが増えたら、この表に追加する
+
+## YouTube動画リサーチツール 方針
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  現在のバージョン（ユーザーが自分でAPIキーを設定する版）は          │
+│  事業者向け販売用ツールとして保持する。今後上書きしない。           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 呼称ルール（重要）
+
+「YouTubeのツール」「分析ツール」「リサーチツール」と言ったら → **Render版（開発1内のWeb版）を指す**
+- ソースコード: `開発1/src/youtube-research/`, `開発1/public/youtube-research*`
+- デプロイ先: Render（無料枠）
+- APIガイド: `開発1/public/youtube-research-api-guide.html`
+
+「MCP」「youtube-research-mcp」と明示した場合のみ → `dev/youtube-research-mcp/` を指す
+
+### 構成
+
+- **事業者販売版（現行・Render版）**: ユーザーが自分でYouTube API / Anthropic APIキーを取得・設定して使う
+- このバージョンのソースコード（`src/youtube-research/`, `public/youtube-research*`）は上書き禁止
+- Web版デプロイ先: Render（無料枠）
+- **MCP版**: `dev/youtube-research-mcp/`（Claude Code内から使うMCPサーバー。別リポジトリ）
+- **会員制版**: `dev/youtube-research-members/` で新規作成（Next.js + Clerk + Supabase + Vercel）
+- **管理用MCP**: `dev/youtube-research-admin-mcp/` で新規作成（AI会員管理）
+- 設計原本: `docs/youtube-research-design.md`
+
+## ファイル管理ルール（必須）
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  新しいファイルを作ったら、置き換え元の古いファイルは必ず削除する    │
+│  作りっぱなし・重複ファイルの放置は絶対禁止                          │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+- 同じ目的のファイルは常に**1つだけ**存在する状態にする
+- 新規ファイル作成時、同じ役割の既存ファイルがあれば**削除してから作る**
+- バッチファイル等のツールは**英語ファイル名**で作成（日本語ファイル名はcmd.exeで問題が起きる）
+- 「改良版」「v2」等を別ファイルで作った場合、旧版は即削除

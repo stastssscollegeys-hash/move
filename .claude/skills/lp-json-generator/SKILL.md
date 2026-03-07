@@ -1,12 +1,8 @@
 ---
 name: lp-json-generator
-description: |
-  参考画像のデザインスタイルを維持しながら、テキストのみを変更したLP画像を生成。
-  Use when: (1) user says「この画像で文字だけ変えて」「デザインで別の内容を」,
-  (2) user wants to regenerate LP images with different text,
-  (3) user mentions「参考画像と同じスタイル」「テキスト差し替え」.
-  Do NOT use for: ゼロからの画像生成（nanobanana-proを使用）、
-  LP設計（lp-designを使用）。
+description: LP image generation with text swap
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # LP JSON Generator

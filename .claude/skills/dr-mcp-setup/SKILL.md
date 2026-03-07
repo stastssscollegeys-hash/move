@@ -1,6 +1,6 @@
 ---
 name: dr-mcp-setup
-description: >
+description: Deep research MCP setup
   MCPサーバーを安全に追加し、Deep Researchで使える「ツール層」を整える。
   プロジェクト共有が必要なら .mcp.json（project scope）を採用する。
 disable-model-invocation: true

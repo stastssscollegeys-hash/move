@@ -1,8 +1,9 @@
 ---
 name: video-agent
-description: 動画自動生成パイプライン（Video Agent OS）の統合スキル。ダウンロード、文字起こし、制作、品質管理、CI/CD、通知まで一貫して対応。
+description: Video production pipeline
 version: "2.0.0"
 author: TAISUN
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
 # Video Agent - 統合動画自動化スキル

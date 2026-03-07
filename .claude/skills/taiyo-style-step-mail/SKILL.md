@@ -1,11 +1,12 @@
 ---
 name: taiyo-style-step-mail
-description: 太陽スタイル完全準拠のステップメール作成。6つの教育要素×心理トリガー×感情ジェットコースターで開封率・成約率を最大化。
+description: Taiyo-style step mail creation
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [step-mail, email-marketing, taiyo-style, automation]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Taiyo Style Step Mail Skill

@@ -1,6 +1,6 @@
 ---
 name: keyword-free
-description: APIキー不要のキーワード抽出スキル。Claude Code組み込みのWebSearchを使用。他人に配布してもそのまま使える。
+description: API-free keyword extraction
 argument-hint: "[シードキーワード] [--type=all|longtail|niche|trending|buying]"
 allowed-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
 model: opus

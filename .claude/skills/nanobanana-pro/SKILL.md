@@ -1,6 +1,7 @@
 ---
 name: gemini-image-generator
-description: Generate images using Google Gemini NanoBanana via browser automation. Use this skill for general-purpose AI image generation from text prompts. Includes persistent authentication, automatic environment setup, and reference image support for style matching.
+description: AI image generation via Gemini
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
 # Gemini Image Generator
@@ -19,20 +20,6 @@ Trigger when user:
 **For specific use cases, use specialized skills:**
 - **LP/セールスレター画像** → `gemini-lp-generator`
 - **ウェビナースライド** → `gemini-slide-generator`
-
-## Important: 思考モード (Thinking Mode) Required
-
-**日本語テキストを含む画像を生成する場合、Geminiの「思考モード」を使用してください。**
-
-「高速モード」では日本語テキストが文字化けする可能性があります。
-
-### 自動切り替え
-スクリプトは自動的に「思考モード」への切り替えを試みます。
-
-### 手動切り替え（必要な場合）
-1. Geminiのチャット画面で右下のモードトグルを確認
-2. 「高速」になっている場合は「思考」に切り替え
-3. 画像生成を実行
 
 ## Quick Start
 
@@ -92,19 +79,10 @@ python scripts/run.py image_generator.py \
 |-----------|----------|---------|-------------|
 | `--prompt` | Yes | - | Image generation prompt |
 | `--output` | No | `output/generated_image.png` | Output file path |
-| `--reference-image` | No | - | Reference image for style extraction (YAML analysis) |
-| `--attach-image` | No | - | Image to attach to Gemini chat before prompt (for character consistency) |
+| `--reference-image` | No | - | Reference image for style extraction |
 | `--yaml-output` | No | - | Save YAML analysis to file |
 | `--show-browser` | No | False | Show browser for debugging |
 | `--timeout` | No | 180 | Max wait time in seconds |
-
-### --reference-image vs --attach-image
-
-| | `--reference-image` | `--attach-image` |
-|---|---|---|
-| 用途 | スタイル抽出 | キャラクター一貫性 |
-| 動作 | 画像→YAML分析→メタプロンプト生成 | 画像をGeminiチャットに直接添付 |
-| ユースケース | 参考画像と同じ画風で別の絵を生成 | キャラシートを参照して同じキャラを描く |
 
 ## Prompt Examples
 
@@ -146,22 +124,6 @@ python scripts/run.py image_generator.py \
   --reference-image "examples/cozy_room.png" \
   --show-browser \
   --output output/cafe.png
-```
-
-### Attach Image Examples (キャラクター一貫性)
-
-```bash
-# Attach character sheet for consistency
-python scripts/run.py image_generator.py \
-  --prompt "Panel showing the main character running through a city street" \
-  --attach-image "characters/all_characters.png" \
-  --output output/page_001.png
-
-# Manga panel with character reference
-python scripts/run.py image_generator.py \
-  --prompt "Close-up of Yui smiling, anime style" \
-  --attach-image "characters/all_characters.png" \
-  --output output/page_002.png
 ```
 
 ### Standalone Tools

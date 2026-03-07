@@ -1,6 +1,6 @@
 ---
 name: sdd-req100
-description: Agentic SDD向けに、EARS準拠の要件定義(requirements.md)を生成し、C.U.T.E.で機械採点してscore.jsonを必ず出力。目標点に届くまで改善ループする。
+description: EARS requirements with scoring
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3 *)

@@ -1,11 +1,12 @@
 ---
 name: taiyo-style-bullet
-description: 太陽スタイル完全準拠のブレット（箇条書き）・ベネフィットリスト生成。特徴→ベネフィット変換で購買意欲を最大化。
+description: Taiyo-style bullet/benefit lists
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [bullet, benefit, taiyo-style, copywriting]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Taiyo Style Bullet Skill

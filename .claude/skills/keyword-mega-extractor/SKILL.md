@@ -1,6 +1,6 @@
 ---
 name: keyword-mega-extractor
-description: mega-researchと連携して複合キーワード・ロングテール・ニッチ・関連・売れるキーワード・急上昇キーワードを抽出。SEO/PPC/コンテンツマーケティング向け。
+description: SEO keyword extraction and analysis
 argument-hint: "[シードキーワード] [--type=all|longtail|niche|trending|buying]"
 allowed-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Bash(curl:*, python:*, node:*)
 model: opus

@@ -1,12 +1,8 @@
 ---
 name: youtube-channel-summary
-description: |
-  YouTubeチャンネルの動画を分析し、要約を生成するスキル。
-  Use when: (1) user says「チャンネル分析」「YouTube分析」「競合チャンネル調査」,
-  (2) user wants to analyze YouTube channel content patterns,
-  (3) user mentions「動画トレンド」「コンテンツ戦略」.
-  Do NOT use for: 単発の動画ダウンロード（video-downloadを使用）、
-  サムネイル作成（youtube-thumbnailを使用）。
+description: YouTube channel analysis
+allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
+disable-model-invocation: true
 ---
 
 # YouTube Channel Summary Skill

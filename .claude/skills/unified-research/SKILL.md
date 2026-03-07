@@ -1,12 +1,8 @@
 ---
 name: unified-research
-description: |
-  複数のリサーチAPI（Tavily/SerpAPI/Brave/NewsAPI/Perplexity）を統合した情報収集。
-  Use when: (1) user says「リサーチして」「調べて」「情報を集めて」「深掘りして」,
-  (2) user wants multi-source research,
-  (3) user mentions「ファクトチェック」「情報収集」.
-  Do NOT use for: APIキー不要の簡易調査（research-freeを使用）、
-  最強の徹底調査（mega-researchを使用）。
+description: Multi-API unified research
+allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
+disable-model-invocation: true
 ---
 
 # Unified Research Skill

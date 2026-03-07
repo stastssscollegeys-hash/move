@@ -13,6 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readStdin } = require('./utils/read-stdin');
 
 async function main() {
   let input = {};
@@ -241,27 +242,6 @@ function formatSize(bytes) {
 
 function formatDate(date) {
   return new Date(date).toLocaleString('ja-JP');
-}
-
-function readStdin(timeout = 1000) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
 }
 
 main().catch(() => process.exit(0));

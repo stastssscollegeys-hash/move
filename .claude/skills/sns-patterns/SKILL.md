@@ -1,11 +1,8 @@
 ---
 name: sns-patterns
-description: |
-  SNS投稿パターン・プラットフォーム別戦略・リスク管理のナレッジベース。
-  Use when: (1) user says「SNS投稿」「X投稿」「Instagram投稿」,
-  (2) user needs platform-specific content strategy,
-  (3) user mentions「炎上対策」「SNSリスク」「投稿パターン」.
-  Do NOT use for: SNS分析レポート作成、広告運用設定。
+description: SNS posting patterns and strategy
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # SNSパターンナレッジ

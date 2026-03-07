@@ -1,6 +1,6 @@
 ---
 name: dr-explore
-description: >
+description: Deep research exploration phase
   Deep Researchの探索・収集フェーズ。世界中のニュース/SNS/論文/公式Docs/OSS情報を横断して
   証拠（evidence.jsonl）として保存する。調査の一次素材を作りたいときに使う。
 disable-model-invocation: true

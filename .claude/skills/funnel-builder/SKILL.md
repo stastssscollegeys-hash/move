@@ -1,12 +1,8 @@
 ---
 name: funnel-builder
-description: |
-  Kindle/note/YouTube/SNSからLINE→VSLへ誘導する統合ファネル構築スキル。
-  Use when: (1) user says「ファネル構築」「導線設計」「リード獲得フロー」,
-  (2) user wants end-to-end marketing funnel,
-  (3) user mentions「Kindle→LINE」「note→VSL」「集客→販売」.
-  Do NOT use for: 単体LP作成（lp-designを使用）、
-  単体ステップメール（taiyo-style-step-mailを使用）。
+description: Marketing funnel builder
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Funnel Builder (統合ファネル構築)

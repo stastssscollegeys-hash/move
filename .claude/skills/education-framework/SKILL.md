@@ -1,12 +1,7 @@
 ---
 name: education-framework
-description: |
-  6つの教育要素（目的/問題/解決/価値/信用/行動）に基づくコンテンツ設計。
-  Use when: (1) user says「教育シナリオ」「ステップメール設計」「ローンチシナリオ」,
-  (2) user wants structured educational content,
-  (3) user mentions「6つの教育」「14日間シナリオ」.
-  Do NOT use for: 単発のセールスコピー（taiyo-styleを使用）、
-  技術ドキュメント。
+description: 6-element education content design
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # 6つの教育要素フレームワーク

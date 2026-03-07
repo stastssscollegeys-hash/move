@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const stateManager = require('./workflow-state-manager.js');
+const { readStdin } = require('./utils/read-stdin');
 
 // スキルマッピング設定ファイルのパス
 const SKILL_MAPPING_PATH = path.join(__dirname, 'config', 'skill-mapping.json');
@@ -259,27 +260,6 @@ function loadSkillMappings() {
     console.error(`Warning: Failed to load skill mappings: ${e.message}`);
   }
   return null;
-}
-
-function readStdin(timeout = 1000) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
 }
 
 main().catch(() => process.exit(0));

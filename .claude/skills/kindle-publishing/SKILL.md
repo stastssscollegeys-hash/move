@@ -1,12 +1,8 @@
 ---
 name: kindle-publishing
-description: |
-  Kindle本の執筆・構成設計・目次作成スキル。
-  Use when: (1) user says「Kindle本」「電子書籍」「Kindle出版」,
-  (2) user wants to create ebook content,
-  (3) user mentions「章立て」「目次作成」「Kindle構成」.
-  Do NOT use for: ブログ記事（note-marketingを使用）、
-  セールスレター（taiyo-styleを使用）。
+description: Kindle book writing and publishing
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # Kindle出版スキル

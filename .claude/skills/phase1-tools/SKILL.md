@@ -1,3 +1,11 @@
+---
+name: phase1-tools
+description: Document processing tool suite
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+model: sonnet
+disable-model-invocation: true
+---
+
 # Phase 1 Execution Foundation Tools
 
 Document processing and development tools for TAISUN v2.

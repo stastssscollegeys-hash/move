@@ -1,13 +1,7 @@
 ---
 name: taiyo-style
-description: |
-  日給5000万円を生み出した太陽スタイルのコピーライティング技術を適用。
-  セールスレター、ステップメール、LP作成に対応。
-  Use when: (1) user says「太陽スタイルで」「売れるコピー」「成約率を上げたい」,
-  (2) user wants high-conversion marketing copy,
-  (3) user mentions「セールスレター」「ステップメール」「LP」「コピーライティング」.
-  Do NOT use for: 技術ドキュメント、ニュース記事、学術論文、
-  SNS投稿（sns-marketingスキルを使用）。
+description: Taiyo copywriting style application
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # 太陽スタイル・コピーライティングスキル

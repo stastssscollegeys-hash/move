@@ -1,6 +1,8 @@
 ---
 name: gpt-researcher
-description: Use this skill for comprehensive research tasks requiring deep investigation, multiple source validation, and citation-backed reports. Triggers on keywords like "research", "investigate", "deep dive", "comprehensive analysis", "literature review", or when needing validated, sourced information.
+description: Deep research with source validation
+allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
+disable-model-invocation: true
 ---
 
 # GPT Researcher - Autonomous Deep Research
@@ -166,6 +168,28 @@ GPT Researcher is automatically available via MCP. The system will:
 2. Select appropriate tool (deep_research or quick_search)
 3. Validate and synthesize sources
 4. Return comprehensive, cited results
+
+## Integration with World Research
+
+`world-research` スキルと統合して、全世界SNS横断リサーチが可能：
+
+| モード | gpt-researcher連携 | 動作 |
+|---|---|---|
+| quick | 不使用 | WebSearch + SNS検索のみ（APIキー不要） |
+| standard | 不使用 | quick + note.com API + Reddit API |
+| **deep** | **deep_research** | standard + gpt-researcher 50+ソース深層調査 |
+
+```bash
+# world-research から deep モードで呼び出し
+/world-research キーワード=AI Agent モード=deep
+
+# → Step 1: キーワード展開（日英中3言語）
+# → Step 2: SNS横断検索（X/Reddit/note/YouTube/Bilibili等）
+# → Step 3: gpt-researcher deep_research（50+ソース）
+# → Step 4: 統合レポート出力
+```
+
+詳細: `.claude/skills/world-research/SKILL.md`
 
 ## Source
 

@@ -1,6 +1,8 @@
 ---
 name: workflow-automation-n8n
-description: n8nで業務フローを設計・実装する。トリガー→処理→例外→通知まで一気通貫で提案する時に使う。
+description: n8n workflow automation design
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # n8n Workflow Automation

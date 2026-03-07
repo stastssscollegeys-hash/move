@@ -1,6 +1,7 @@
 ---
 name: context7-docs
-description: Use this skill when working with any framework or library (React, Next.js, Vue, Astro, etc.) to fetch up-to-date documentation and prevent hallucinated APIs. Triggers on keywords like "use context7", "latest docs", "current API", or when working with rapidly evolving frameworks.
+description: Fetch latest framework/library docs
+allowed-tools: Read, Write, Edit, Grep, Glob, WebFetch, WebSearch
 ---
 
 # Context7 Documentation Fetching

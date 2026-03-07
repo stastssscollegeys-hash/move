@@ -27,18 +27,17 @@ description: 原稿やテーマから漫画を一括生成する複合スキル�
 テンプレート画像やリファレンス画像は以下に格納:
 
 ```
-.claude/skills/manga-creator-ss/templates/
-├── template_1.png    # テンプレ1: ページ全体を使った1コマ
-├── template_2.png    # テンプレ2: 上下2分割（上段→下段）
-├── template_3.png    # テンプレ3: 上下2分割（上段小→下段大）
-├── template_4.png    # テンプレ4: 上下2分割（上段大→下段小）
-├── template_5.png    # テンプレ5: 上・中・下の3段構成
-├── template_6.png    # テンプレ6: 上段1コマ+下段左右2コマ
-├── template_7.png    # テンプレ7: 上段左右2コマ+下段1コマ
-├── template_8.png    # テンプレ8: 上段横長+中段左右+下段横長
-├── template_9.png    # テンプレ9: 上段横長+下段右縦長+左上下分割
-├── template_10.png   # テンプレ10: 上段横長+下段左縦長+右上下分割
-└── (ユーザーが画像を入れる)
+.claude/shared/manga-templates/
+├── テンプレ1.jpg     # テンプレ1: ページ全体を使った1コマ
+├── テンプレ2.jpg     # テンプレ2: 上下2分割（上段→下段）
+├── テンプレ3.jpg     # テンプレ3: 上下2分割（上段小→下段大）
+├── テンプレ4.jpg     # テンプレ4: 上下2分割（上段大→下段小）
+├── テンプレ5.jpg     # テンプレ5: 上・中・下の3段構成
+├── テンプレ6.jpg     # テンプレ6: 上段1コマ+下段左右2コマ
+├── テンプレ7.jpg     # テンプレ7: 上段左右2コマ+下段1コマ
+├── テンプレ8.jpg     # テンプレ8: 上段横長+中段左右+下段横長
+├── テンプレ9.jpg     # テンプレ9: 上段横長+下段右縦長+左上下分割
+└── テンプレ10.jpg    # テンプレ10: 上段横長+下段左縦長+右上下分割
 ```
 
 ## 全体フロー（3ステップ + 画像生成）
@@ -168,17 +167,22 @@ with text labels in katakana below each character identifying them,
 各キャラの外見テキスト（英語）を `character_prompts.md` に保存する。
 これがStep 3で毎回プロンプトに埋め込まれるマスターデータになる。
 
+**注意: 以下はフォーマット例です。実際のキャラクターは書籍のテーマ・世界観に合わせて毎回新しく設計してください。前回のプロジェクトのキャラを引き継がないこと。**
+
 ```markdown
 # キャラクター外見プロンプトDB
 
-## ユイ（主人公）
-1girl, Japanese, late 20s, shoulder-length dark brown hair with slight wave, warm brown eyes, round soft face, petite build, wearing white blouse with navy cardigan and gray pencil skirt, small pearl earrings, friendly approachable appearance
+## {主人公名}（主人公）
+{性別, 国籍, 年齢, 髪型・色, 目の色, 体型, 服装, アクセサリー, 全体の印象}
+例: 1girl, Japanese, late 20s, medium-length straight black hair, large dark brown eyes, average build, wearing casual office clothes, warm approachable appearance
 
-## センセイ（先輩）
-1boy, Japanese, 30s, short neat black hair styled to the side, sharp intelligent dark brown eyes, tall lean build, wearing navy blue blazer with white shirt no tie, round black-framed glasses, warm confident smile, professional yet approachable
+## {先生名}（先輩/メンター）
+{性別, 国籍, 年齢, 髪型・色, 目の色, 体型, 服装, 全体の印象}
+例: 1boy, Japanese, early 30s, neat dark hair, intelligent eyes, casual smart style, friendly and knowledgeable demeanor
 
-## クロー（マスコット）
-cute cartoon lobster mascot, bright red-orange body, big round blue eyes, small friendly smile, wearing silver headset with microphone, two large front claws, short antennae, round chibi proportions, kawaii style
+## {マスコット名}（マスコット）
+{テーマに合ったマスコットの外見。書籍の題材に関連するデザインにする}
+例: cute small mascot character, round body, big friendly eyes, chibi proportions, kawaii style, theme-related design elements
 ```
 
 ### キャラクターシートプロンプトのルール

@@ -1,6 +1,6 @@
 ---
 name: research
-description: "「〇〇をリサーチして」で深層調査を実行。探索→検証→レポート生成を自動で行う。"
+description: Deep research with report generation
 argument-hint: "[トピック]"
 allowed-tools: Read, Write, Grep, Glob, WebSearch, WebFetch, Bash(python:*)
 ---

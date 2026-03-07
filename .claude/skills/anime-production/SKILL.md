@@ -1,11 +1,8 @@
 ---
 name: anime-production
-description: |
-  アニメ動画・アニメ広告・キャラクターアニメーションの制作スキル。
-  Use when: (1) user says「アニメを作って」「アニメ動画」「アニメ広告」,
-  (2) user wants animated content with characters,
-  (3) user mentions「キャラクターアニメーション」「アニメ制作」.
-  Do NOT use for: 実写動画（video-agentを使用）、静止画像のみ（nanobanana-proを使用）。
+description: Anime video and ad production
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+disable-model-invocation: true
 ---
 
 # アニメ制作スキル

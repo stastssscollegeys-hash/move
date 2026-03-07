@@ -1,6 +1,6 @@
 ---
 name: sdd-threat
-description: STRIDE脅威モデリングに基づくthreat-model.mdを生成。保護対象資産・信頼境界・脅威・緩和策を定義し、セキュリティ要件を導出する。
+description: Generate STRIDE threat models
 argument-hint: "[spec-slug] [target-dir(optional)]"
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep

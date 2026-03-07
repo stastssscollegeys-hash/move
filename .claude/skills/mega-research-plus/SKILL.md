@@ -1,6 +1,6 @@
 ---
 name: mega-research-plus
-description: 8つの検索ソース（Tavily/SerpAPI/Brave/NewsAPI/Perplexity/Twitter/DuckDuckGo/WebSearch）を統合した最強リサーチシステム。API版＋MCP版＋組み込み版を完全統合。
+description: 8-source integrated research system
 argument-hint: "[トピック] [--mode=deep|quick|news|social|free]"
 allowed-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Bash(curl:*, python:*, node:*)
 model: opus

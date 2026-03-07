@@ -58,7 +58,7 @@ class BrowserFactory:
         # Launch persistent context (key difference from regular launch!)
         context = playwright.chromium.launch_persistent_context(
             user_data_dir=user_data_dir,
-            channel="chrome",  # Use real Chrome for better compatibility
+            # channel="chrome",  # Commented out: use Chromium to avoid Chrome conflict
             headless=headless,
             no_viewport=True,  # Allow dynamic viewport
             ignore_default_args=["--enable-automation"],

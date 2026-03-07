@@ -1,3 +1,12 @@
+---
+name: apify-research
+description: Web scraping research via Apify
+allowed-tools: Read, Bash, Grep, Glob, WebFetch, WebSearch
+model: sonnet
+argument-hint: "<platform> <query> [--format=json|csv] [--limit=100]"
+disable-model-invocation: true
+---
+
 # Apify Research Skill
 
 高度なウェブスクレイピング・SNSデータ抽出スキル。

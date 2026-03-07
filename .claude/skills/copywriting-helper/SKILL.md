@@ -1,6 +1,7 @@
 ---
 name: copywriting-helper
-description: セールスレター、ステップメール、VSL、ローンチ動画スクリプトの作成を支援。マーケティングコピーやセールスライティングを書く際に使用。
+description: Sales copy and marketing writing
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Copywriting Helper

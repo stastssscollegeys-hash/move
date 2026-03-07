@@ -1,11 +1,12 @@
 ---
 name: taiyo-style-headline
-description: 太陽スタイル完全準拠のヘッドライン・キャッチコピー生成。開封率・クリック率・注目率を最大化する衝撃的な見出しを作成。
+description: Taiyo-style headline generation
 version: "1.0.0"
 author: TAISUN
 category: marketing
 tags: [headline, catchcopy, taiyo-style, copywriting]
 dependencies: [taiyo-analyzer]
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Taiyo Style Headline Skill

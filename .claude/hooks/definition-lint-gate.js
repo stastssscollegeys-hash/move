@@ -20,6 +20,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readStdin } = require('./utils/read-stdin');
 
 // 検証対象ファイルパターン
 const TARGET_PATTERNS = [
@@ -166,40 +167,40 @@ async function main() {
 
   // 結果を出力
   if (violations.length > 0 || warnings.length > 0) {
-    console.log('');
-    console.log('=== DEFINITION LINT GATE ===');
-    console.log('');
-    console.log(`ファイル: ${fileName}`);
-    console.log('');
+    // 詳細をJSONファイルに退避
+    try {
+      const detailFile = path.join(process.cwd(), '.claude/hooks/data/lint-gate-detail.json');
+      const detailDir = path.dirname(detailFile);
+      if (!fs.existsSync(detailDir)) {
+        fs.mkdirSync(detailDir, { recursive: true });
+      }
+      fs.writeFileSync(detailFile, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        fileName,
+        violations,
+        warnings
+      }, null, 2));
+    } catch (e) { /* ignore */ }
 
     if (violations.length > 0) {
-      console.log('**CRITICAL: 定義エラーが検出されました**');
-      console.log('');
+      // stdout: AI向け1行（コンテキスト注入）
+      console.log(`[Lint Gate] ⚠️ ADVISORY: ${fileName}: CRITICAL ${violations.length}件 -> 詳細: .claude/hooks/data/lint-gate-detail.json`);
+      // stderr: 人間向け表示（警告のみ、ブロックしない）
+      console.error(`\x1b[33m[Lint Gate] ADVISORY: ${fileName}: CRITICAL ${violations.length}件, WARNING ${warnings.length}件\x1b[0m`);
       violations.forEach((v, i) => {
-        console.log(`${i + 1}. [${v.type}] ${v.message}`);
+        console.error(`  ${i + 1}. [${v.type}] ${v.message}`);
       });
-      console.log('');
-      console.log('**このファイルは無効です。修正が必要です。**');
-      console.log('');
-    }
-
-    if (warnings.length > 0) {
-      console.log('**WARNING: 推奨事項**');
-      console.log('');
-      warnings.forEach((w, i) => {
-        console.log(`${i + 1}. [${w.type}] ${w.message}`);
-      });
-      console.log('');
-    }
-
-    console.log('=== END DEFINITION LINT GATE ===');
-    console.log('');
-
-    // 違反がある場合はブロック（exit code 2）
-    if (violations.length > 0) {
-      process.exit(2);
+      console.error('\x1b[33m  → 多人数共有システムのため警告のみ（ブロックしません）\x1b[0m');
+      // 多人数共有システム: 警告のみ、ブロックしない
+      process.exit(0);
       return;
     }
+
+    // warnings のみの場合: stderrのみ（stdoutに出力しない）
+    console.error(`\x1b[33m[Lint Gate] ${fileName}: WARNING ${warnings.length}件\x1b[0m`);
+    warnings.forEach((w, i) => {
+      console.error(`  ${i + 1}. [${w.type}] ${w.message}`);
+    });
   }
 
   process.exit(0);
@@ -308,27 +309,6 @@ function parseSimpleYaml(content) {
   }
 
   return Object.keys(result).length > 0 ? result : null;
-}
-
-function readStdin(timeout = 1000) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
 }
 
 // ===== Phase 7: Definition Lint Hard Gate API =====

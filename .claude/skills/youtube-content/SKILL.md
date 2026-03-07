@@ -1,12 +1,8 @@
 ---
 name: youtube-content
-description: |
-  YouTube動画の企画・台本作成スキル。ショート動画から長尺動画まで対応。
-  Use when: (1) user says「YouTube台本」「動画企画」「ショート動画」,
-  (2) user wants to create YouTube video scripts,
-  (3) user mentions「長尺動画」「YouTubeコンテンツ」.
-  Do NOT use for: チャンネル分析（youtube-channel-summaryを使用）、
-  サムネイル作成（youtube-thumbnailを使用）。
+description: YouTube video planning and scripts
+allowed-tools: Read, Write, Edit, Grep, Glob
+disable-model-invocation: true
 ---
 
 # YouTubeコンテンツスキル

@@ -1,6 +1,6 @@
 ---
 name: dr-build
-description: >
+description: Deep research build phase
   dr-synthesize の implementation_plan.md を実装に落とし込む。PoC/MVP/Production の段階的実装を支援。
 disable-model-invocation: true
 argument-hint: "[plan_path] | stage=poc|mvp|production | stack=python|node|go | storage=sqlite|postgres|qdrant"

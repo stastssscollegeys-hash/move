@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const stateManager = require('./workflow-state-manager.js');
+const { readStdin } = require('./utils/read-stdin');
 
 async function main() {
   let input = {};
@@ -28,8 +29,20 @@ async function main() {
   const cwd = input.cwd || process.cwd();
   const context = [];
 
-  // ワークフロー状態を読み込み
-  const state = stateManager.loadState(cwd);
+  // ワークフロー状態を読み込み（欠損時は自動初期化）
+  let state = stateManager.loadState(cwd);
+
+  if (!state) {
+    // .workflow_state.json が存在しない場合、デフォルト状態を自動作成
+    state = stateManager.createInitialState('user_request', true);
+    const saved = stateManager.saveState(state, cwd);
+    if (saved) {
+      context.push('=== WORKFLOW STATE AUTO-INITIALIZED ===');
+      context.push('');
+      context.push('.workflow_state.json が見つからなかったため、デフォルト状態で自動作成しました。');
+      context.push('');
+    }
+  }
 
   if (state) {
     // 状態要約を生成
@@ -138,27 +151,6 @@ function findSessionHandoffs(cwd) {
   } catch (e) {}
 
   return [...new Set(handoffs)].slice(0, 5);
-}
-
-function readStdin(timeout = 1000) {
-  return new Promise((resolve) => {
-    let data = '';
-    let resolved = false;
-
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve(data);
-      }
-    };
-
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
-    process.stdin.on('end', finish);
-    setTimeout(finish, timeout);
-
-    if (process.stdin.isTTY) finish();
-  });
 }
 
 main().catch(() => process.exit(0));
