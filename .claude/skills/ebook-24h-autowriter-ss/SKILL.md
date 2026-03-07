@@ -1,20 +1,27 @@
 ---
-name: ebook-ebook-24h-autowriter-ss
+name: ebook-24h-autowriter-ss
 description: 電子書籍の原稿（25,000字・5章構成）をテキストのみで執筆し、高品質DOCXを出力。出版メタデータ・表紙プロンプト・表紙JPEGを含む4点セットを一括生成する量産向け高速スキル。全フロー確認なしで自動進行。
 ---
 
 # eBook 24H AutoWriter - 電子書籍テキスト＋Word＋出版情報＋表紙 一括生成スキル
 
 参考資料 → リサーチ → 原稿（25,000字）→ 高品質DOCX → 出版メタデータ → 表紙プロンプト → 表紙JPEG を一括生成。
-画像生成を省き、テキストとWord整形に特化した量産向けスキル。
+画像生成を省き、テキストとWord整形に特化した量産向けスキル。OpenRouterからも利用可。
 **全フロー確認なしで自動進行する。**
 
 ## When to Use This Skill
 
-- 「電子書籍をWordで作って」「画像なしで本を作りたい」
-- 「eBookを量産したい」「テキストだけの電子書籍」
-- 「Kindle本をWord形式で」「原稿とWordと表紙をまとめて」
-- 「ebook-word」「イーブックワード」
+- 「テキストのみで電子書籍作って」「テキストのみ」
+- 「24Hオートライターで」「24時間ライターで書いて」
+- 「画像なしで本を作りたい」「テキストだけの電子書籍」
+- OpenRouterから使われることが多い
+- 「電子書籍リサーチして書いて」→ まず `kindle-theme-research-ss` でリサーチ → 本スキルで執筆
+
+## Do NOT Use for
+
+- 図解画像入りの電子書籍 → `ebook-creator-ss` を使用
+- 漫画の書籍 → `ebook-creator-ss` → `manga-produce-kobetsu-ss` を使用
+- ゼロから漫画 → `manga-creator-ss` を使用
 
 ## 全体フロー（8フェーズ）
 

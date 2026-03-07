@@ -82,6 +82,8 @@
 | ステップメール | taiyo-style-step-mail |
 | VSL/ビデオセールスレター | taiyo-style-vsl |
 | 電子書籍/eBook/本を作って | ebook-creator-ss |
+| テキストのみ/24Hオートライター/24時間ライター | ebook-24h-autowriter-ss |
+| テーマリサーチ/電子書籍リサーチ/Kindleテーマ | kindle-theme-research-ss |
 | 紹介文/Kindleメタデータ/タイトルとキーワード | ebook-listings-ss |
 | note + 画像 + 記事 / note記事を一発で | note-article-creator-ss |
 | 漫画 + 一括 + 生成 / 漫画を作って / マンガ一括 | manga-creator-ss |
