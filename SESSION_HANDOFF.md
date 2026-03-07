@@ -470,56 +470,70 @@ v1テストで判明した問題点と修正:
 - プロンプト冒頭に「no watermarks, no labels, no section titles in English」
 ```
 
-### Stage 2（Web UI + API版）: 未着手
-- `src/lp-creator-ss/` を上書きして実装予定
-- NanoBanana API（Gemini Imagen API）への移行
-- フロントエンド: `public/lp-creator.html`
+### Stage 2（Web UI + API版）: 実装中（2026-03-07〜）
 
-### 将来の追加機能（清水さんリクエスト）
-1. **APIキー設定UI**: 依頼者がNanoBanana/Claude APIキーを設定できるUIを組み込む
-2. **会員登録・ログイン機能**: 進化版で実装予定
+**バックエンド + フロントエンド実装済み、テスト・修正の反復中。**
 
-### 仕組み
-- Stage 1: Claude が SKILL.md の手順に従い、ナレッジファイルを Read で読み込んでコピー生成 → NanoBanana で画像生成
-- Stage 2: バックエンドがナレッジファイルを Claude API のシステムプロンプトに埋め込んで実行
-- 4つのLPタイプ: 教育型 / 商品興味づけ / 暴露系 / 先端×秘匿
-
-### 出力構造
+#### ファイル構成
 ```
-output/lp-manga-lp/          ← テスト用（漫画LP制作サービス）
-├── copy.md                   # LPコピーテキスト（7セクション）
-├── report.md                 # 生成レポート（v1のもの、v2完了後に更新必要）
-├── research/
-│   └── analysis.json         # デザイン設定（高CVRリサーチベース）
-├── prompts/
-│   ├── section_001.txt       # FV (3:4) ← v2修正済み
-│   ├── section_002.txt       # お客様の声 (9:16) ← v2修正済み
-│   ├── section_003.txt       # 問題提起 (4:5) ← v2修正済み
-│   ├── section_004.txt       # ベネフィット (4:5) ← v2修正済み
-│   ├── section_005.txt       # 提供者ストーリー (3:4) ← v2修正済み
-│   ├── section_006.txt       # 特典・料金 (4:5) ← v2修正済み
-│   └── section_007.txt       # CTA (3:4) ← v2修正済み
-└── sections/
-    ├── section_001.png       # ← v2生成済み (1080x1445, 3:4)
-    ├── section_002.png       # ← v2生成済み (1080x1933, 9:16)
-    ├── section_003.png       # ← v2生成済み (1080x1340, 4:5)
-    ├── section_004.png       # ← v2生成済み (1080x1340, 4:5)
-    ├── section_005.png       # ← v2生成済み (1080x1445, 3:4)
-    ├── section_006.png       # ← v2生成済み (1080x1340, 4:5)
-    └── section_007.png       # ← v2生成済み (1080x1445, 3:4)
+src/lp-nanobanana-ss/
+├── types.ts              # 型定義（リクエスト/SSEイベント/セクション定義）
+├── prompts.ts            # ナレッジ読み込み + コピー/画像プロンプト組み立て
+├── copy-service.ts       # Claude APIでコピー生成（ストリーミング）
+├── research-service.ts   # 参考LPリサーチ（puppeteer SS取得→Claude Vision分析）
+├── image-service.ts      # Gemini APIで画像生成（@google/genai + sharp）
+├── controller.ts         # Pollingハンドラー（コピー→リサーチ→画像の統合フロー）
+├── routes.ts             # ルーター
+└── knowledge/            # ナレッジプロンプト（skills/lp-nanobanana-ss/knowledge/からコピー）
+
+public/
+├── lp-nanobanana.html           # メインUI（2カラムレイアウト）
+├── css/lp-nanobanana.css        # スタイル（v=12）
+└── js/lp-nanobanana.js          # フロントロジック（v=12）
 ```
 
-### UI要件（ツール化時 - SKILL.mdに追記済み）
-- **リアルタイム画像表示**: 生成完了したセクションから順次UIに画像を表示（デモ映え + 進捗の可視化）
-- **プログレスゲージ**: `3/7 セクション完了` のような全体進捗バー + 推定残り時間
-- **状態遷移**: ⏳待機 → 🔄生成中 → ✅完了 / ❌失敗（リトライ）
-- **技術**: WebSocket or SSE でバックエンドからフロントにリアルタイム通知
+#### 実装済み機能
+- [x] **Claude APIでコピー生成**（ストリーミング）
+- [x] **Gemini APIで画像生成**（@google/genai SDK直接呼び出し）
+- [x] **参考LPリサーチ**（puppeteer SS取得 → Claude Vision分析、URL任意）
+- [x] **Pollingアーキテクチャ**（SSE → Polling移行済み）
+- [x] **LPタイプ別動的セクション定義**（教育型/商品興味づけ/暴露系/先端×秘匿で異なるセクション構成）
+- [x] **生成停止ボタン**（サーバー側のabort対応）
+- [x] **セクションプレビュー**（LPタイプ選択時にセクション一覧表示）
+- [x] **CTAテキスト選択**（カテゴリ別ドロップダウン + カスタム入力）
+- [x] **フィードバック付き再生成**（全セクション一括 + 個別セクション）
+- [x] **編集可能プロンプトビューア**（プロンプト編集 → そのまま再生成）
+- [x] **Claude モデル選択**（Haiku 4.5 / Sonnet 4.6）
+- [x] **Gemini モデル選択**（Nano Banana / Nano Banana Pro / Nano Banana 2）
+- [x] **一括ペースト → AI分析入力**（Claude Haikuで商品情報を各フィールドに自動振り分け）
+- [x] **個別セクション保存/拡大/再生成ボタン**（画像ホバーオーバーレイ）
+- [x] **ZIPダウンロード**（JSZip）
+- [x] **生成中うさぎアニメーション**
+- [x] **APIキー接続テスト**
 
-### 次のセッションでやること
-1. **v2生成結果の確認**: 清水さんに全7セクションの画像を確認してもらう
-2. **report.md更新**: v2の結果で更新
-3. **APIキー設定UI**: 依頼者向けにNanoBanana/Claude APIキーの設定画面をUIに組み込む
-4. **Web UI実装**: リアルタイム画像表示 + プログレスゲージのフロントエンド実装
+#### モデル設定
+| 用途 | デフォルト | 選択肢 |
+|------|-----------|--------|
+| コピー生成 | `claude-haiku-4-5-20251001` | Haiku 4.5, Sonnet 4.6 |
+| 画像生成 | `gemini-3.1-flash-image-preview`（Nano Banana 2） | Nano Banana (2.5 Flash), Nano Banana Pro (3 Pro), Nano Banana 2 (3.1 Flash) |
+| 一括分析 | `claude-haiku-4-5-20251001`（固定・低コスト） | — |
+
+#### 要件定義書
+- `.kiro/specs/lp-nanobanana-ss/requirements.md`（C.U.T.E. 100/100）
+- プラン: `~/.claude/plans/curious-hugging-sun.md`（ローカル専用、要git管理化）
+
+#### 解決済みの問題
+- **Claude model 404**: `claude-sonnet-4-5-20250514` → `claude-sonnet-4-6` に修正
+- **Gemini model 404**: 退役モデル（`gemini-2.0-flash-exp`, `gemini-2.5-flash-preview-native-audio-dialog`）を除去
+- **Gemini whitelist fallback**: `image-service.ts` のモデルホワイトリストが新モデルを拒否→ホワイトリスト削除
+- **オーバーレイボタン不動作**: CSSに右カラム全体のスタイル欠落 → 追加済み（前セッションで解決済み、今セッションで再確認）
+
+#### 次のセッションでやること
+1. **オーバーレイボタン動作確認**: ブラウザリロード後、保存/拡大/プロンプト/再生成ボタンの動作を確認
+2. **テキスト品質改善**: 画像内の文字化けが気になる場合、Nano Banana 2（デフォルト）で改善されているか確認
+3. **実運用テスト**: 実際の商品情報でEnd-to-End生成テスト
+4. **Renderデプロイ**
+5. **会員登録・ログイン機能**: 将来実装予定
 
 ---
 
