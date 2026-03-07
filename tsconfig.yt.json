@@ -17,6 +17,7 @@
     "src/server.ts",
     "src/youtube-research/**/*.ts",
     "src/lp-creator-ss/**/*.ts",
+    "src/lp-nanobanana-ss/**/*.ts",
     "src/utage-system-ss/**/*.ts"
   ]
 }

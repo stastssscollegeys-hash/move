@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ワンクリックLP画像クリエイター</title>
+  <link rel="stylesheet" href="/css/lp-nanobanana.css?v=7">
+</head>
+<body>
+  <!-- Header (full width) -->
+  <header class="page-header">
+    <h1>ワンクリックLP画像クリエイター</h1>
+    <p class="subtitle">商品情報を入力 → コピー自動生成 → LP画像を一括生成</p>
+  </header>
+
+  <div class="layout-wrapper">
+    <!-- LEFT COLUMN: Input & Settings -->
+    <div class="col-left">
+      <!-- How to Use Guide -->
+      <section class="guide-section">
+        <details>
+          <summary>使い方ガイド</summary>
+          <div class="guide-body">
+            <ol>
+              <li><strong>APIキーを設定</strong>: Claude（コピー生成用）とGemini（画像生成用）のAPIキーを入力</li>
+              <li><strong>商品情報を入力</strong>: 一括ペースト or 個別入力で商品情報を入力</li>
+              <li><strong>LPタイプを選択</strong>: 4種類から最適なタイプを選択</li>
+              <li><strong>参考LP URL（任意）</strong>: デザインの参考にしたいLPのURLを入力すると、配色・レイアウトを自動分析して反映</li>
+              <li><strong>「LPを生成する」をクリック</strong>: コピー生成 → デザイン分析 → 画像の順に自動生成</li>
+              <li><strong>完了後にZIPダウンロード</strong>: 全画像をまとめてダウンロード</li>
+            </ol>
+          </div>
+        </details>
+      </section>
+
+      <!-- API Key Settings -->
+      <div class="card">
+        <h2>APIキー設定</h2>
+        <div class="api-key-group">
+          <label>Claude APIキー（コピー生成用） <a href="/lp-nanobanana/claude-api-guide" target="_blank" class="guide-link">取得方法</a></label>
+          <div class="input-row">
+            <input type="password" id="claude-api-key" placeholder="sk-ant-..." autocomplete="off">
+          </div>
+          <div class="api-key-status unsaved" id="claude-key-status">未設定</div>
+        </div>
+        <div class="api-key-group">
+          <label>Gemini APIキー（画像生成用） <a href="/lp-nanobanana/gemini-api-guide" target="_blank" class="guide-link">取得方法</a></label>
+          <div class="input-row">
+            <input type="password" id="gemini-api-key" placeholder="AIza..." autocomplete="off">
+          </div>
+          <div class="api-key-status unsaved" id="gemini-key-status">未設定</div>
+        </div>
+        <button class="btn-test-keys" id="btn-test-keys">接続テスト</button>
+        <div class="test-result" id="test-result"></div>
+      </div>
+
+      <!-- Product Info Input -->
+      <div class="card">
+        <h2>商品情報</h2>
+
+        <!-- Bulk Input inside product info -->
+        <div class="bulk-section">
+          <p class="bulk-desc">商品情報をまとめて貼り付けると、AIが自動で各項目に振り分けます。一括入力を使えば下の個別入力は不要です。</p>
+          <textarea id="bulk-input" rows="4" placeholder="例: AIを使った副業セミナー。ターゲットは30代の会社員で月10万円の副収入を目指す人。特徴は初心者でも3日で成果が出る独自メソッド。通常49,800円が今なら無料。"></textarea>
+          <button class="btn-parse" id="btn-parse">AIで分析して入力欄に反映</button>
+        </div>
+
+        <div class="divider"><span>または個別に入力</span></div>
+
+        <div class="form-group">
+          <label>商品名</label>
+          <input type="text" id="product-name" placeholder="例: AI活用セミナー" data-maxlen="100">
+          <div class="char-count">0/100</div>
+        </div>
+
+        <div class="form-group">
+          <label>ターゲット</label>
+          <input type="text" id="target" placeholder="例: 副業で月10万円を目指す30代会社員" data-maxlen="200">
+          <div class="char-count">0/200</div>
+        </div>
+
+        <div class="form-group">
+          <label>強み・特徴</label>
+          <textarea id="strength" rows="3" placeholder="例: 初心者でも3日で成果が出る独自メソッド。100名以上の実績。" data-maxlen="500"></textarea>
+          <div class="char-count">0/500</div>
+        </div>
+
+        <div class="form-group">
+          <label>価格 <span class="optional">（任意）</span></label>
+          <input type="text" id="price" placeholder="例: 通常49,800円 → 今だけ無料">
+        </div>
+
+        <div class="form-group">
+          <label>詳細説明 <span class="optional">（任意）</span></label>
+          <textarea id="description" rows="2" placeholder="商品の追加情報があれば入力"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>LPタイプ</label>
+          <div class="radio-group">
+            <label class="radio-card">
+              <input type="radio" name="lp-type" value="education">
+              <div>
+                <span class="radio-label">教育型LP</span>
+                <span class="radio-desc">見込み客を教育→セミナー誘導</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="lp-type" value="product-interest">
+              <div>
+                <span class="radio-label">商品興味づけLP</span>
+                <span class="radio-desc">ストーリー性で興味→登録</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="lp-type" value="expose">
+              <div>
+                <span class="radio-label">暴露系LP</span>
+                <span class="radio-desc">業界の真実暴露→参加促進</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="lp-type" value="cutting-edge">
+              <div>
+                <span class="radio-label">先端&times;秘匿LP</span>
+                <span class="radio-desc">トレンド&times;FOMO→緊急性</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>参考LP URL <span class="optional">（任意 - デザインの配色・レイアウトのみ参考にします）</span></label>
+          <input type="text" id="reference-url" placeholder="https://example.com/lp">
+        </div>
+
+        <button class="btn-generate" id="btn-generate">LPを生成する</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Progress + Results -->
+    <div class="col-right">
+      <div class="col-right-placeholder" id="col-right-placeholder">
+        <div class="placeholder-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect x="8" y="12" width="48" height="40" rx="4" stroke="#cbd5e1" stroke-width="2" fill="none"/>
+            <path d="M8 40l12-12 8 8 12-16 16 20" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="22" cy="24" r="4" stroke="#cbd5e1" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+        <p>左側で商品情報を入力して<br>「LPを生成する」をクリックすると<br>ここに画像が表示されます</p>
+      </div>
+
+      <!-- Progress Panel (right column top) -->
+      <div class="progress-panel" id="progress-panel">
+        <!-- Step indicators -->
+        <div class="step-flow">
+          <div class="step-item" id="step-copy">
+            <div class="step-icon">1</div>
+            <div class="step-info">
+              <div class="step-label">コピー生成</div>
+              <div class="step-status">待機中</div>
+            </div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="step-item" id="step-design">
+            <div class="step-icon">2</div>
+            <div class="step-info">
+              <div class="step-label">デザイン分析</div>
+              <div class="step-status">待機中</div>
+            </div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="step-item" id="step-image">
+            <div class="step-icon">3</div>
+            <div class="step-info">
+              <div class="step-label">画像生成</div>
+              <div class="step-status">待機中</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress bar + time -->
+        <div class="progress-bar-container">
+          <div class="progress-bar"></div>
+        </div>
+        <div class="progress-text">
+          <span>準備中...</span>
+          <span>経過 0:00</span>
+        </div>
+
+        <!-- Copy preview with animation -->
+        <div class="copy-preview-box" id="copy-preview-box">
+          <div class="copy-preview-header">
+            <span>AIがコピーを執筆中...</span>
+            <div class="writing-animation">
+              <span class="pen-icon">&#9998;</span>
+              <span class="gen-dots"></span>
+            </div>
+          </div>
+          <div class="copy-preview-text" id="copy-preview-text"></div>
+        </div>
+      </div>
+
+      <!-- LP Preview (stacked images) -->
+      <div class="results-section"></div>
+      <div class="download-bar" id="download-bar">
+        <p class="download-hint">各画像にマウスを乗せると個別保存できます</p>
+        <button class="btn-download" id="btn-download">全画像をZIPダウンロード</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <img id="modal-image" src="" alt="拡大画像">
+  </div>
+
+  <!-- JSZip for ZIP download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="/js/lp-nanobanana.js?v=7"></script>
+</body>
+</html>

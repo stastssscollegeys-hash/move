@@ -10,17 +10,18 @@ const cors_1 = __importDefault(require("cors"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const routes_1 = require("./youtube-research/routes");
 const routes_2 = require("./lp-creator-ss/routes");
-const routes_3 = __importDefault(require("./funnel-forge-ss/routes"));
-const routes_4 = __importDefault(require("./enrolly-ss/routes"));
+const routes_3 = require("./lp-nanobanana-ss/routes");
+const routes_4 = __importDefault(require("./funnel-forge-ss/routes"));
+const routes_5 = __importDefault(require("./enrolly-ss/routes"));
 const app = (0, express_1.default)();
 // Security: Helmet with CSP configured for YouTube thumbnails
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            imgSrc: ["'self'", 'i.ytimg.com'],
+            imgSrc: ["'self'", 'i.ytimg.com', 'data:'],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", 'cdnjs.cloudflare.com'],
             connectSrc: ["'self'"],
             frameSrc: ["'self'", "blob:"],
         },
@@ -49,6 +50,15 @@ const lpCreatorLimiter = (0, express_rate_limit_1.default)({
     message: { success: false, error: 'リクエスト数が上限に達しました。しばらくしてから再度お試しください。' },
 });
 app.use('/lp-creator/api/', lpCreatorLimiter);
+// LP NanoBanana: rate limit (100 requests per 15 min)
+const lpNanoBananaLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, error: 'リクエスト数が上限に達しました。しばらくしてから再度お試しください。' },
+});
+app.use('/lp-nanobanana/api/', lpNanoBananaLimiter);
 // Stripe webhook needs raw body (before JSON parser)
 app.post('/ff/api/stripe-webhook', express_1.default.raw({ type: 'application/json' }), async (req, res) => {
     const { handleWebhook } = require('./funnel-forge-ss/stripe-service');
@@ -64,6 +74,7 @@ app.get('/health', (req, res) => {
 });
 app.use('/youtube-research', routes_1.youtubeResearchRouter);
 app.use('/lp-creator', routes_2.lpCreatorRouter);
-app.use('/ff', routes_3.default);
-app.use('/enrolly', routes_4.default);
+app.use('/lp-nanobanana', routes_3.lpNanoBananaRouter);
+app.use('/ff', routes_4.default);
+app.use('/enrolly', routes_5.default);
 exports.default = app;

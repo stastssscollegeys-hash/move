@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini APIキー取得ガイド</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #f8fafc; color: #1e293b; line-height: 1.8;
+    }
+    .container { max-width: 700px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 1.5rem; color: #2563EB; margin-bottom: 8px; }
+    .subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 32px; }
+    .step {
+      background: #fff; border-radius: 12px; padding: 20px 24px;
+      margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .step h2 { font-size: 1.05rem; color: #1d4ed8; margin-bottom: 8px; }
+    .step p { font-size: 0.9rem; }
+    .step a { color: #2563EB; }
+    .note {
+      background: #FFF7ED; border-left: 4px solid #F97316;
+      padding: 12px 16px; border-radius: 0 8px 8px 0;
+      margin: 16px 0; font-size: 0.85rem;
+    }
+    .note strong { color: #ea580c; }
+    .back-link {
+      display: inline-block; margin-top: 24px;
+      color: #2563EB; text-decoration: none; font-size: 0.9rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+    code {
+      background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .screenshot {
+      width: 100%; border-radius: 8px; margin: 12px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gemini APIキー取得ガイド</h1>
+    <p class="subtitle">LP NanoBanana Creatorの画像生成に使用するGemini APIキーの取得方法</p>
+
+    <div class="step">
+      <h2>Step 1: Google AI Studioにアクセス</h2>
+      <p><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> にアクセスします。</p>
+      <p>Googleアカウントでログインしてください。</p>
+    </div>
+
+    <div class="step">
+      <h2>Step 2: APIキーを作成</h2>
+      <p>右上の「<strong>APIキーを作成</strong>」ボタンをクリックします。</p>
+      <p>プロジェクトを選択（または新規作成）して、APIキーが生成されます。</p>
+    </div>
+
+    <div class="step">
+      <h2>Step 3: キーをコピー</h2>
+      <p>作成されたAPIキーの右にある<strong>コピーボタン</strong>をクリックしてコピーします。</p>
+      <p>LP NanoBanana Creatorの「Gemini APIキー」欄に貼り付けてください。</p>
+      <img src="/images/gemini-api-guide-screenshot.jpg" alt="Google AI Studio APIキー画面" class="screenshot">
+    </div>
+
+    <div class="note">
+      <strong>VPN不要:</strong> Gemini APIは日本から直接利用できます。VPNは必要ありません。
+    </div>
+
+    <div class="note">
+      <strong>無料枠:</strong> Gemini APIには無料枠があります。画像生成は1日あたり一定回数まで無料で利用可能です。詳細は <a href="https://ai.google.dev/pricing" target="_blank" rel="noopener">料金ページ</a> をご確認ください。
+    </div>
+
+    <div class="step">
+      <h2>利用モデル</h2>
+      <p>画像生成には <code>gemini-3.1-flash-image-preview</code>（NanoBanana 2）モデルを使用しています。</p>
+      <p>Google最新の画像生成モデルで、高品質なLP画像を短時間で生成できます。</p>
+    </div>
+
+    <a href="/lp-nanobanana" class="back-link">&larr; LP NanoBanana Creatorに戻る</a>
+  </div>
+</body>
+</html>

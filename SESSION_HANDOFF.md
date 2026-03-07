@@ -405,6 +405,124 @@ src/youtube-research/    ← YouTubeリサーチツールのコード
 
 ---
 
+## 【進行中】LP NanoBanana Creator スキル構築・テスト（2026-03-07）
+
+### 概要
+ナレッジプロンプトに基づくLPコピーライティング生成 → 参考LPデザインリサーチ → NanoBanana画像生成で、LP画像を一気通貫で完成させるClaude Codeスキル。
+
+### Stage 1（Claude Codeスキル版）: 構築完了・テスト中
+- [x] 要件定義書: `.kiro/specs/lp-nanobanana-ss/requirements.md`（C.U.T.E. 100/100）
+- [x] ナレッジプロンプト: `.claude/skills/lp-nanobanana-ss/knowledge/`（6ファイル）
+  - `00-input-template.md` — 4項目入力テンプレート（ペイン・ゲイン・コア価値・競合限界）
+  - `01-education-lp.md` — 教育型LP（25000字、4STEP戦略設計）
+  - `02-product-interest-lp.md` — 商品興味づけLP（10000字）
+  - `03-expose-lp.md` — 暴露系LP（10000字、5段階心理操作）
+  - `04-cutting-edge-lp-v1.md` — 先端×秘匿LP v1（業種別テンプレート）
+  - `05-cutting-edge-lp-v2.md` — 先端×秘匿LP v2（詳細版）
+- [x] スキル定義: `.claude/skills/lp-nanobanana-ss/SKILL.md`
+- [x] 高CVRデザインリサーチ → SKILL.mdのデフォルトデザインに反映済み
+- [x] セクション別アスペクト比リサーチ → SKILL.mdに反映済み
+
+### テスト状況（漫画LP制作サービス / タイプB: 商品興味づけLP）
+
+テストデータ: `output/lp-manga-lp/`
+
+| Step | 内容 | 状態 |
+|------|------|------|
+| Step 1 | 商品情報入力 & LPタイプB選択 | ✅ 完了 |
+| Step 2 | コピー生成 → `copy.md` | ✅ 完了 |
+| Step 3 | デザインリサーチ → `research/analysis.json` | ✅ 完了（デフォルト高CVR設定） |
+| Step 4 | プロンプト生成 → `prompts/section_001-007.txt` | ✅ 完了（v2修正済み） |
+| Step 5 | NanoBanana画像生成（v2） | ✅ 全7セクション生成完了 |
+
+### v1→v2 プロンプト修正内容（重要）
+v1テストで判明した問題点と修正:
+
+1. **英語ラベル描画問題**: `Section 7: Final CTA - Call to Action` などの英語テキストがGeminiにより画像にレンダリングされた
+   - 修正: プロンプトから英語セクション名を完全除去 + `no section titles in English` 指示追加
+
+2. **上部切れ問題**: Section 4でコンテンツの上部が切れた
+   - 修正: `Leave at least 80px safe margin on all sides` 指示追加
+
+3. **コンテンツ重複問題**: Section 4でベネフィットカードが2回描画された
+   - 修正: `Do NOT duplicate any content - each card appears exactly ONCE` 指示追加
+
+4. **アスペクト比統一問題**: 全セクション9:16だったが、セクション種別で最適比率が異なる
+   - 修正: リサーチに基づきセクション別にアスペクト比を設定
+
+### セクション別アスペクト比設定（リサーチ結果反映済み）
+
+| # | セクション | アスペクト比 | 推奨px | 根拠 |
+|---|-----------|------------|--------|------|
+| 1 | ファーストビュー | **3:4** | 1080x1440 | FV内にCTAが収まる適度な縦長 |
+| 2 | お客様の声 | **9:16** | 1080x1920 | 3カード縦並びで十分な高さ必要 |
+| 3 | 問題提起 | **4:5** | 1080x1350 | テキスト+カード構成に最適 |
+| 4 | ベネフィット | **4:5** | 1080x1350 | 3カラム+プロセスフローに最適 |
+| 5 | 提供者ストーリー | **3:4** | 1080x1440 | ナラティブ+引用ボックス |
+| 6 | 特典・料金 | **4:5** | 1080x1350 | 料金テーブル+特典カード |
+| 7 | CTA | **3:4** | 1080x1440 | ボタン中心、コンパクト |
+
+### プロンプト必須ルール（SKILL.mdに反映済み）
+```
+- 英語ラベル（Section N: xxx）は絶対に入れない
+- safe area（全辺80px余白）を必ず指示
+- コンテンツ重複防止指示を入れる
+- プロンプト冒頭に「no watermarks, no labels, no section titles in English」
+```
+
+### Stage 2（Web UI + API版）: 未着手
+- `src/lp-creator-ss/` を上書きして実装予定
+- NanoBanana API（Gemini Imagen API）への移行
+- フロントエンド: `public/lp-creator.html`
+
+### 将来の追加機能（清水さんリクエスト）
+1. **APIキー設定UI**: 依頼者がNanoBanana/Claude APIキーを設定できるUIを組み込む
+2. **会員登録・ログイン機能**: 進化版で実装予定
+
+### 仕組み
+- Stage 1: Claude が SKILL.md の手順に従い、ナレッジファイルを Read で読み込んでコピー生成 → NanoBanana で画像生成
+- Stage 2: バックエンドがナレッジファイルを Claude API のシステムプロンプトに埋め込んで実行
+- 4つのLPタイプ: 教育型 / 商品興味づけ / 暴露系 / 先端×秘匿
+
+### 出力構造
+```
+output/lp-manga-lp/          ← テスト用（漫画LP制作サービス）
+├── copy.md                   # LPコピーテキスト（7セクション）
+├── report.md                 # 生成レポート（v1のもの、v2完了後に更新必要）
+├── research/
+│   └── analysis.json         # デザイン設定（高CVRリサーチベース）
+├── prompts/
+│   ├── section_001.txt       # FV (3:4) ← v2修正済み
+│   ├── section_002.txt       # お客様の声 (9:16) ← v2修正済み
+│   ├── section_003.txt       # 問題提起 (4:5) ← v2修正済み
+│   ├── section_004.txt       # ベネフィット (4:5) ← v2修正済み
+│   ├── section_005.txt       # 提供者ストーリー (3:4) ← v2修正済み
+│   ├── section_006.txt       # 特典・料金 (4:5) ← v2修正済み
+│   └── section_007.txt       # CTA (3:4) ← v2修正済み
+└── sections/
+    ├── section_001.png       # ← v2生成済み (1080x1445, 3:4)
+    ├── section_002.png       # ← v2生成済み (1080x1933, 9:16)
+    ├── section_003.png       # ← v2生成済み (1080x1340, 4:5)
+    ├── section_004.png       # ← v2生成済み (1080x1340, 4:5)
+    ├── section_005.png       # ← v2生成済み (1080x1445, 3:4)
+    ├── section_006.png       # ← v2生成済み (1080x1340, 4:5)
+    └── section_007.png       # ← v2生成済み (1080x1445, 3:4)
+```
+
+### UI要件（ツール化時 - SKILL.mdに追記済み）
+- **リアルタイム画像表示**: 生成完了したセクションから順次UIに画像を表示（デモ映え + 進捗の可視化）
+- **プログレスゲージ**: `3/7 セクション完了` のような全体進捗バー + 推定残り時間
+- **状態遷移**: ⏳待機 → 🔄生成中 → ✅完了 / ❌失敗（リトライ）
+- **技術**: WebSocket or SSE でバックエンドからフロントにリアルタイム通知
+
+### 次のセッションでやること
+1. **v2生成結果の確認**: 清水さんに全7セクションの画像を確認してもらう
+2. **report.md更新**: v2の結果で更新
+3. **APIキー設定UI**: 依頼者向けにNanoBanana/Claude APIキーの設定画面をUIに組み込む
+4. **Web UI実装**: リアルタイム画像表示 + プログレスゲージのフロントエンド実装
+
+---
+
 ## 次のセッションへの指示
 
 ### MUST DO（必須）
