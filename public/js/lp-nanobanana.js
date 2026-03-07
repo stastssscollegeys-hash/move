@@ -715,19 +715,19 @@
           <div class="lp-section-overlay">
             <span class="overlay-label">${i}. ${def.nameJa}</span>
             <div class="overlay-actions">
-              <button class="btn-section-dl" onclick="window.__downloadSection(${i})" title="この画像をダウンロード">
+              <button class="btn-section-dl" data-action="download" data-section-id="${i}" title="この画像をダウンロード">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.5l-3.5-3.5h2.5v-5h2v5h2.5l-3.5 3.5z"/><path d="M2 12h12v2h-12z"/></svg>
                 保存
               </button>
-              <button class="btn-section-zoom" onclick="window.__openModal(document.querySelector('[data-body=&quot;${i}&quot;] img')?.src)" title="拡大表示">
+              <button class="btn-section-zoom" data-action="zoom" data-section-id="${i}" title="拡大表示">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 014.38 8.82l3.65 3.65a.75.75 0 01-1.06 1.06l-3.65-3.65A5.5 5.5 0 116.5 1zm0 1.5a4 4 0 100 8 4 4 0 000-8z"/></svg>
                 拡大
               </button>
-              <button class="btn-section-prompt" onclick="window.__showPrompt(${i})" title="プロンプトを表示">
+              <button class="btn-section-prompt" data-action="prompt" data-section-id="${i}" title="プロンプトを表示">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1H2zm0 3h10v1H2zm0 3h12v1H2zm0 3h8v1H2z"/></svg>
                 プロンプト
               </button>
-              <button class="btn-section-regen" onclick="window.__regenerateSection(${i})" title="フィードバック付き再生成">
+              <button class="btn-section-regen" data-action="regen" data-section-id="${i}" title="フィードバック付き再生成">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M13.65 2.35a8 8 0 10.35 11.3l-1.41-1.41a6 6 0 11-.27-8.47L10 6h6V0l-2.35 2.35z"/></svg>
                 再生成
               </button>
@@ -789,14 +789,14 @@
           </div>`;
         break;
       case 'complete':
-        bodyEl.innerHTML = `<img src="data:image/png;base64,${sec.base64}" alt="${name}" onclick="window.__openModal(this.src)" />`;
+        bodyEl.innerHTML = `<img src="data:image/png;base64,${sec.base64}" alt="${name}" data-action="zoom" data-section-id="${id}" />`;
         break;
       case 'error':
         bodyEl.innerHTML = `
           <div class="lp-section-placeholder error">
             <div class="placeholder-label">${id}. ${name}</div>
             <div class="error-msg">${sec.error || '不明なエラー'}</div>
-            <button class="btn-retry" onclick="window.__retrySection(${id})">リトライ</button>
+            <button class="btn-retry" data-action="retry" data-section-id="${id}">リトライ</button>
           </div>`;
         break;
     }
@@ -829,7 +829,7 @@
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
     const modal = document.createElement('div');
-    modal.style.cssText = 'background:#1e1e2e;color:#e0e0e0;border-radius:12px;max-width:700px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+    modal.style.cssText = 'background:#1e1e2e;color:#e0e0e0;border-radius:12px;max-width:1000px;width:95%;max-height:90vh;min-height:60vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
 
     const headerEl = document.createElement('div');
     headerEl.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #333;';
@@ -909,7 +909,7 @@
     headerEl.appendChild(btnGroup);
 
     const textarea = document.createElement('textarea');
-    textarea.style.cssText = 'padding:20px;margin:0;flex:1;font-size:0.8rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;font-family:monospace;background:#1e1e2e;color:#e0e0e0;border:none;resize:none;outline:none;overflow:auto;';
+    textarea.style.cssText = 'padding:20px;margin:0;flex:1;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;font-family:monospace;background:#1e1e2e;color:#e0e0e0;border:none;resize:none;outline:none;overflow:auto;min-height:400px;';
     textarea.value = sec.prompt;
 
     modal.appendChild(headerEl);
@@ -1115,6 +1115,38 @@
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
   };
+
+  // --- Event Delegation for Overlay Buttons ---
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = parseInt(btn.dataset.sectionId, 10);
+    if (isNaN(id)) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    switch (action) {
+      case 'download':
+        window.__downloadSection(id);
+        break;
+      case 'zoom': {
+        const img = document.querySelector(`[data-body="${id}"] img`);
+        if (img) window.__openModal(img.src);
+        break;
+      }
+      case 'prompt':
+        window.__showPrompt(id);
+        break;
+      case 'regen':
+        window.__regenerateSection(id);
+        break;
+      case 'retry':
+        window.__retrySection(id);
+        break;
+    }
+  });
 
   // --- Download ZIP ---
   async function downloadZip() {

@@ -668,7 +668,7 @@ body {
 .lp-section-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.55);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -677,12 +677,11 @@ body {
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
-}
-.lp-section.is-complete .lp-section-overlay {
-  pointer-events: auto;
+  z-index: 10;
 }
 .lp-section.is-complete:hover .lp-section-overlay {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .overlay-label {
@@ -697,7 +696,8 @@ body {
 }
 .btn-section-dl,
 .btn-section-zoom,
-.btn-section-prompt {
+.btn-section-prompt,
+.btn-section-regen {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1138,122 +1138,6 @@ body {
   flex-direction: column;
   gap: 0;
 }
-
-.lp-section {
-  position: relative;
-  overflow: hidden;
-}
-
-/* Section content */
-.lp-section-content img {
-  display: block;
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-}
-
-/* Placeholder (waiting / generating / error) */
-.lp-section-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 40px 20px;
-  background: #f1f5f9;
-  border: 1px dashed var(--border);
-  min-height: 120px;
-}
-.lp-section-placeholder.generating {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
-  border-color: var(--primary);
-}
-.lp-section-placeholder.error {
-  background: #fef2f2;
-  border-color: var(--error);
-}
-.placeholder-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-.section-status {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-.error-msg {
-  font-size: 0.8rem;
-  color: var(--error);
-  margin-top: 4px;
-}
-.btn-retry {
-  margin-top: 8px;
-  padding: 6px 16px;
-  background: var(--error);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.btn-retry:hover { opacity: 0.9; }
-
-/* ===== Section Overlay (hover actions) ===== */
-.lp-section-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  z-index: 10;
-}
-.lp-section.is-complete:hover .lp-section-overlay {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.overlay-label {
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-}
-
-.overlay-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.overlay-actions button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.overlay-actions button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-.overlay-actions button svg { flex-shrink: 0; }
-
-.btn-section-dl { background: #3b82f6; color: #fff; }
-.btn-section-zoom { background: #8b5cf6; color: #fff; }
-.btn-section-prompt { background: #10b981; color: #fff; }
-.btn-section-regen { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
 
 /* ===== Image Modal ===== */
 .modal-overlay {

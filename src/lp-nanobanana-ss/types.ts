@@ -58,7 +58,7 @@ export interface SectionMeta {
 export const SECTION_DEFS_BY_TYPE: Record<LPType, SectionMeta[]> = {
   // 教育型: 9セクション（STEP 3.2 の各セクション役割設計に基づく）
   'education': [
-    { id: 1, name: 'headline',      nameJa: 'ヘッドライン',     aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'cinematic hero, dark gradient overlay, bold white text, orange CTA, aspirational, impactful headline' },
+    { id: 1, name: 'headline',      nameJa: 'ヘッドライン',     aspectRatio: '16:9', width: 1920, height: 1080, styleKeywords: 'cinematic hero banner, wide landscape layout, dark gradient overlay, bold white text, orange CTA, aspirational, impactful headline, single unified full-width design' },
     { id: 2, name: 'problem',       nameJa: '問題提起',         aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'light gray bg, flat icons, muted palette, warning symbols, empathetic, problem visualization' },
     { id: 3, name: 'solution',      nameJa: '解決策提示',       aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'clean white bg, narrative layout, blue accent, professional, innovative solution showcase' },
     { id: 4, name: 'authority',     nameJa: '権威性確立',       aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'professional portrait style, credentials display, achievement badges, trust-building, before/after comparison' },
@@ -71,7 +71,7 @@ export const SECTION_DEFS_BY_TYPE: Record<LPType, SectionMeta[]> = {
 
   // 商品興味づけ型: 6セクション（ナレッジの構成に基づく）
   'product-interest': [
-    { id: 1, name: 'first-view',    nameJa: 'ファーストビュー', aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'cinematic hero, dark gradient overlay, bold white text, orange CTA, aspirational, product showcase' },
+    { id: 1, name: 'first-view',    nameJa: 'ファーストビュー', aspectRatio: '16:9', width: 1920, height: 1080, styleKeywords: 'cinematic hero banner, wide landscape layout, dark gradient overlay, bold white text, orange CTA, aspirational, product showcase, single unified full-width design' },
     { id: 2, name: 'testimonial',   nameJa: 'お客様の声',       aspectRatio: '9:16', width: 1080, height: 1920, styleKeywords: 'warm lighting, testimonial cards, star ratings, avatars, before/after, authentic voices' },
     { id: 3, name: 'problem',       nameJa: '問題提起と共感',   aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'light gray bg, flat icons, muted palette, question marks, empathetic, authority reference' },
     { id: 4, name: 'story',         nameJa: '開発者ストーリー', aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'personal narrative, warm tones, portrait photo area, passion/vision, transparent storytelling' },
@@ -81,7 +81,7 @@ export const SECTION_DEFS_BY_TYPE: Record<LPType, SectionMeta[]> = {
 
   // 暴露系: 5セクション（5段階構成に基づく）
   'expose': [
-    { id: 1, name: 'denial',        nameJa: '現状否定と疑念',   aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'dark dramatic bg, cracked/shattered imagery, bold red text accents, questioning tone, shocking revelation' },
+    { id: 1, name: 'denial',        nameJa: '現状否定と疑念',   aspectRatio: '16:9', width: 1920, height: 1080, styleKeywords: 'dark dramatic hero banner, wide landscape layout, cracked/shattered imagery, bold red text accents, questioning tone, shocking revelation, single unified full-width design' },
     { id: 2, name: 'truth',         nameJa: '真実の存在示唆',   aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'mysterious dark tones, keyhole/door imagery, golden light accents, secret knowledge, exclusive information' },
     { id: 3, name: 'special',       nameJa: '読者の特別性認定', aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'luxury gold accents, VIP badge design, exclusive membership feel, elite selection, dark premium bg' },
     { id: 4, name: 'urgency',       nameJa: '希少性と緊急性',   aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'countdown urgency, limited slots display, red warning accents, closing door imagery, now-or-never' },
@@ -90,7 +90,7 @@ export const SECTION_DEFS_BY_TYPE: Record<LPType, SectionMeta[]> = {
 
   // 先端×秘匿型: 9セクション（v2の構成に基づく）
   'cutting-edge': [
-    { id: 1, name: 'headline',      nameJa: 'ヘッドライン',     aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'futuristic hero, tech gradient bg, bold white text, trend keywords, FOMO trigger, cutting-edge feel' },
+    { id: 1, name: 'headline',      nameJa: 'ヘッドライン',     aspectRatio: '16:9', width: 1920, height: 1080, styleKeywords: 'futuristic hero banner, wide landscape layout, tech gradient bg, bold white text, trend keywords, FOMO trigger, cutting-edge feel, single unified full-width design' },
     { id: 2, name: 'problem',       nameJa: '問題提起・共感',   aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'light gray bg, problem icons, information overload visual, relatable frustration, empathetic tone' },
     { id: 3, name: 'crisis',        nameJa: '危機感の増幅',     aspectRatio: '3:4',  width: 1080, height: 1440, styleKeywords: 'data visualization, alarming statistics, red/orange warning, industry disruption graph, authority sources' },
     { id: 4, name: 'gap',           nameJa: '経済的格差の提示', aspectRatio: '4:5',  width: 1080, height: 1350, styleKeywords: 'comparison chart, income gap visualization, green vs red contrast, statistical data, stark difference' },

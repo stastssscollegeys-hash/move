@@ -76,6 +76,8 @@ function buildCopyFullPrompt(productName, target, strength, lpType, price, descr
   NG例: 「満足度98.7%」「3,000人が参加」（ユーザーが提供していない数字）
 - 権威性セクションでは、ユーザーの「強み・特徴」から抽出できる情報のみ使う
 - 数字を使いたい場合は「多くの方に選ばれています」等の抽象表現にすること
+- コピーにロゴ・バッジ・認証マークの表示指示を含めないこと（画像生成時に架空ロゴが生成される原因になる）
+  NG例: 「プライバシーマーク取得」「セキュリティ認証済み」「VISA/PayPay対応」
 
 【CTAボタンテキストの重要ルール】
 - CTAセクションでは「CTA」という英語は絶対に使わないこと
@@ -121,9 +123,18 @@ CRITICAL RULES - READ CAREFULLY:
 3. Do NOT duplicate any content elements - render each card, testimonial, or item exactly once.
 4. Keep the layout clean and centered. All elements must be fully visible within the image bounds.
 5. Text must be clearly readable - use sufficient contrast and font size.
-6. For CTA/action sections: render a prominent, attractive BUTTON with Japanese action text
-   (e.g., "今すぐ申し込む", "無料で始める"). Never write "CTA" on the button.
-7. Maintain consistent visual hierarchy - headings larger, body text smaller, buttons prominent.`;
+6. Maintain consistent visual hierarchy - headings larger, body text smaller, buttons prominent.
+7. NEVER generate any logos, trust badges, certification marks, or brand icons.
+   Do NOT render: プライバシーマーク, セキュリティ認証, ISO認証, 決済ロゴ (VISA, PayPay, etc.),
+   協会ロゴ, 企業ロゴ, or any official-looking emblems/seals. These are legally problematic.
+   If the design needs trust elements, use plain text only (e.g., "安心の全額返金保証").
+8. NEVER render clickable-looking buttons with shadow/3D effects for CTA sections.
+   Instead, render a flat colored banner area with the action text. The image is static and
+   buttons cannot be clicked, so do not make them look interactive/clickable.
+   Use a simple colored rectangle with text, not a realistic button.
+9. Each section image must be a SINGLE cohesive design. Do NOT split into two side-by-side panels
+   or create a horizontally divided layout. The entire image width should be one unified composition.
+   Especially for the first view (FV/hero) section: use the FULL width as one single banner design.`;
 /** Build image generation prompt for a single section */
 function buildImagePrompt(sectionMeta, copyText, design, ctaText) {
     // Look up section style from design settings, fall back to section's styleKeywords
