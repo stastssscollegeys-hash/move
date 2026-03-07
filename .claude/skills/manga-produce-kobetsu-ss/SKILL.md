@@ -1107,6 +1107,121 @@ with zipfile.ZipFile('final_book.docx', 'r') as z:
 - ファイルサイズが20MB以上（図解+漫画で通常20-50MB）
 - 不足している場合は `manga_compiled.md` 内の画像参照数を確認する
 
+#### 5. DOCX後処理（句点改行 + 段落間空行 + 画像前後空行）
+
+DOCX変換後に以下の処理を実行し、電子書籍としての読みやすさを向上させる:
+
+1. **句点改行**: 「。」で文を分割し、各文を独立段落にする
+2. **段落間の空行挿入**: 元のMarkdown段落の区切りに**実際の空段落要素**を挿入して視覚的に段落グループを分離する
+3. **画像前後の空行挿入**: 画像（drawing要素）を含む段落の前後に空行を挿入して、画像と本文を視覚的に分離する
+
+> **重要**: `w:spacing`（段落後スペース）ではなく、**実際の空の`w:p`要素**を挿入すること。
+> `w:spacing` プロパティはDOCX上で視覚的な段落間スペースとして反映されないため、
+> 必ず `OxmlElement('w:p')` で空段落を挿入する方式を使う。これは検証済みの確定仕様。
+
+```bash
+cd "output/{slug}"
+
+python -c "
+from docx import Document
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+from copy import deepcopy
+
+doc = Document('final_book.docx')
+
+paras = list(doc.paragraphs)
+for para in paras:
+    style_name = para.style.name if para.style else ''
+    text = para.text.strip()
+
+    if style_name.startswith('Heading'):
+        continue
+
+    # 画像段落の検出（drawing要素を含む段落）
+    has_drawing = bool(
+        para._element.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}inline') or
+        para._element.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}anchor')
+    )
+
+    if has_drawing:
+        p_element = para._element
+        parent = p_element.getparent()
+        idx = list(parent).index(p_element)
+        if idx > 0:
+            prev = parent[idx - 1]
+            prev_runs = prev.findall(qn('w:r'))
+            prev_is_empty = (len(prev_runs) == 0 and not any(child.tag.endswith('}drawing') for child in prev.iter()))
+            if not prev_is_empty:
+                empty_before = OxmlElement('w:p')
+                parent.insert(idx, empty_before)
+                idx += 1
+        empty_after = OxmlElement('w:p')
+        parent.insert(idx + 1, empty_after)
+        continue
+
+    if not text:
+        continue
+
+    if style_name == 'Image Caption':
+        continue
+
+    if '。' not in text:
+        p_element = para._element
+        parent = p_element.getparent()
+        idx = list(parent).index(p_element)
+        empty_p = OxmlElement('w:p')
+        parent.insert(idx + 1, empty_p)
+        continue
+
+    sentences = [s for s in text.split('。') if s.strip()]
+    if len(sentences) <= 1:
+        p_element = para._element
+        parent = p_element.getparent()
+        idx = list(parent).index(p_element)
+        empty_p = OxmlElement('w:p')
+        parent.insert(idx + 1, empty_p)
+        continue
+
+    p_element = para._element
+    parent = p_element.getparent()
+    idx = list(parent).index(p_element)
+    new_elements = []
+
+    for i, sentence in enumerate(sentences):
+        st = sentence.strip()
+        if not st:
+            continue
+        if i < len(sentences) - 1 or text.rstrip().endswith('。'):
+            st += '。'
+
+        new_p = deepcopy(p_element)
+        for r in new_p.findall(qn('w:r')):
+            new_p.remove(r)
+        new_r = OxmlElement('w:r')
+        if para.runs:
+            rPr = para.runs[0]._element.find(qn('w:rPr'))
+            if rPr is not None:
+                new_r.append(deepcopy(rPr))
+        new_t = OxmlElement('w:t')
+        new_t.set(qn('xml:space'), 'preserve')
+        new_t.text = st
+        new_r.append(new_t)
+        new_p.append(new_r)
+        new_elements.append(new_p)
+
+    empty_p = OxmlElement('w:p')
+    new_elements.append(empty_p)
+
+    for j, new_el in enumerate(new_elements):
+        parent.insert(idx + j, new_el)
+    parent.remove(p_element)
+
+doc.save('final_book.docx')
+print('DOCX後処理完了（句点改行 + 空行挿入 + 画像前後空行）')
+"
+```
+
 ### 出力ファイル
 
 ```
