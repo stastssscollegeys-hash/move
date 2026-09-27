@@ -264,6 +264,25 @@ def calc_dokuji_forecast(horse: dict, past: list, race_info: dict,
 # ============================================================
 # 累積DB照合
 # ============================================================
+def style_from_db(horse_name, by_name, n_recent=5):
+    """レース前の想定脚質＝累積DBにあるその馬の直近n走（実際の位置取り）の多数決。同数は直近優先。
+    2026-09-27: 従来の running_style 由来の『脚質』は実際との一致率が **27.6%**（4分類の偶然25%）で
+    壊れていた。この方式は 41.9%（style_forecast_audit.py・19,872頭）。収集時点でDBに当日の結果は
+    無いので結果リークにならない。無ければ None（呼び側で従来値にフォールバック）。"""
+    hist = [e for e in by_name.get(horse_name, []) if e.get('脚質') in ('逃げ', '先行', '差し', '追込') and e.get('date')]
+    hist.sort(key=lambda e: (e['date'], e.get('競馬場', ''), int(float(e.get('R') or 0))))
+    hist = hist[-n_recent:]
+    if not hist:
+        return None
+    from collections import Counter
+    c = Counter(e['脚質'] for e in hist)
+    top = max(c.values())
+    cands = {s for s, n in c.items() if n == top}
+    for e in reversed(hist):
+        if e['脚質'] in cands:
+            return e['脚質']
+
+
 def load_cumulative_db():
     if not DB_PATH.exists():
         print(f"[WARN] 累積DBなし: {DB_PATH}", file=sys.stderr)
@@ -432,7 +451,9 @@ def main():
                 # 分析時は必ず名前の有無で欠損を判定すること。
                 '父':   row.get('father_name','') or '',
                 '母父': row.get('bms_name','') or '',
-                '脚質': _RS_MAP.get(int(fv(row,'running_style')), '?'),
+                # 2026-09-27: 想定脚質は累積DBの直近5走多数決を優先（41.9%）。無い馬だけ従来値（27.6%）
+                '脚質': style_from_db(h.get('horse_name',''), db_by_name) or _RS_MAP.get(int(fv(row,'running_style')), '?'),
+                '脚質_旧': _RS_MAP.get(int(fv(row,'running_style')), '?'),
                 '近5走平均着': round(fv(row,'avg_finish_5'),1),
                 '近5走複勝率%': round(fv(row,'top3_rate_5')*100,0),
                 '平均上がり': round(fv(row,'avg_l3f_5'),1),

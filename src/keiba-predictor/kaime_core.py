@@ -37,6 +37,44 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.stdout.reconfigure(encoding="utf-8")
 from prob_core import market_probs, adjust, top3_scenarios, ticket_probs, marks
+from context_layer import ContextDB, multipliers as ctx_mult, describe as ctx_describe, enabled_layers
+
+_CDB = None
+
+
+def cdb():
+    """文脈DB（蓄積DB 30MB）は必要になったとき1回だけ読む"""
+    global _CDB
+    if _CDB is None:
+        _CDB = ContextDB()
+    return _CDB
+
+
+def context_for(d, rec=None):
+    """レース側の文脈（L1〜L4）と、馬ごとの倍率・SNS用の説明文。
+    倍率を掛けるのは context_audit.py の両関門を通って db/context_layers.json に書かれた層だけ
+    （2026-09-27時点は空＝掛けない）。説明文は実測値なので常に出す。
+    馬の想定脚質は records ではなく ContextDB.style_forecast（直近5走多数決・一致率41.9%）。"""
+    c = cdb()
+    horses = d.get("horses") if isinstance(d.get("horses"), dict) else {}
+    surf = meters = None
+    dist = next((r.get("距離") for r in (rec or {}).values() if r.get("距離")), None)
+    if dist:
+        surf = "芝" if str(dist).startswith("芝") else "ダ"
+        num = "".join(ch for ch in str(dist) if ch.isdigit())
+        meters = int(num) if num else None
+    ctx = c.context(d["race_date"], d["venue"], int(d["R"]), surface=surf, meters=meters)
+    layers = enabled_layers()
+    mult, styles = {}, {}
+    for k, h in horses.items():
+        try:
+            u = int(h.get("umaban") or k)
+        except (TypeError, ValueError):
+            continue
+        st = c.style_forecast(h.get("horse_name", ""), d["race_date"])
+        styles[u] = st
+        mult[u] = ctx_mult(ctx, st, h.get("waku"), layers=layers)["total"] if (layers and st) else 1.0
+    return ctx, mult, styles, ctx_describe(ctx)
 
 DB = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db"
 LEDGER = DB / "rule_k1_ledger.json"
@@ -99,8 +137,9 @@ def flags_from(records_for_race: dict | None, horses_meta: dict | None):
 TAKEOUT = {"単勝": 0.80, "複勝": 0.80, "馬連": 0.775, "ワイド": 0.775}   # 券種別の払戻率（JRA公示）
 
 
-def build(tan, fuku, uren, wide, flags):
+def build(tan, fuku, uren, wide, flags, mult=None):
     """
+    mult: 文脈層の倍率（馬番→倍率）。監査を通った層が無ければ全て1.0で何も変わらない。
     期待値の定義（K1.0）:
       市場オッズだけから作った確率 q_t と、消しを掛けた確率 p_t を **同じλ-Harville** で出し、
       lift = p_t / q_t を取る。Harvilleの偏り（高配当を過大評価等）は分子分母で打ち消される。
@@ -110,6 +149,10 @@ def build(tan, fuku, uren, wide, flags):
     """
     q = market_probs(tan)
     p = adjust(q, flags)
+    if mult and any(abs(v - 1.0) > 1e-9 for v in mult.values()):
+        p = {u: v * mult.get(u, 1.0) for u, v in p.items()}
+        s = sum(p.values()) or 1.0
+        p = {u: v / s for u, v in p.items()}
     tq = ticket_probs(top3_scenarios(q), q)
     tp = ticket_probs(top3_scenarios(p), p)
     order = sorted(p, key=lambda u: -p[u])
@@ -156,7 +199,8 @@ def register(snap_path, records_path=None):
         recs = {int(float(r["馬番"])): r for r in rr
                 if r["date"] == d["race_date"] and r["競馬場"] == d["venue"] and int(r["R"]) == int(d["R"])} or None
     fl = flags_from(recs, d.get("horses") if isinstance(d.get("horses"), dict) else None)
-    b = build(tan, fuku, uren, wide, fl)
+    ctx, mult, styles, desc = context_for(d, recs)
+    b = build(tan, fuku, uren, wide, fl, mult)
     rows = load()
     rid = d["race_id"]
     if any(r["race_id"] == rid for r in rows):
@@ -169,6 +213,8 @@ def register(snap_path, records_path=None):
                      odds_at=d.get("fetched_at"), marks={k: v for k, v in m.items()},
                      hon_pop=pop.get(m["◎"]), flags={str(u): f for u, f in fl.items() if any(f.values())},
                      pattern=b["pattern"], budget=b["budget"],
+                     context=desc, layers_enabled=list(enabled_layers()),
+                     style_forecast={str(u): s for u, s in styles.items() if s},
                      bets=[dict(t=r["t"], combo=r["combo"], amt=r["amt"], odds_at_bet=r["odds"], ev=r["ev"]) for r in b["bets"]],
                      settled=False, payout=None))
     save(rows)
@@ -244,8 +290,11 @@ def main():
             rec = {int(float(r["馬番"])): r for r in rr
                    if r["date"] == d["race_date"] and r["競馬場"] == d["venue"] and int(r["R"]) == int(d["R"])} or None
             fl = flags_from(rec, d.get("horses") if isinstance(d.get("horses"), dict) else None)
-            b = build(tan, fuku, uren, wide, fl)
+            ctx, mult, styles, desc = context_for(d, rec)
+            b = build(tan, fuku, uren, wide, fl, mult)
             lifts += [r["lift"] for r in b["all"]]
+            for line in desc:
+                print(f"      ┗ {line}")
             ke = [u for u, x in fl.items() if any(x.values())]
             print(f"{d['venue']}{d['R']:>2}R {b['pattern']:<4} ◎{b['marks']['◎']:>2} 消し{ke if ke else '-'} "
                   f"最大lift {max((r['lift'] for r in b['all']), default=1):.3f}"
