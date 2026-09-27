@@ -1,0 +1,24 @@
+# エンジン重み（LightGBM特徴量の重要度とは別）
+feature_weights:
+  past_performance: 0.30  # 過去成績（最重要）
+  jockey: 0.15            # 騎手
+  course_fitness: 0.15    # コース適性
+  bloodline_course: 0.10  # 血統×コース（交互作用）
+  track_bias: 0.10        # 馬場バイアス
+  condition: 0.10         # 状態（体重等）
+  trainer: 0.10           # 調教師
+
+# LightGBMハイパーパラメータ
+lightgbm:
+  num_leaves: 31
+  learning_rate: 0.05
+  n_estimators: 1000
+  early_stopping_rounds: 50
+  lambda_l1: 0.1
+  lambda_l2: 0.1
+  min_child_samples: 20
+  feature_fraction: 0.8
+  bagging_fraction: 0.8
+
+# スピード指数の重み（直近走ほど重い）
+speed_index_weights: [0.35, 0.25, 0.20, 0.12, 0.08]

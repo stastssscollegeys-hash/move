@@ -1,0 +1,61 @@
+rules:
+  ELIM-001:
+    name: "13番人気以下"
+    enabled: true
+    field: popularity
+    threshold: 13
+    operator: ">="
+
+  ELIM-002:
+    name: "リーディング30位以下の騎手（重賞時）"
+    enabled: true
+    field: jockey_ranking
+    threshold: 30
+    operator: ">"
+    condition: "graded_race_only"
+
+  ELIM-003:
+    name: "7歳以上"
+    enabled: true
+    field: age
+    threshold: 7
+    operator: ">="
+
+  ELIM-004:
+    name: "前走10着以下"
+    enabled: true
+    field: last_finish
+    threshold: 10
+    operator: ">="
+
+  ELIM-005:
+    name: "前走10番人気以下"
+    enabled: true
+    field: last_popularity
+    threshold: 10
+    operator: ">="
+
+  ELIM-006:
+    name: "血統×コース不適合"
+    enabled: true
+    field: bloodline_course_score
+    threshold: 20
+    operator: "<"
+
+  ELIM-007:
+    name: "体重異常変動"
+    enabled: true
+    field: weight_change
+    threshold_upper: 20
+    threshold_lower: -10
+
+  ELIM-008:
+    name: "長期休養明け"
+    enabled: true
+    field: rest_days
+    threshold: 365
+    additional: "no_past_wins"
+
+# 消去後の最小残存馬数（これ以下にならない）
+# 3頭だと勝率が偏りすぎるため、5頭以上を維持
+min_remaining: 5

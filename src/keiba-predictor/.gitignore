@@ -1,0 +1,32 @@
+# keiba-predictor 内の除外（2026-09-27）— コード・設定だけを追跡する
+# 大容量・再生成可能・PC固有のものは追跡しない（ルート .gitignore の keiba 節と重複可）
+
+# 学習済みモデル（約212MB）・血統原本（約317MB）・特徴量CSV
+data/models/
+data/jvlink_v3/
+data/features_v2.csv
+
+# スクレイプキャッシュ（約544MB・バックアップ含む）
+_cache/
+netkeiba_cache.json
+*_bak_*.json
+*.json.bak*
+
+# 動画素材（33MB・851ファイル）
+video/
+
+# 認証情報（絶対に追跡しない）
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 生成物・一時
+*.docx
+*.xlsx
+*.png
+*.mp4
+*.log
+debug_*.html

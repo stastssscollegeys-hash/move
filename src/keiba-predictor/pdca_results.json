@@ -1,0 +1,9529 @@
+[
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026042605020208",
+    "honmei_post": 3,
+    "honmei_name": "ボンヌソワレ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 85.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ボンヌソワレ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "キャッスルレイク",
+        "show_prob": 18.7,
+        "finish": 5
+      },
+      {
+        "post": 8,
+        "name": "ライツユーアップ",
+        "show_prob": 3.2,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "09",
+    "race_name": "湘南ステークス",
+    "rcode": "2026042605020209",
+    "honmei_post": 1,
+    "honmei_name": "コートアリシアン",
+    "honmei_show_prob": 58.1,
+    "honmei_win_prob": 24.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.9,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "コートアリシアン",
+        "show_prob": 58.1,
+        "finish": 3
+      },
+      {
+        "post": 7,
+        "name": "カンシン",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "ヨウシタンレイ",
+        "show_prob": 32.2,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "10",
+    "race_name": "オアシスステークス",
+    "rcode": "2026042605020210",
+    "honmei_post": 3,
+    "honmei_name": "ドンインザムード",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 92.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ドンインザムード",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 10,
+        "name": "ウェイワードアクト",
+        "show_prob": 7.9,
+        "finish": null
+      },
+      {
+        "post": 16,
+        "name": "テーオーパスワード",
+        "show_prob": 6.9,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "11",
+    "race_name": "サンケイスポーツ賞フローラステークス",
+    "rcode": "2026042605020211",
+    "honmei_post": 5,
+    "honmei_name": "ラフターラインズ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 37.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.9,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "ラフターラインズ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 2,
+        "name": "ラベルセーヌ",
+        "show_prob": 53.0,
+        "finish": 5
+      },
+      {
+        "post": 11,
+        "name": "ファムクラジューズ",
+        "show_prob": 43.0,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026042605020212",
+    "honmei_post": 15,
+    "honmei_name": "スナッピードレッサ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 58.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        15,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 15,
+        "name": "スナッピードレッサ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ベラジオワールド",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 10,
+        "name": "ポッドベル",
+        "show_prob": 31.8,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026042608030201",
+    "honmei_post": 7,
+    "honmei_name": "アルムアポジェ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 94.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 7.2,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "アルムアポジェ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 13,
+        "name": "ガルディエンヌ",
+        "show_prob": 6.4,
+        "finish": 4
+      },
+      {
+        "post": 16,
+        "name": "ツァレヴナ",
+        "show_prob": 5.2,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026042608030202",
+    "honmei_post": 14,
+    "honmei_name": "テイエムスターラン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 75.3,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.5,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 14,
+        "name": "テイエムスターラン",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 12,
+        "name": "グリーンゴー",
+        "show_prob": 20.1,
+        "finish": 2
+      },
+      {
+        "post": 6,
+        "name": "レッドフロイデ",
+        "show_prob": 19.4,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026042608030203",
+    "honmei_post": 6,
+    "honmei_name": "アンジュラフィーユ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 71.5,
+    "honmei_est_pop": 2,
+    "honmei_odds": 7.2,
+    "honmei_finish": 8,
+    "is_hit": false,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "アンジュラフィーユ",
+        "show_prob": 53.0,
+        "finish": 8
+      },
+      {
+        "post": 16,
+        "name": "ヤマニンフェイエル",
+        "show_prob": 47.8,
+        "finish": 5
+      },
+      {
+        "post": 1,
+        "name": "ドラムメジャー",
+        "show_prob": 12.5,
+        "finish": 12
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026042608030205",
+    "honmei_post": 9,
+    "honmei_name": "フレアオブセンス",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 39.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.9,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "フレアオブセンス",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 7,
+        "name": "バックドラフト",
+        "show_prob": 47.2,
+        "finish": 7
+      },
+      {
+        "post": 2,
+        "name": "ブルーザー",
+        "show_prob": 35.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026042608030206",
+    "honmei_post": 2,
+    "honmei_name": "フェスティヴドレス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 63.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.5,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 0,
+    "num_runners": 11,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "フェスティヴドレス",
+        "show_prob": 64.0,
+        "finish": 5
+      },
+      {
+        "post": 5,
+        "name": "カナタコナタ",
+        "show_prob": 28.7,
+        "finish": 1
+      },
+      {
+        "post": 10,
+        "name": "ステライヴ",
+        "show_prob": 20.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026042608030207",
+    "honmei_post": 12,
+    "honmei_name": "エリカアンディーヴ",
+    "honmei_show_prob": 51.6,
+    "honmei_win_prob": 22.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 5.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "エリカアンディーヴ",
+        "show_prob": 51.6,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ハルフロンティア",
+        "show_prob": 35.0,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "デリュージョン",
+        "show_prob": 10.2,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026042608030208",
+    "honmei_post": 13,
+    "honmei_name": "ジーティーアメリカ",
+    "honmei_show_prob": 60.4,
+    "honmei_win_prob": 25.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 11.0,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        9,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 13,
+        "name": "ジーティーアメリカ",
+        "show_prob": 60.4,
+        "finish": 4
+      },
+      {
+        "post": 3,
+        "name": "エイユーファイヤー",
+        "show_prob": 43.0,
+        "finish": 5
+      },
+      {
+        "post": 10,
+        "name": "ホウオウバローロ",
+        "show_prob": 35.0,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "09",
+    "race_name": "比良山特別",
+    "rcode": "2026042608030209",
+    "honmei_post": 8,
+    "honmei_name": "アスクコモンタレヴ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 35.1,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 4,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 2200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "アスクコモンタレヴ",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "ロールザダイス",
+        "show_prob": 43.0,
+        "finish": 11
+      },
+      {
+        "post": 11,
+        "name": "ニュークレド",
+        "show_prob": 29.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "10",
+    "race_name": "センテニアル・パークステークス",
+    "rcode": "2026042608030210",
+    "honmei_post": 12,
+    "honmei_name": "アラベラ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 64.9,
+    "honmei_est_pop": 3,
+    "honmei_odds": 8.9,
+    "honmei_finish": 17,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        17,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "アラベラ",
+        "show_prob": 43.0,
+        "finish": 17
+      },
+      {
+        "post": 4,
+        "name": "レディーミコノス",
+        "show_prob": 29.0,
+        "finish": 5
+      },
+      {
+        "post": 11,
+        "name": "レイニング",
+        "show_prob": 24.3,
+        "finish": 11
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "11",
+    "race_name": "読売マイラーズカップ",
+    "rcode": "2026042608030211",
+    "honmei_post": 2,
+    "honmei_name": "オフトレイル",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 14.4,
+    "honmei_est_pop": 3,
+    "honmei_odds": 4.7,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        9,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "オフトレイル",
+        "show_prob": 43.0,
+        "finish": 5
+      },
+      {
+        "post": 7,
+        "name": "ベラジオボンド",
+        "show_prob": 35.0,
+        "finish": 3
+      },
+      {
+        "post": 9,
+        "name": "アドマイヤズーム",
+        "show_prob": 34.7,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "京都",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026042608030212",
+    "honmei_post": 9,
+    "honmei_name": "ライノ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 33.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 7.5,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "ライノ",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 12,
+        "name": "ゼンエスポワール",
+        "show_prob": 43.0,
+        "finish": 2
+      },
+      {
+        "post": 10,
+        "name": "ショーダンサー",
+        "show_prob": 43.0,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026042603010601",
+    "honmei_post": 12,
+    "honmei_name": "モズオウンゴール",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 19.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1150,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "モズオウンゴール",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "シェイプオブユー",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 3,
+        "name": "メインテーマ",
+        "show_prob": 43.0,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026042603010602",
+    "honmei_post": 9,
+    "honmei_name": "スイープセレニティ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 52.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.5,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        9,
+        3
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "スイープセレニティ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 15,
+        "name": "ダノンルミエール",
+        "show_prob": 50.8,
+        "finish": 5
+      },
+      {
+        "post": 11,
+        "name": "モズヴイ",
+        "show_prob": 20.7,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026042603010603",
+    "honmei_post": 10,
+    "honmei_name": "ジョーカー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 30.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.1,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1700,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ジョーカー",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 6,
+        "name": "キャッチアシーフ",
+        "show_prob": 35.0,
+        "finish": 13
+      },
+      {
+        "post": 2,
+        "name": "マイネルゼーロス",
+        "show_prob": 31.6,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026042603010604",
+    "honmei_post": 4,
+    "honmei_name": "ブルーエ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 35.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.3,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "ブルーエ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 7,
+        "name": "カレンデュラ",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ロジスカヤ",
+        "show_prob": 20.8,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026042603010605",
+    "honmei_post": 8,
+    "honmei_name": "クシマトゥルー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 62.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 8.1,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "クシマトゥルー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 14,
+        "name": "エコロラヴァー",
+        "show_prob": 43.0,
+        "finish": 11
+      },
+      {
+        "post": 1,
+        "name": "ヤマメホープ",
+        "show_prob": 16.9,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026042603010606",
+    "honmei_post": 10,
+    "honmei_name": "アスクデッドヒート",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 32.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 6.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "アスクデッドヒート",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 3,
+        "name": "デリシュー",
+        "show_prob": 43.0,
+        "finish": 8
+      },
+      {
+        "post": 5,
+        "name": "キングズトゥルー",
+        "show_prob": 40.5,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026042603010607",
+    "honmei_post": 11,
+    "honmei_name": "マタミカンサン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 56.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.7,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1700,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "マタミカンサン",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 10,
+        "name": "ユージュアーナ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "カルミアクラウン",
+        "show_prob": 21.9,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026042603010608",
+    "honmei_post": 15,
+    "honmei_name": "タマモブラウンタイ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 29.9,
+    "honmei_est_pop": 2,
+    "honmei_odds": 11.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 15,
+        "name": "タマモブラウンタイ",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 4,
+        "name": "マキシマムドライブ",
+        "show_prob": 40.7,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "ダノンゴーイチ",
+        "show_prob": 35.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "09",
+    "race_name": "飯盛山特別",
+    "rcode": "2026042603010609",
+    "honmei_post": 12,
+    "honmei_name": "マイネルアズーロ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 57.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 6.5,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "マイネルアズーロ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 10,
+        "name": "アリスメティーク",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ミッドセンチュリー",
+        "show_prob": 18.0,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "10",
+    "race_name": "尾瀬特別",
+    "rcode": "2026042603010610",
+    "honmei_post": 3,
+    "honmei_name": "セボンサデッセ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 65.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1700,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "セボンサデッセ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 1,
+        "name": "ギマール",
+        "show_prob": 40.1,
+        "finish": 4
+      },
+      {
+        "post": 11,
+        "name": "キングツェッペリン",
+        "show_prob": 22.4,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "11",
+    "race_name": "モルガナイトステークス",
+    "rcode": "2026042603010611",
+    "honmei_post": 6,
+    "honmei_name": "サウンドモリアーナ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 51.8,
+    "honmei_est_pop": 3,
+    "honmei_odds": 6.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "サウンドモリアーナ",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "イツモニコニコ",
+        "show_prob": 18.0,
+        "finish": 12
+      },
+      {
+        "post": 5,
+        "name": "カルロヴェローチェ",
+        "show_prob": 3.4,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "福島",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026042603010612",
+    "honmei_post": 2,
+    "honmei_name": "ケイアイマウンガ",
+    "honmei_show_prob": 60.6,
+    "honmei_win_prob": 30.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 5.4,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1150,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "ケイアイマウンガ",
+        "show_prob": 60.6,
+        "finish": 6
+      },
+      {
+        "post": 5,
+        "name": "レイアポポ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "ダイヤモンド",
+        "show_prob": 24.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026042605020201",
+    "honmei_post": 7,
+    "honmei_name": "ベルオーシャン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 82.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 6.3,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ベルオーシャン",
+        "show_prob": 64.0,
+        "finish": 5
+      },
+      {
+        "post": 5,
+        "name": "マリノレーヴェ",
+        "show_prob": 18.0,
+        "finish": 10
+      },
+      {
+        "post": 2,
+        "name": "ルージュリヴィエラ",
+        "show_prob": 10.2,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026042605020202",
+    "honmei_post": 4,
+    "honmei_name": "モロノカガヤキ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 86.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "モロノカガヤキ",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 9,
+        "name": "マナイアカラニ",
+        "show_prob": 10.7,
+        "finish": 5
+      },
+      {
+        "post": 11,
+        "name": "マテンロウストーム",
+        "show_prob": 7.7,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026042605020203",
+    "honmei_post": 16,
+    "honmei_name": "アニマレイ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 35.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.9,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1300,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "アニマレイ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 1,
+        "name": "ユイノカタリベ",
+        "show_prob": 29.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "ヴィスクレス",
+        "show_prob": 26.4,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026042605020204",
+    "honmei_post": 6,
+    "honmei_name": "イブキ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 64.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 0,
+    "num_runners": 10,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "イブキ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "ガードオブオナー",
+        "show_prob": 52.2,
+        "finish": 4
+      },
+      {
+        "post": 8,
+        "name": "マーゴットドライ",
+        "show_prob": 23.5,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026042605020205",
+    "honmei_post": 8,
+    "honmei_name": "ブラッキッシュ",
+    "honmei_show_prob": 47.0,
+    "honmei_win_prob": 28.2,
+    "honmei_est_pop": 2,
+    "honmei_odds": 5.8,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "ブラッキッシュ",
+        "show_prob": 47.0,
+        "finish": 3
+      },
+      {
+        "post": 6,
+        "name": "ムーングレイル",
+        "show_prob": 35.0,
+        "finish": 9
+      },
+      {
+        "post": 10,
+        "name": "サクラモンストール",
+        "show_prob": 14.8,
+        "finish": 18
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026042605020206",
+    "honmei_post": 1,
+    "honmei_name": "サレジオ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 34.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.5,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        2,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 0,
+    "num_runners": 8,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "サレジオ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 2,
+        "name": "フジガイフウ",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "マツリダイコ",
+        "show_prob": 40.2,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260426",
+    "venue": "東京",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026042605020207",
+    "honmei_post": 14,
+    "honmei_name": "セブンマイスター",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 92.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.9,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "良",
+    "predictions_top3": [
+      {
+        "post": 14,
+        "name": "セブンマイスター",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 15,
+        "name": "ハクシンブライアン",
+        "show_prob": 9.1,
+        "finish": 3
+      },
+      {
+        "post": 9,
+        "name": "ウフドゥウフ",
+        "show_prob": 4.3,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050204010102",
+    "honmei_post": 10,
+    "honmei_name": "マカロンブルー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 79.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "4",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "マカロンブルー",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 7,
+        "name": "オーケーリアン",
+        "show_prob": 20.9,
+        "finish": 5
+      },
+      {
+        "post": 5,
+        "name": "ミアルーチェ",
+        "show_prob": 7.1,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050204010103",
+    "honmei_post": 6,
+    "honmei_name": "マリブサーフ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 76.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.3,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "4",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "マリブサーフ",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 8,
+        "name": "アンバサダネージュ",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 3,
+        "name": "スノーランス",
+        "show_prob": 22.0,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050204010105",
+    "honmei_post": 9,
+    "honmei_name": "ヤマニンアレシス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 57.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 8,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "ヤマニンアレシス",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 13,
+        "name": "アイアムアヒーロー",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 14,
+        "name": "ツウキンカイソク",
+        "show_prob": 9.5,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050204010106",
+    "honmei_post": 5,
+    "honmei_name": "プレイザリード",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 76.8,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 2200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "プレイザリード",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ディアアズール",
+        "show_prob": 32.6,
+        "finish": 3
+      },
+      {
+        "post": 3,
+        "name": "マイネルリーヒム",
+        "show_prob": 14.0,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050204010107",
+    "honmei_post": 1,
+    "honmei_name": "レッドイステル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 89.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "レッドイステル",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 12,
+        "name": "リュミナーズ",
+        "show_prob": 15.4,
+        "finish": 6
+      },
+      {
+        "post": 11,
+        "name": "トラストエムシー",
+        "show_prob": 3.5,
+        "finish": 13
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050204010108",
+    "honmei_post": 1,
+    "honmei_name": "ダノンブランニュー",
+    "honmei_show_prob": 29.0,
+    "honmei_win_prob": 82.4,
+    "honmei_est_pop": 5,
+    "honmei_odds": 8.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "ダノンブランニュー",
+        "show_prob": 29.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ロケベンドラ",
+        "show_prob": 14.9,
+        "finish": 6
+      },
+      {
+        "post": 3,
+        "name": "グレゴリオ",
+        "show_prob": 9.0,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "09",
+    "race_name": "わらび賞",
+    "rcode": "2026050204010109",
+    "honmei_post": 11,
+    "honmei_name": "タガノエルー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 72.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "タガノエルー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "ガムラスタン",
+        "show_prob": 35.0,
+        "finish": 12
+      },
+      {
+        "post": 5,
+        "name": "ウルフ",
+        "show_prob": 18.8,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "10",
+    "race_name": "胎内川特別",
+    "rcode": "2026050204010110",
+    "honmei_post": 12,
+    "honmei_name": "ナイトスラッガー",
+    "honmei_show_prob": 58.8,
+    "honmei_win_prob": 16.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.1,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "ナイトスラッガー",
+        "show_prob": 58.8,
+        "finish": 5
+      },
+      {
+        "post": 4,
+        "name": "マイネルフルムーン",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ツルマウカタチ",
+        "show_prob": 35.0,
+        "finish": 13
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "11",
+    "race_name": "三条ステークス",
+    "rcode": "2026050204010111",
+    "honmei_post": 5,
+    "honmei_name": "クインズショコラ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 88.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "クインズショコラ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "モズカトレア",
+        "show_prob": 8.1,
+        "finish": 14
+      },
+      {
+        "post": 13,
+        "name": "ウィンターダフネ",
+        "show_prob": 7.4,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "新潟",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050204010112",
+    "honmei_post": 8,
+    "honmei_name": "レジーナローズ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 46.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 5.3,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 11,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1000,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "レジーナローズ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 15,
+        "name": "ウインマスカレード",
+        "show_prob": 37.6,
+        "finish": 3
+      },
+      {
+        "post": 16,
+        "name": "ベルタソ",
+        "show_prob": 23.4,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050205020301",
+    "honmei_post": 2,
+    "honmei_name": "マーマレードスカイ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 70.8,
+    "honmei_est_pop": 3,
+    "honmei_odds": 8.2,
+    "honmei_finish": 16,
+    "is_hit": false,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "マーマレードスカイ",
+        "show_prob": 43.0,
+        "finish": 16
+      },
+      {
+        "post": 5,
+        "name": "ロジザボード",
+        "show_prob": 29.3,
+        "finish": 8
+      },
+      {
+        "post": 1,
+        "name": "ミエスタ",
+        "show_prob": 22.2,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050205020302",
+    "honmei_post": 5,
+    "honmei_name": "ウインビギニング",
+    "honmei_show_prob": 60.0,
+    "honmei_win_prob": 25.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.6,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "ウインビギニング",
+        "show_prob": 60.0,
+        "finish": 2
+      },
+      {
+        "post": 3,
+        "name": "プレースメント",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 7,
+        "name": "アミナス",
+        "show_prob": 5.1,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050205020303",
+    "honmei_post": 7,
+    "honmei_name": "ナウオアネヴァー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 35.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.1,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 9,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ナウオアネヴァー",
+        "show_prob": 64.0,
+        "finish": 5
+      },
+      {
+        "post": 6,
+        "name": "ニシノモリミチ",
+        "show_prob": 37.9,
+        "finish": 7
+      },
+      {
+        "post": 1,
+        "name": "アイムスティルミー",
+        "show_prob": 19.5,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050205020304",
+    "honmei_post": 6,
+    "honmei_name": "スワーヴマルス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 81.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 10,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "スワーヴマルス",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 2,
+        "name": "サトノスターライト",
+        "show_prob": 25.6,
+        "finish": 4
+      },
+      {
+        "post": 10,
+        "name": "タイドグラフ",
+        "show_prob": 10.4,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050205020305",
+    "honmei_post": 3,
+    "honmei_name": "フェルミアーク",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 30.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "フェルミアーク",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 15,
+        "name": "グロリアスマーチ",
+        "show_prob": 53.0,
+        "finish": 6
+      },
+      {
+        "post": 6,
+        "name": "レオアジャイル",
+        "show_prob": 35.2,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050205020306",
+    "honmei_post": 7,
+    "honmei_name": "リポサンテ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 72.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.1,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 7,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "リポサンテ",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 6,
+        "name": "ノクターン",
+        "show_prob": 35.9,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "オプレントジュエル",
+        "show_prob": 7.1,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050205020307",
+    "honmei_post": 8,
+    "honmei_name": "トウタツ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 35.6,
+    "honmei_est_pop": 3,
+    "honmei_odds": 10.5,
+    "honmei_finish": 10,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 8,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "トウタツ",
+        "show_prob": 43.0,
+        "finish": 10
+      },
+      {
+        "post": 12,
+        "name": "キョウエイスレーヴ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 15,
+        "name": "ドリーミングアップ",
+        "show_prob": 23.2,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050205020308",
+    "honmei_post": 5,
+    "honmei_name": "リトルジャイアンツ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 45.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.9,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 10,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "リトルジャイアンツ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 3,
+        "name": "アルマデオロ",
+        "show_prob": 43.0,
+        "finish": 3
+      },
+      {
+        "post": 6,
+        "name": "ノラリクラリ",
+        "show_prob": 29.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "09",
+    "race_name": "是政ステークス",
+    "rcode": "2026050205020309",
+    "honmei_post": 12,
+    "honmei_name": "リアライズカミオン",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 49.2,
+    "honmei_est_pop": 3,
+    "honmei_odds": 3.5,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "リアライズカミオン",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 14,
+        "name": "アカデミア",
+        "show_prob": 42.7,
+        "finish": 3
+      },
+      {
+        "post": 1,
+        "name": "タイセイアディクト",
+        "show_prob": 29.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "10",
+    "race_name": "スイートピーステークス",
+    "rcode": "2026050205020310",
+    "honmei_post": 11,
+    "honmei_name": "カナルサンマルタン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 70.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 4,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "カナルサンマルタン",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 2,
+        "name": "ドナルンバ",
+        "show_prob": 35.0,
+        "finish": 3
+      },
+      {
+        "post": 6,
+        "name": "モートンアイランド",
+        "show_prob": 12.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "11",
+    "race_name": "京王杯スプリングカップ",
+    "rcode": "2026050205020311",
+    "honmei_post": 16,
+    "honmei_name": "ワールズエンド",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 94.5,
+    "honmei_est_pop": 3,
+    "honmei_odds": 5.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "ワールズエンド",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "ワイドラトゥール",
+        "show_prob": 7.1,
+        "finish": 7
+      },
+      {
+        "post": 18,
+        "name": "ヤブサメ",
+        "show_prob": 3.4,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "東京",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050205020312",
+    "honmei_post": 2,
+    "honmei_name": "ヘリオトロープ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 53.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.1,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "ヘリオトロープ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "ルヴァレドクール",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "グラフィティアート",
+        "show_prob": 4.3,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050208030301",
+    "honmei_post": 11,
+    "honmei_name": "グレイトソン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 65.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.9,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "グレイトソン",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "スターフュージョン",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 7,
+        "name": "サンライズロイ",
+        "show_prob": 15.1,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050208030302",
+    "honmei_post": 10,
+    "honmei_name": "ピコオーバル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 83.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "不良",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ピコオーバル",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 8,
+        "name": "ケンフィールド",
+        "show_prob": 22.5,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "メイショウヒタカミ",
+        "show_prob": 2.5,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050208030303",
+    "honmei_post": 1,
+    "honmei_name": "セコンドトゥベスト",
+    "honmei_show_prob": 61.9,
+    "honmei_win_prob": 31.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.1,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 6,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "セコンドトゥベスト",
+        "show_prob": 61.9,
+        "finish": 2
+      },
+      {
+        "post": 4,
+        "name": "ミラキュラスアース",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 11,
+        "name": "サトノカスターニャ",
+        "show_prob": 3.9,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050208030304",
+    "honmei_post": 6,
+    "honmei_name": "リアンマヒナ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 29.6,
+    "honmei_est_pop": 3,
+    "honmei_odds": 3.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 7,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "リアンマヒナ",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "タナブイハチターボ",
+        "show_prob": 29.0,
+        "finish": 2
+      },
+      {
+        "post": 17,
+        "name": "サトノフレイ",
+        "show_prob": 28.4,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050208030305",
+    "honmei_post": 6,
+    "honmei_name": "ロードスタニング",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 73.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 2,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "ロードスタニング",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 10,
+        "name": "ソルトハッピー",
+        "show_prob": 29.0,
+        "finish": 3
+      },
+      {
+        "post": 7,
+        "name": "シャイニングスター",
+        "show_prob": 3.3,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050208030306",
+    "honmei_post": 7,
+    "honmei_name": "シュドゥン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 62.0,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 11,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "シュドゥン",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "デルマサクラサク",
+        "show_prob": 43.0,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "アロマフェリス",
+        "show_prob": 26.2,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050208030307",
+    "honmei_post": 5,
+    "honmei_name": "ファムマルキーズ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 37.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 4,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "ファムマルキーズ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "フロムレイブン",
+        "show_prob": 53.0,
+        "finish": 5
+      },
+      {
+        "post": 7,
+        "name": "マイティキングダム",
+        "show_prob": 13.7,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050208030308",
+    "honmei_post": 8,
+    "honmei_name": "ニホンピロカラット",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 58.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.4,
+    "honmei_finish": 7,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 13,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "ニホンピロカラット",
+        "show_prob": 64.0,
+        "finish": 7
+      },
+      {
+        "post": 9,
+        "name": "ザングウィル",
+        "show_prob": 53.0,
+        "finish": 5
+      },
+      {
+        "post": 7,
+        "name": "ハミルトン",
+        "show_prob": 12.9,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "09",
+    "race_name": "矢車賞",
+    "rcode": "2026050208030309",
+    "honmei_post": 9,
+    "honmei_name": "レイクラシック",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 72.0,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.2,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 2,
+    "num_runners": 9,
+    "surface": "芝",
+    "distance": 2200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "レイクラシック",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 7,
+        "name": "トリニティ",
+        "show_prob": 18.2,
+        "finish": 1
+      },
+      {
+        "post": 3,
+        "name": "ララオウ",
+        "show_prob": 17.7,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "10",
+    "race_name": "京極特別",
+    "rcode": "2026050208030310",
+    "honmei_post": 8,
+    "honmei_name": "タイセイディアマン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 56.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.4,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "タイセイディアマン",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "ヴリトラハン",
+        "show_prob": 43.2,
+        "finish": 5
+      },
+      {
+        "post": 3,
+        "name": "メイショウゴールド",
+        "show_prob": 31.7,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "11",
+    "race_name": "ユニコーンステークス",
+    "rcode": "2026050208030311",
+    "honmei_post": 4,
+    "honmei_name": "シルバーレシオ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 79.6,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1900,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "シルバーレシオ",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "メルカントゥール",
+        "show_prob": 28.9,
+        "finish": 2
+      },
+      {
+        "post": 9,
+        "name": "ソルチェリア",
+        "show_prob": 18.8,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260502",
+    "venue": "京都",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050208030312",
+    "honmei_post": 5,
+    "honmei_name": "ヤエギリ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 48.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.4,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 10,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "ヤエギリ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 9,
+        "name": "ペールノエル",
+        "show_prob": 53.0,
+        "finish": 6
+      },
+      {
+        "post": 1,
+        "name": "ムーンライトラガー",
+        "show_prob": 3.2,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050304010201",
+    "honmei_post": 1,
+    "honmei_name": "オートカリテ",
+    "honmei_show_prob": 50.0,
+    "honmei_win_prob": 30.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 11,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "オートカリテ",
+        "show_prob": 50.0,
+        "finish": 2
+      },
+      {
+        "post": 16,
+        "name": "オモイヲノセテ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ピアス",
+        "show_prob": 23.5,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050304010202",
+    "honmei_post": 10,
+    "honmei_name": "ミスタートントン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 35.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.3,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ミスタートントン",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 13,
+        "name": "エコロボルト",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "スカット",
+        "show_prob": 29.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050304010203",
+    "honmei_post": 3,
+    "honmei_name": "タロ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 29.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.8,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "タロ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "ボールドタワー",
+        "show_prob": 34.5,
+        "finish": 4
+      },
+      {
+        "post": 6,
+        "name": "コイオステソーロ",
+        "show_prob": 30.7,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050304010205",
+    "honmei_post": 2,
+    "honmei_name": "モンロワイヤル",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 68.8,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.5,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "モンロワイヤル",
+        "show_prob": 53.0,
+        "finish": 5
+      },
+      {
+        "post": 4,
+        "name": "レインボーステート",
+        "show_prob": 39.0,
+        "finish": 10
+      },
+      {
+        "post": 11,
+        "name": "ワールドブレイヴ",
+        "show_prob": 20.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050304010206",
+    "honmei_post": 10,
+    "honmei_name": "ラストレガシー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 35.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 13,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ラストレガシー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ノーブルアクト",
+        "show_prob": 35.0,
+        "finish": 7
+      },
+      {
+        "post": 4,
+        "name": "トーアケルキラ",
+        "show_prob": 30.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050304010207",
+    "honmei_post": 12,
+    "honmei_name": "ロンドンアームズ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 23.5,
+    "honmei_est_pop": 3,
+    "honmei_odds": 7.7,
+    "honmei_finish": 10,
+    "is_hit": false,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "ロンドンアームズ",
+        "show_prob": 43.0,
+        "finish": 10
+      },
+      {
+        "post": 4,
+        "name": "ストレイトアスク",
+        "show_prob": 29.0,
+        "finish": 14
+      },
+      {
+        "post": 13,
+        "name": "ベルサ",
+        "show_prob": 15.7,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050304010208",
+    "honmei_post": 4,
+    "honmei_name": "マドモアゼルアスク",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 81.6,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "マドモアゼルアスク",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "マイネルアレス",
+        "show_prob": 28.1,
+        "finish": 2
+      },
+      {
+        "post": 7,
+        "name": "ミエノフェアリー",
+        "show_prob": 4.2,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "09",
+    "race_name": "咲花特別",
+    "rcode": "2026050304010209",
+    "honmei_post": 4,
+    "honmei_name": "レイバックスピン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 64.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "レイバックスピン",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ステアハート",
+        "show_prob": 28.1,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "プウスカンドゥール",
+        "show_prob": 17.3,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "10",
+    "race_name": "邁進特別",
+    "rcode": "2026050304010210",
+    "honmei_post": 16,
+    "honmei_name": "カウンターセブン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 67.5,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 10,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "カウンターセブン",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 12,
+        "name": "リリーフィールド",
+        "show_prob": 27.0,
+        "finish": 6
+      },
+      {
+        "post": 8,
+        "name": "ハニーローリエ",
+        "show_prob": 18.9,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "11",
+    "race_name": "越後ステークス",
+    "rcode": "2026050304010211",
+    "honmei_post": 2,
+    "honmei_name": "ポールセン",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 72.6,
+    "honmei_est_pop": 3,
+    "honmei_odds": 5.2,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "ポールセン",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 15,
+        "name": "ルディック",
+        "show_prob": 22.6,
+        "finish": 10
+      },
+      {
+        "post": 4,
+        "name": "ブレーザー",
+        "show_prob": 13.8,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "新潟",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050304010212",
+    "honmei_post": 3,
+    "honmei_name": "タケルハーロック",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 71.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "タケルハーロック",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "フルドド",
+        "show_prob": 37.6,
+        "finish": 6
+      },
+      {
+        "post": 10,
+        "name": "リッキースタイル",
+        "show_prob": 16.6,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050305020401",
+    "honmei_post": 13,
+    "honmei_name": "ブルーサーマル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 74.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.5,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 13,
+        "name": "ブルーサーマル",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 15,
+        "name": "メリティス",
+        "show_prob": 22.0,
+        "finish": 5
+      },
+      {
+        "post": 4,
+        "name": "キャルキュラス",
+        "show_prob": 13.6,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050305020402",
+    "honmei_post": 5,
+    "honmei_name": "レピュニット",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 55.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.6,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "レピュニット",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ライカ",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 10,
+        "name": "レイズレガシー",
+        "show_prob": 15.8,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050305020403",
+    "honmei_post": 6,
+    "honmei_name": "スティールヴォーグ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 49.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.4,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "スティールヴォーグ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 12,
+        "name": "マサッチェハマー",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "トワイライトビュー",
+        "show_prob": 29.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050305020404",
+    "honmei_post": 3,
+    "honmei_name": "フリーヤ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 51.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.0,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        17,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "フリーヤ",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 6,
+        "name": "ベアサナエチャン",
+        "show_prob": 53.0,
+        "finish": 5
+      },
+      {
+        "post": 4,
+        "name": "ワッフル",
+        "show_prob": 12.6,
+        "finish": 18
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050305020405",
+    "honmei_post": 1,
+    "honmei_name": "オメガディコン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 41.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 5.1,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "オメガディコン",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "トランスマーレ",
+        "show_prob": 43.0,
+        "finish": 2
+      },
+      {
+        "post": 10,
+        "name": "オープンザパンドラ",
+        "show_prob": 32.1,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050305020406",
+    "honmei_post": 14,
+    "honmei_name": "フルミネブル",
+    "honmei_show_prob": 58.1,
+    "honmei_win_prob": 19.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.9,
+    "honmei_finish": 16,
+    "is_hit": false,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 14,
+        "name": "フルミネブル",
+        "show_prob": 58.1,
+        "finish": 16
+      },
+      {
+        "post": 8,
+        "name": "トヨサカエ",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 7,
+        "name": "リフレックス",
+        "show_prob": 35.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050305020407",
+    "honmei_post": 9,
+    "honmei_name": "コーシューパンジャ",
+    "honmei_show_prob": 35.0,
+    "honmei_win_prob": 39.9,
+    "honmei_est_pop": 4,
+    "honmei_odds": 6.5,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "コーシューパンジャ",
+        "show_prob": 35.0,
+        "finish": 5
+      },
+      {
+        "post": 10,
+        "name": "レッドベルダンス",
+        "show_prob": 29.0,
+        "finish": 1
+      },
+      {
+        "post": 14,
+        "name": "ビービーバザーク",
+        "show_prob": 18.1,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050305020408",
+    "honmei_post": 3,
+    "honmei_name": "ウィンターベル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 57.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.1,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 9,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ウィンターベル",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 4,
+        "name": "ダノンエンブレム",
+        "show_prob": 51.4,
+        "finish": 1
+      },
+      {
+        "post": 7,
+        "name": "コンテネレッツア",
+        "show_prob": 22.7,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "09",
+    "race_name": "府中ステークス",
+    "rcode": "2026050305020409",
+    "honmei_post": 5,
+    "honmei_name": "アスクセクシーモア",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 73.1,
+    "honmei_est_pop": 2,
+    "honmei_odds": 5.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        17,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "アスクセクシーモア",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 12,
+        "name": "ホウオウアートマン",
+        "show_prob": 29.0,
+        "finish": 7
+      },
+      {
+        "post": 15,
+        "name": "ログラール",
+        "show_prob": 11.9,
+        "finish": 16
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "10",
+    "race_name": "ブリリアントステークス",
+    "rcode": "2026050305020410",
+    "honmei_post": 8,
+    "honmei_name": "クールミラボー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 51.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.7,
+    "honmei_finish": 8,
+    "is_hit": false,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        15,
+        2
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "クールミラボー",
+        "show_prob": 64.0,
+        "finish": 8
+      },
+      {
+        "post": 14,
+        "name": "タイトニット",
+        "show_prob": 43.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "ハギノサステナブル",
+        "show_prob": 14.9,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "11",
+    "race_name": "プリンシパルステークス",
+    "rcode": "2026050305020411",
+    "honmei_post": 7,
+    "honmei_name": "ヴィサージュ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 39.7,
+    "honmei_est_pop": 2,
+    "honmei_odds": 6.5,
+    "honmei_finish": 15,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ヴィサージュ",
+        "show_prob": 53.0,
+        "finish": 15
+      },
+      {
+        "post": 5,
+        "name": "ウィロークリーク",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 11,
+        "name": "オルフセン",
+        "show_prob": 35.4,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "東京",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050305020412",
+    "honmei_post": 5,
+    "honmei_name": "エイプリルインパリ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 52.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 13,
+    "surface": "ダート",
+    "distance": 1300,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "エイプリルインパリ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ルーフオブヘヴン",
+        "show_prob": 53.0,
+        "finish": 7
+      },
+      {
+        "post": 13,
+        "name": "アイアムイチバン",
+        "show_prob": 33.9,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050308030401",
+    "honmei_post": 6,
+    "honmei_name": "スマッシング",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 63.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "スマッシング",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 10,
+        "name": "プリンセスアツコ",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 9,
+        "name": "ピカラ",
+        "show_prob": 28.1,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050308030402",
+    "honmei_post": 11,
+    "honmei_name": "グランシャン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 38.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.1,
+    "honmei_finish": 9,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1900,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "グランシャン",
+        "show_prob": 64.0,
+        "finish": 9
+      },
+      {
+        "post": 2,
+        "name": "エクストラプッシュ",
+        "show_prob": 43.0,
+        "finish": 8
+      },
+      {
+        "post": 7,
+        "name": "クリノリキオー",
+        "show_prob": 19.2,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050308030403",
+    "honmei_post": 6,
+    "honmei_name": "ジーティービキニ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 31.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.3,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "ジーティービキニ",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 5,
+        "name": "コイタマチャン",
+        "show_prob": 43.0,
+        "finish": 2
+      },
+      {
+        "post": 15,
+        "name": "ヤマニンエルファバ",
+        "show_prob": 39.6,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050308030404",
+    "honmei_post": 11,
+    "honmei_name": "マジョレルブルー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 60.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "マジョレルブルー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 10,
+        "name": "ヴィラジョヴィス",
+        "show_prob": 43.0,
+        "finish": 5
+      },
+      {
+        "post": 8,
+        "name": "パーヴォ",
+        "show_prob": 13.5,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050308030405",
+    "honmei_post": 7,
+    "honmei_name": "ラミエルノムスコ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 57.1,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.8,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        9,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ラミエルノムスコ",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 5,
+        "name": "スノースケープ",
+        "show_prob": 35.5,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "リン",
+        "show_prob": 19.5,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050308030406",
+    "honmei_post": 3,
+    "honmei_name": "ゼロヴィジビリティ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 78.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ゼロヴィジビリティ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "テーオーパーセル",
+        "show_prob": 31.6,
+        "finish": 8
+      },
+      {
+        "post": 12,
+        "name": "ヘリテージブルーム",
+        "show_prob": 26.8,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050308030407",
+    "honmei_post": 7,
+    "honmei_name": "タンテドヴィーヴル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 82.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 8,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "タンテドヴィーヴル",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "アンビアンス",
+        "show_prob": 23.1,
+        "finish": 6
+      },
+      {
+        "post": 6,
+        "name": "ジェロニモス",
+        "show_prob": 2.8,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "08",
+    "race_name": "御池特別",
+    "rcode": "2026050308030408",
+    "honmei_post": 14,
+    "honmei_name": "タガノアンファン",
+    "honmei_show_prob": 50.2,
+    "honmei_win_prob": 15.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.6,
+    "honmei_finish": 8,
+    "is_hit": false,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 14,
+        "name": "タガノアンファン",
+        "show_prob": 50.2,
+        "finish": 8
+      },
+      {
+        "post": 8,
+        "name": "サディーク",
+        "show_prob": 35.0,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "タイキヴァンクール",
+        "show_prob": 29.0,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "09",
+    "race_name": "六波羅特別",
+    "rcode": "2026050308030409",
+    "honmei_post": 6,
+    "honmei_name": "レヴァンテシチー",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 48.9,
+    "honmei_est_pop": 2,
+    "honmei_odds": 5.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 9,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "レヴァンテシチー",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "サンライズバレット",
+        "show_prob": 46.1,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "バトンインディ",
+        "show_prob": 29.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "10",
+    "race_name": "朱雀ステークス",
+    "rcode": "2026050308030410",
+    "honmei_post": 3,
+    "honmei_name": "ルシード",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 54.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ルシード",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "コウセキ",
+        "show_prob": 53.0,
+        "finish": 9
+      },
+      {
+        "post": 2,
+        "name": "サウスバンク",
+        "show_prob": 29.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "11",
+    "race_name": "天皇賞（春）",
+    "rcode": "2026050308030411",
+    "honmei_post": 7,
+    "honmei_name": "クロワデュノール",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 64.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 3200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "クロワデュノール",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 4,
+        "name": "アクアヴァーナル",
+        "show_prob": 29.0,
+        "finish": 4
+      },
+      {
+        "post": 3,
+        "name": "アドマイヤテラ",
+        "show_prob": 12.2,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260503",
+    "venue": "京都",
+    "race_num": "12",
+    "race_name": "東大路ステークス",
+    "rcode": "2026050308030412",
+    "honmei_post": 5,
+    "honmei_name": "ハクサンアイリス",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 17.4,
+    "honmei_est_pop": 3,
+    "honmei_odds": 4.6,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "ハクサンアイリス",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 14,
+        "name": "マッシャーブルム",
+        "show_prob": 29.0,
+        "finish": 16
+      },
+      {
+        "post": 7,
+        "name": "ゴッドブルービー",
+        "show_prob": 23.2,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050908030504",
+    "honmei_post": 10,
+    "honmei_name": "カトマンズゴールド",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 34.0,
+    "honmei_est_pop": 3,
+    "honmei_odds": 5.1,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 15,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "カトマンズゴールド",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 13,
+        "name": "プレスバーン",
+        "show_prob": 36.9,
+        "finish": 3
+      },
+      {
+        "post": 8,
+        "name": "マジカルアメジスト",
+        "show_prob": 35.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050908030502",
+    "honmei_post": 4,
+    "honmei_name": "ワンダーゾルダート",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 55.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.0,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "ワンダーゾルダート",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 9,
+        "name": "クロンヌジャン",
+        "show_prob": 31.8,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "タマモスカイ",
+        "show_prob": 29.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050908030503",
+    "honmei_post": 6,
+    "honmei_name": "チュウワメロディー",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 83.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 17,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "チュウワメロディー",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 3,
+        "name": "モンシーク",
+        "show_prob": 27.3,
+        "finish": 3
+      },
+      {
+        "post": 10,
+        "name": "キングケープ",
+        "show_prob": 7.7,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050908030501",
+    "honmei_post": 15,
+    "honmei_name": "オウケンブラッド",
+    "honmei_show_prob": 56.4,
+    "honmei_win_prob": 13.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.5,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        15,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 15,
+        "name": "オウケンブラッド",
+        "show_prob": 56.4,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "キープシャイニング",
+        "show_prob": 43.0,
+        "finish": 7
+      },
+      {
+        "post": 10,
+        "name": "アーガイルショア",
+        "show_prob": 42.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050908030505",
+    "honmei_post": 3,
+    "honmei_name": "ダークマルス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 24.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 8,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ダークマルス",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 7,
+        "name": "コルテオソレイユ",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 2,
+        "name": "ルートサーティーン",
+        "show_prob": 38.7,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050905020508",
+    "honmei_post": 6,
+    "honmei_name": "カリーニョ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 58.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.7,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 8,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "カリーニョ",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 2,
+        "name": "ウィッシュツリー",
+        "show_prob": 52.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "ミッドセンチュリー",
+        "show_prob": 17.8,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "11",
+    "race_name": "京都新聞杯",
+    "rcode": "2026050908030511",
+    "honmei_post": 15,
+    "honmei_name": "ベレシート",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 36.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.1,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 2200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 15,
+        "name": "ベレシート",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "エムズビギン",
+        "show_prob": 52.6,
+        "finish": 7
+      },
+      {
+        "post": 10,
+        "name": "サヴォアフェール",
+        "show_prob": 43.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "10",
+    "race_name": "鴨川特別",
+    "rcode": "2026050908030510",
+    "honmei_post": 5,
+    "honmei_name": "アオイタケル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 49.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.3,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 8,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "アオイタケル",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 2,
+        "name": "メディテラニアン",
+        "show_prob": 29.5,
+        "finish": 2
+      },
+      {
+        "post": 6,
+        "name": "ダノンカゼルタ",
+        "show_prob": 27.3,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "10",
+    "race_name": "粟島特別",
+    "rcode": "2026050904010310",
+    "honmei_post": 5,
+    "honmei_name": "トゥルーサクセサー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 91.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.7,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "トゥルーサクセサー",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 3,
+        "name": "スピンザブラッド",
+        "show_prob": 8.9,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "ジャグアール",
+        "show_prob": 7.9,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "09",
+    "race_name": "分倍河原ステークス",
+    "rcode": "2026050905020509",
+    "honmei_post": 7,
+    "honmei_name": "アンパドゥ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 46.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "アンパドゥ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "アウフヘーベン",
+        "show_prob": 47.6,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "チャンネルトンネル",
+        "show_prob": 36.5,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050904010302",
+    "honmei_post": 3,
+    "honmei_name": "ベストブラザーズ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 36.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 10,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ベストブラザーズ",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ロードステラート",
+        "show_prob": 38.4,
+        "finish": 3
+      },
+      {
+        "post": 2,
+        "name": "セブンワンダーズ",
+        "show_prob": 29.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050904010303",
+    "honmei_post": 10,
+    "honmei_name": "ローズオブジャパン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 29.0,
+    "honmei_est_pop": 2,
+    "honmei_odds": 9.2,
+    "honmei_finish": 9,
+    "is_hit": false,
+    "top3": [
+      [
+        15,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ローズオブジャパン",
+        "show_prob": 53.0,
+        "finish": 9
+      },
+      {
+        "post": 9,
+        "name": "スノーランス",
+        "show_prob": 43.0,
+        "finish": 6
+      },
+      {
+        "post": 3,
+        "name": "ラストシャイニー",
+        "show_prob": 35.0,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050908030506",
+    "honmei_post": 3,
+    "honmei_name": "ウェルカムソング",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 40.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 6.0,
+    "honmei_finish": 9,
+    "is_hit": false,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ウェルカムソング",
+        "show_prob": 64.0,
+        "finish": 9
+      },
+      {
+        "post": 13,
+        "name": "ランスオブキング",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 7,
+        "name": "マメタンク",
+        "show_prob": 35.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050904010305",
+    "honmei_post": 16,
+    "honmei_name": "マイネルユーゲント",
+    "honmei_show_prob": 40.7,
+    "honmei_win_prob": 17.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.1,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "マイネルユーゲント",
+        "show_prob": 40.7,
+        "finish": 3
+      },
+      {
+        "post": 8,
+        "name": "ニシノタチアナ",
+        "show_prob": 35.0,
+        "finish": 12
+      },
+      {
+        "post": 4,
+        "name": "スカイプレリュード",
+        "show_prob": 29.0,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050904010312",
+    "honmei_post": 11,
+    "honmei_name": "ハイクオリティ",
+    "honmei_show_prob": 41.0,
+    "honmei_win_prob": 24.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "ハイクオリティ",
+        "show_prob": 41.0,
+        "finish": 1
+      },
+      {
+        "post": 2,
+        "name": "トーアケルキラ",
+        "show_prob": 36.6,
+        "finish": 5
+      },
+      {
+        "post": 12,
+        "name": "マテンロウミラクル",
+        "show_prob": 29.0,
+        "finish": 11
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "09",
+    "race_name": "久御山特別",
+    "rcode": "2026050908030509",
+    "honmei_post": 7,
+    "honmei_name": "ウォータークラーク",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 50.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ウォータークラーク",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ダガーリング",
+        "show_prob": 43.0,
+        "finish": 2
+      },
+      {
+        "post": 11,
+        "name": "マルカオペラ",
+        "show_prob": 25.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "11",
+    "race_name": "駿風ステークス",
+    "rcode": "2026050904010311",
+    "honmei_post": 5,
+    "honmei_name": "カウンターセブン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 98.8,
+    "honmei_est_pop": 2,
+    "honmei_odds": 9.0,
+    "honmei_finish": 10,
+    "is_hit": false,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "カウンターセブン",
+        "show_prob": 53.0,
+        "finish": 10
+      },
+      {
+        "post": 8,
+        "name": "ジュンヴァンケット",
+        "show_prob": 1.1,
+        "finish": 15
+      },
+      {
+        "post": 13,
+        "name": "エコロジーク",
+        "show_prob": 0.5,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050908030507",
+    "honmei_post": 11,
+    "honmei_name": "メイショウコナン",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 82.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.7,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 11,
+    "surface": "ダート",
+    "distance": 1900,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "メイショウコナン",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 5,
+        "name": "ステイクオール",
+        "show_prob": 24.4,
+        "finish": 6
+      },
+      {
+        "post": 8,
+        "name": "テンエースワン",
+        "show_prob": 5.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050908030508",
+    "honmei_post": 1,
+    "honmei_name": "ララバッカナール",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 76.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.3,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        14,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "ララバッカナール",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 15,
+        "name": "ルクスコスモス",
+        "show_prob": 26.0,
+        "finish": 8
+      },
+      {
+        "post": 4,
+        "name": "ヒミノエトワール",
+        "show_prob": 12.4,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026050905020501",
+    "honmei_post": 16,
+    "honmei_name": "フェイスリフト",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 49.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.9,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1300,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "フェイスリフト",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "エリンフレーム",
+        "show_prob": 35.0,
+        "finish": 12
+      },
+      {
+        "post": 14,
+        "name": "ショコラキュイ",
+        "show_prob": 33.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026050905020502",
+    "honmei_post": 3,
+    "honmei_name": "サクセスゴールド",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 39.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.9,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 11,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "サクセスゴールド",
+        "show_prob": 64.0,
+        "finish": 5
+      },
+      {
+        "post": 8,
+        "name": "ボクサークラブ",
+        "show_prob": 53.0,
+        "finish": 7
+      },
+      {
+        "post": 5,
+        "name": "ユイノサダハル",
+        "show_prob": 29.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026050905020505",
+    "honmei_post": 11,
+    "honmei_name": "ワディアルリヤハ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 90.8,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.0,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "ワディアルリヤハ",
+        "show_prob": 53.0,
+        "finish": 3
+      },
+      {
+        "post": 1,
+        "name": "イトシサ",
+        "show_prob": 10.7,
+        "finish": 9
+      },
+      {
+        "post": 9,
+        "name": "グランマエストロ",
+        "show_prob": 6.3,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050904010306",
+    "honmei_post": 9,
+    "honmei_name": "ウインマニフィーク",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 31.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        15,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 9,
+        "name": "ウインマニフィーク",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 13,
+        "name": "ダンツウルス",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 4,
+        "name": "ビップジョワ",
+        "show_prob": 35.0,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026050905020504",
+    "honmei_post": 4,
+    "honmei_name": "ニシノヒノトリ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 31.5,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 4,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "ニシノヒノトリ",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ガードオブオナー",
+        "show_prob": 43.0,
+        "finish": 3
+      },
+      {
+        "post": 2,
+        "name": "サンクレゾン",
+        "show_prob": 25.1,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026050905020503",
+    "honmei_post": 13,
+    "honmei_name": "アンシュウマト",
+    "honmei_show_prob": 57.0,
+    "honmei_win_prob": 19.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 13,
+        "name": "アンシュウマト",
+        "show_prob": 57.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "トルネードアイル",
+        "show_prob": 53.0,
+        "finish": 3
+      },
+      {
+        "post": 6,
+        "name": "ロイヤルアデレード",
+        "show_prob": 43.0,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026050905020506",
+    "honmei_post": 10,
+    "honmei_name": "デイトナチャンプ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 37.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "デイトナチャンプ",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 2,
+        "name": "エリプティクカーブ",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 11,
+        "name": "リッツパーティー",
+        "show_prob": 41.2,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026050904010308",
+    "honmei_post": 10,
+    "honmei_name": "ベルフィーヌ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 61.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.4,
+    "honmei_finish": 13,
+    "is_hit": false,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ベルフィーヌ",
+        "show_prob": 64.0,
+        "finish": 13
+      },
+      {
+        "post": 2,
+        "name": "ブーケドグレイス",
+        "show_prob": 35.0,
+        "finish": 3
+      },
+      {
+        "post": 3,
+        "name": "ヴァズレーヌ",
+        "show_prob": 16.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050904010307",
+    "honmei_post": 11,
+    "honmei_name": "ミルミナーヴァ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 39.5,
+    "honmei_est_pop": 3,
+    "honmei_odds": 4.8,
+    "honmei_finish": 15,
+    "is_hit": false,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "ミルミナーヴァ",
+        "show_prob": 43.0,
+        "finish": 15
+      },
+      {
+        "post": 4,
+        "name": "アースミューズ",
+        "show_prob": 35.0,
+        "finish": 12
+      },
+      {
+        "post": 14,
+        "name": "ジーティームッシュ",
+        "show_prob": 9.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "新潟",
+    "race_num": "09",
+    "race_name": "ゆきつばき賞",
+    "rcode": "2026050904010309",
+    "honmei_post": 8,
+    "honmei_name": "マナボニート",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 74.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.4,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 4,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "マナボニート",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 12,
+        "name": "デンプシー",
+        "show_prob": 28.3,
+        "finish": 2
+      },
+      {
+        "post": 4,
+        "name": "ツルノマイハシ",
+        "show_prob": 13.9,
+        "finish": 7
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "京都",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050908030512",
+    "honmei_post": 8,
+    "honmei_name": "ロードヴォイジャー",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 63.8,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.4,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        8,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 13,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "ロードヴォイジャー",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 13,
+        "name": "サイモンシュバリエ",
+        "show_prob": 30.3,
+        "finish": 3
+      },
+      {
+        "post": 7,
+        "name": "ニホンピロデヴィン",
+        "show_prob": 13.9,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "10",
+    "race_name": "青竜ステークス",
+    "rcode": "2026050905020510",
+    "honmei_post": 2,
+    "honmei_name": "マクリール",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 48.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "マクリール",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 10,
+        "name": "ドンエレクトス",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ケブランリ",
+        "show_prob": 35.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026050905020507",
+    "honmei_post": 3,
+    "honmei_name": "タマモトリノ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 52.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 12,
+    "is_hit": false,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "タマモトリノ",
+        "show_prob": 64.0,
+        "finish": 12
+      },
+      {
+        "post": 14,
+        "name": "ローズマイスター",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 9,
+        "name": "ロードインフェルノ",
+        "show_prob": 23.8,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "11",
+    "race_name": "エプソムカップ",
+    "rcode": "2026050905020511",
+    "honmei_post": 4,
+    "honmei_name": "カラマティアノス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 41.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.8,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        17,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 17,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "カラマティアノス",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 14,
+        "name": "サクラファレル",
+        "show_prob": 48.6,
+        "finish": 5
+      },
+      {
+        "post": 11,
+        "name": "トロヴァトーレ",
+        "show_prob": 43.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260509",
+    "venue": "東京",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026050905020512",
+    "honmei_post": 3,
+    "honmei_name": "モーニングマジック",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 22.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "モーニングマジック",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 7,
+        "name": "ヴィンブルレー",
+        "show_prob": 53.0,
+        "finish": 16
+      },
+      {
+        "post": 8,
+        "name": "ホウショウマリス",
+        "show_prob": 43.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026051004010412",
+    "honmei_post": 10,
+    "honmei_name": "ベルファスト",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 75.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.2,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "ベルファスト",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 12,
+        "name": "ノボリリア",
+        "show_prob": 20.8,
+        "finish": 2
+      },
+      {
+        "post": 7,
+        "name": "ジェニファー",
+        "show_prob": 19.4,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "11",
+    "race_name": "谷川岳ステークス",
+    "rcode": "2026051004010411",
+    "honmei_post": 11,
+    "honmei_name": "クランフォード",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 80.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.7,
+    "honmei_finish": 11,
+    "is_hit": false,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 4,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 11,
+        "name": "クランフォード",
+        "show_prob": 64.0,
+        "finish": 11
+      },
+      {
+        "post": 12,
+        "name": "ナムラアトム",
+        "show_prob": 24.1,
+        "finish": 12
+      },
+      {
+        "post": 9,
+        "name": "アルテヴェローチェ",
+        "show_prob": 6.1,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026051008030601",
+    "honmei_post": 7,
+    "honmei_name": "ミルボナー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 65.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.6,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        11,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 2,
+    "num_runners": 11,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ミルボナー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "スマイルガーデン",
+        "show_prob": 26.3,
+        "finish": 8
+      },
+      {
+        "post": 11,
+        "name": "グロリアス",
+        "show_prob": 15.8,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "10",
+    "race_name": "五泉特別",
+    "rcode": "2026051004010410",
+    "honmei_post": 5,
+    "honmei_name": "エイカイソウル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 44.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 10,
+    "is_hit": false,
+    "top3": [
+      [
+        11,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 5,
+        "name": "エイカイソウル",
+        "show_prob": 64.0,
+        "finish": 10
+      },
+      {
+        "post": 11,
+        "name": "マンオブザマッチ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "メイショウクーガー",
+        "show_prob": 26.6,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026051008030603",
+    "honmei_post": 1,
+    "honmei_name": "セスティーナ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 67.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.4,
+    "honmei_finish": 8,
+    "is_hit": false,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1900,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "セスティーナ",
+        "show_prob": 64.0,
+        "finish": 8
+      },
+      {
+        "post": 11,
+        "name": "ハイドパーク",
+        "show_prob": 53.0,
+        "finish": 6
+      },
+      {
+        "post": 9,
+        "name": "レディトゥフライト",
+        "show_prob": 3.9,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "11",
+    "race_name": "ＮＨＫマイルカップ",
+    "rcode": "2026051005020611",
+    "honmei_post": 7,
+    "honmei_name": "ダイヤモンドノット",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 36.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 5.5,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        17,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        11,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ダイヤモンドノット",
+        "show_prob": 64.0,
+        "finish": 5
+      },
+      {
+        "post": 17,
+        "name": "ロデオドライブ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 8,
+        "name": "ローベルクランツ",
+        "show_prob": 29.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "10",
+    "race_name": "メトロポリタンステークス",
+    "rcode": "2026051005020610",
+    "honmei_post": 10,
+    "honmei_name": "シャイニングソード",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 73.3,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 2,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "シャイニングソード",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "バトルボーン",
+        "show_prob": 31.0,
+        "finish": 3
+      },
+      {
+        "post": 12,
+        "name": "ウエストナウ",
+        "show_prob": 12.4,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "09",
+    "race_name": "日吉特別",
+    "rcode": "2026051005020609",
+    "honmei_post": 3,
+    "honmei_name": "オオタチ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 27.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.1,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        7,
+        3
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 9,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "オオタチ",
+        "show_prob": 64.0,
+        "finish": 6
+      },
+      {
+        "post": 8,
+        "name": "タイセイカイザー",
+        "show_prob": 47.4,
+        "finish": 2
+      },
+      {
+        "post": 4,
+        "name": "ロードブレイズ",
+        "show_prob": 29.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026051008030602",
+    "honmei_post": 14,
+    "honmei_name": "ザキノフレンズ",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 80.9,
+    "honmei_est_pop": 3,
+    "honmei_odds": 4.5,
+    "honmei_finish": 5,
+    "is_hit": false,
+    "top3": [
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 14,
+        "name": "ザキノフレンズ",
+        "show_prob": 43.0,
+        "finish": 5
+      },
+      {
+        "post": 2,
+        "name": "サトノロザリー",
+        "show_prob": 34.0,
+        "finish": 2
+      },
+      {
+        "post": 4,
+        "name": "ダイイズキャスト",
+        "show_prob": 14.6,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "11",
+    "race_name": "平城京ステークス",
+    "rcode": "2026051008030611",
+    "honmei_post": 10,
+    "honmei_name": "グランドプラージュ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 50.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        7,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "グランドプラージュ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 16,
+        "name": "テーオーグランビル",
+        "show_prob": 43.0,
+        "finish": 12
+      },
+      {
+        "post": 5,
+        "name": "ワイドブリザード",
+        "show_prob": 35.0,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "10",
+    "race_name": "橘ステークス",
+    "rcode": "2026051008030610",
+    "honmei_post": 4,
+    "honmei_name": "タガノアラリア",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 72.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "タガノアラリア",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "スペルーチェ",
+        "show_prob": 29.7,
+        "finish": 3
+      },
+      {
+        "post": 1,
+        "name": "ケールハイム",
+        "show_prob": 16.7,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "12",
+    "race_name": "",
+    "rcode": "2026051008030612",
+    "honmei_post": 8,
+    "honmei_name": "ランスオブセヘル",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 77.5,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.2,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 5,
+    "num_runners": 14,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "ランスオブセヘル",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 10,
+        "name": "レッドダンルース",
+        "show_prob": 18.7,
+        "finish": 9
+      },
+      {
+        "post": 14,
+        "name": "ヴィリアリート",
+        "show_prob": 10.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026051005020601",
+    "honmei_post": 3,
+    "honmei_name": "ゴールドビリーヴ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 41.6,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 5,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ゴールドビリーヴ",
+        "show_prob": 64.0,
+        "finish": 4
+      },
+      {
+        "post": 7,
+        "name": "タートルインメイ",
+        "show_prob": 53.0,
+        "finish": 7
+      },
+      {
+        "post": 4,
+        "name": "ビッグベンメロディ",
+        "show_prob": 20.3,
+        "finish": 16
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026051005020602",
+    "honmei_post": 7,
+    "honmei_name": "フルールサシェ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 33.5,
+    "honmei_est_pop": 2,
+    "honmei_odds": 5.0,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "フルールサシェ",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "アジュアカレンツ",
+        "show_prob": 43.0,
+        "finish": 4
+      },
+      {
+        "post": 16,
+        "name": "ラッキーモア",
+        "show_prob": 14.6,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026051005020604",
+    "honmei_post": 7,
+    "honmei_name": "ゴンファロニエーレ",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 65.0,
+    "honmei_est_pop": 2,
+    "honmei_odds": 2.5,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        4,
+        1
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 3,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "ゴンファロニエーレ",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 10,
+        "name": "フキョウワオン",
+        "show_prob": 20.2,
+        "finish": 5
+      },
+      {
+        "post": 4,
+        "name": "ランブルスコ",
+        "show_prob": 19.3,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026051005020603",
+    "honmei_post": 6,
+    "honmei_name": "アイアンパイク",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 55.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 7,
+    "is_hit": false,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 4,
+    "upset_score": 4,
+    "num_runners": 18,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "アイアンパイク",
+        "show_prob": 64.0,
+        "finish": 7
+      },
+      {
+        "post": 10,
+        "name": "ウインアプローチ",
+        "show_prob": 53.0,
+        "finish": 2
+      },
+      {
+        "post": 1,
+        "name": "フレアリングベリー",
+        "show_prob": 30.7,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "03",
+    "race_name": "",
+    "rcode": "2026051004010403",
+    "honmei_post": 1,
+    "honmei_name": "アイビーチーキー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 86.7,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.6,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 4,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "アイビーチーキー",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 2,
+        "name": "マイネルゼーロス",
+        "show_prob": 18.3,
+        "finish": 3
+      },
+      {
+        "post": 5,
+        "name": "ノリノドラゴン",
+        "show_prob": 10.1,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "02",
+    "race_name": "",
+    "rcode": "2026051004010402",
+    "honmei_post": 4,
+    "honmei_name": "セイウンヤオヨロズ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 60.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 5.8,
+    "honmei_finish": 9,
+    "is_hit": false,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 9,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 4,
+        "name": "セイウンヤオヨロズ",
+        "show_prob": 64.0,
+        "finish": 9
+      },
+      {
+        "post": 3,
+        "name": "ベセル",
+        "show_prob": 29.0,
+        "finish": 11
+      },
+      {
+        "post": 5,
+        "name": "ドリームガッサン",
+        "show_prob": 24.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026051004010405",
+    "honmei_post": 12,
+    "honmei_name": "ファストフォワード",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 63.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 5,
+    "upset_score": 10,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "ファストフォワード",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "ソニックブーム",
+        "show_prob": 39.6,
+        "finish": 9
+      },
+      {
+        "post": 7,
+        "name": "ジュナベーラ",
+        "show_prob": 11.6,
+        "finish": 2
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "01",
+    "race_name": "",
+    "rcode": "2026051004010401",
+    "honmei_post": 3,
+    "honmei_name": "ブリスフルイヤー",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 35.4,
+    "honmei_est_pop": 3,
+    "honmei_odds": 6.0,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "ブリスフルイヤー",
+        "show_prob": 43.0,
+        "finish": 3
+      },
+      {
+        "post": 13,
+        "name": "ヴァイヴァーイ",
+        "show_prob": 42.5,
+        "finish": 1
+      },
+      {
+        "post": 1,
+        "name": "ロココ",
+        "show_prob": 29.0,
+        "finish": 6
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "12",
+    "race_name": "立夏ステークス",
+    "rcode": "2026051005020612",
+    "honmei_post": 3,
+    "honmei_name": "セギレエルビエント",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 84.5,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.2,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        9,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "セギレエルビエント",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 12,
+        "name": "ルージュスタニング",
+        "show_prob": 9.9,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ロッシニアーナ",
+        "show_prob": 7.9,
+        "finish": 9
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026051005020607",
+    "honmei_post": 13,
+    "honmei_name": "キミハスコール",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 36.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.8,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        13,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 1300,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 13,
+        "name": "キミハスコール",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "シルフレイ",
+        "show_prob": 42.1,
+        "finish": 4
+      },
+      {
+        "post": 12,
+        "name": "トニケンサンバ",
+        "show_prob": 41.2,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026051005020605",
+    "honmei_post": 16,
+    "honmei_name": "ビービーアジャイル",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 70.9,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        16,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        4,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 4,
+    "num_runners": 16,
+    "surface": "ダート",
+    "distance": 2100,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 16,
+        "name": "ビービーアジャイル",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 14,
+        "name": "アスクドゥチャンプ",
+        "show_prob": 31.1,
+        "finish": 5
+      },
+      {
+        "post": 5,
+        "name": "ミスターキャンベラ",
+        "show_prob": 26.9,
+        "finish": 10
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026051005020606",
+    "honmei_post": 10,
+    "honmei_name": "アセンブリールーム",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 29.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.6,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        5,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        6,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 3,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 10,
+        "name": "アセンブリールーム",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "ウインイザナミ",
+        "show_prob": 35.0,
+        "finish": 1
+      },
+      {
+        "post": 6,
+        "name": "ディオデルマーレ",
+        "show_prob": 30.8,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "東京",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026051005020608",
+    "honmei_post": 7,
+    "honmei_name": "レッドキングリー",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 67.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 1.7,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 1,
+    "num_runners": 11,
+    "surface": "芝",
+    "distance": 1400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "レッドキングリー",
+        "show_prob": 64.0,
+        "finish": 1
+      },
+      {
+        "post": 5,
+        "name": "ミクストベリーズ",
+        "show_prob": 30.2,
+        "finish": 9
+      },
+      {
+        "post": 1,
+        "name": "ホウオウシェリー",
+        "show_prob": 23.5,
+        "finish": 3
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026051008030607",
+    "honmei_post": 6,
+    "honmei_name": "シュネルアンジュ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 46.0,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.4,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        1,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 3,
+    "num_runners": 12,
+    "surface": "ダート",
+    "distance": 1800,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 6,
+        "name": "シュネルアンジュ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 1,
+        "name": "ショコラプリン",
+        "show_prob": 53.0,
+        "finish": 3
+      },
+      {
+        "post": 11,
+        "name": "ベルソテイラ",
+        "show_prob": 35.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026051004010408",
+    "honmei_post": 2,
+    "honmei_name": "シスター",
+    "honmei_show_prob": 43.0,
+    "honmei_win_prob": 23.7,
+    "honmei_est_pop": 3,
+    "honmei_odds": 9.8,
+    "honmei_finish": 6,
+    "is_hit": false,
+    "top3": [
+      [
+        14,
+        1
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        12,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 10,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "シスター",
+        "show_prob": 43.0,
+        "finish": 6
+      },
+      {
+        "post": 5,
+        "name": "ハーモニーソング",
+        "show_prob": 36.8,
+        "finish": 9
+      },
+      {
+        "post": 3,
+        "name": "プルミエールパス",
+        "show_prob": 35.0,
+        "finish": 12
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026051004010406",
+    "honmei_post": 7,
+    "honmei_name": "コンフィアンサ",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 90.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 4.2,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        16,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 9,
+    "num_runners": 16,
+    "surface": "芝",
+    "distance": 1000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 7,
+        "name": "コンフィアンサ",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 1,
+        "name": "ナツノオジョウサマ",
+        "show_prob": 11.1,
+        "finish": 13
+      },
+      {
+        "post": 10,
+        "name": "オタルイーグル",
+        "show_prob": 8.4,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "09",
+    "race_name": "荒川峡特別",
+    "rcode": "2026051004010409",
+    "honmei_post": 12,
+    "honmei_name": "キングズトゥルー",
+    "honmei_show_prob": 45.7,
+    "honmei_win_prob": 15.2,
+    "honmei_est_pop": 1,
+    "honmei_odds": 7.3,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 7,
+    "num_runners": 14,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "キングズトゥルー",
+        "show_prob": 45.7,
+        "finish": 1
+      },
+      {
+        "post": 3,
+        "name": "レッドヴァリアート",
+        "show_prob": 43.0,
+        "finish": 5
+      },
+      {
+        "post": 10,
+        "name": "パイオニアスクエア",
+        "show_prob": 35.0,
+        "finish": 8
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "09",
+    "race_name": "烏丸ステークス",
+    "rcode": "2026051008030609",
+    "honmei_post": 13,
+    "honmei_name": "ベトルス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 32.1,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.5,
+    "honmei_finish": 3,
+    "is_hit": true,
+    "top3": [
+      [
+        6,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2400,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 13,
+        "name": "ベトルス",
+        "show_prob": 64.0,
+        "finish": 3
+      },
+      {
+        "post": 12,
+        "name": "オメガナビゲーター",
+        "show_prob": 43.0,
+        "finish": 7
+      },
+      {
+        "post": 6,
+        "name": "レクスノヴァス",
+        "show_prob": 40.0,
+        "finish": 1
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "04",
+    "race_name": "",
+    "rcode": "2026051008030604",
+    "honmei_post": 1,
+    "honmei_name": "パーシャングレー",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 42.4,
+    "honmei_est_pop": 2,
+    "honmei_odds": 9.2,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        1,
+        1
+      ],
+      [
+        13,
+        2
+      ],
+      [
+        10,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 6,
+    "num_runners": 17,
+    "surface": "芝",
+    "distance": 1600,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 1,
+        "name": "パーシャングレー",
+        "show_prob": 53.0,
+        "finish": 1
+      },
+      {
+        "post": 9,
+        "name": "ヘクセンハウス",
+        "show_prob": 35.0,
+        "finish": 8
+      },
+      {
+        "post": 16,
+        "name": "ビッグヒーロー",
+        "show_prob": 31.0,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "06",
+    "race_name": "",
+    "rcode": "2026051008030606",
+    "honmei_post": 2,
+    "honmei_name": "ドルチェリターン",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 35.3,
+    "honmei_est_pop": 2,
+    "honmei_odds": 3.0,
+    "honmei_finish": 4,
+    "is_hit": false,
+    "top3": [
+      [
+        7,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "difficulty_score": 1,
+    "upset_score": 5,
+    "num_runners": 10,
+    "surface": "芝",
+    "distance": 2200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 2,
+        "name": "ドルチェリターン",
+        "show_prob": 53.0,
+        "finish": 4
+      },
+      {
+        "post": 1,
+        "name": "タマモランプ",
+        "show_prob": 43.0,
+        "finish": 6
+      },
+      {
+        "post": 8,
+        "name": "シェーラ",
+        "show_prob": 17.0,
+        "finish": 5
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "08",
+    "race_name": "",
+    "rcode": "2026051008030608",
+    "honmei_post": 12,
+    "honmei_name": "タマモブラウンタイ",
+    "honmei_show_prob": 61.3,
+    "honmei_win_prob": 36.8,
+    "honmei_est_pop": 1,
+    "honmei_odds": 3.5,
+    "honmei_finish": 1,
+    "is_hit": true,
+    "top3": [
+      [
+        12,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 6,
+    "num_runners": 12,
+    "surface": "芝",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 12,
+        "name": "タマモブラウンタイ",
+        "show_prob": 61.3,
+        "finish": 1
+      },
+      {
+        "post": 11,
+        "name": "レオナルドスター",
+        "show_prob": 43.0,
+        "finish": 6
+      },
+      {
+        "post": 8,
+        "name": "ブライトアゲイン",
+        "show_prob": 11.8,
+        "finish": 4
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "新潟",
+    "race_num": "07",
+    "race_name": "",
+    "rcode": "2026051004010407",
+    "honmei_post": 3,
+    "honmei_name": "アツキヤマト",
+    "honmei_show_prob": 53.0,
+    "honmei_win_prob": 44.7,
+    "honmei_est_pop": 2,
+    "honmei_odds": 4.8,
+    "honmei_finish": 12,
+    "is_hit": false,
+    "top3": [
+      [
+        10,
+        1
+      ],
+      [
+        14,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        15,
+        3
+      ]
+    ],
+    "difficulty_score": 2,
+    "upset_score": 8,
+    "num_runners": 15,
+    "surface": "ダート",
+    "distance": 1200,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 3,
+        "name": "アツキヤマト",
+        "show_prob": 53.0,
+        "finish": 12
+      },
+      {
+        "post": 14,
+        "name": "ミライハーモニー",
+        "show_prob": 43.0,
+        "finish": 2
+      },
+      {
+        "post": 5,
+        "name": "シャンハイナイト",
+        "show_prob": 27.3,
+        "finish": 14
+      }
+    ]
+  },
+  {
+    "date": "20260510",
+    "venue": "京都",
+    "race_num": "05",
+    "race_name": "",
+    "rcode": "2026051008030605",
+    "honmei_post": 8,
+    "honmei_name": "フレアオブセンス",
+    "honmei_show_prob": 64.0,
+    "honmei_win_prob": 54.4,
+    "honmei_est_pop": 1,
+    "honmei_odds": 2.0,
+    "honmei_finish": 2,
+    "is_hit": true,
+    "top3": [
+      [
+        9,
+        1
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        13,
+        3
+      ]
+    ],
+    "difficulty_score": 3,
+    "upset_score": 2,
+    "num_runners": 13,
+    "surface": "芝",
+    "distance": 2000,
+    "condition": "稍重",
+    "predictions_top3": [
+      {
+        "post": 8,
+        "name": "フレアオブセンス",
+        "show_prob": 64.0,
+        "finish": 2
+      },
+      {
+        "post": 1,
+        "name": "トライアンドエラー",
+        "show_prob": 43.0,
+        "finish": 6
+      },
+      {
+        "post": 9,
+        "name": "アトレッタ",
+        "show_prob": 6.5,
+        "finish": 1
+      }
+    ]
+  }
+]

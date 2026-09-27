@@ -1,0 +1,102 @@
+[
+ {
+  "date": "20260822",
+  "race": "中京3R",
+  "conf": 10,
+  "layer": "flat",
+  "pattern": "A 堅い決着型・絞り込み版（穴ワイド2点）",
+  "inv": 15000,
+  "ret": 0,
+  "hon_fin": 6
+ },
+ {
+  "date": "20260822",
+  "race": "中京3R",
+  "conf": 10,
+  "layer": "engine",
+  "pattern": "A1 穴ワイド2点",
+  "inv": 15000,
+  "ret": 0,
+  "hon_fin": 6
+ },
+ {
+  "date": "20260822",
+  "race": "札幌6R",
+  "conf": 10,
+  "layer": "flat",
+  "pattern": "B 標準中穴型",
+  "inv": 9000,
+  "ret": 12510,
+  "hon_fin": 2
+ },
+ {
+  "date": "20260822",
+  "race": "札幌6R",
+  "conf": 10,
+  "layer": "engine",
+  "pattern": "A1 穴ワイド2点",
+  "inv": 9000,
+  "ret": 69500,
+  "hon_fin": 2
+ },
+ {
+  "date": "20260822",
+  "race": "札幌9R",
+  "conf": 10,
+  "layer": "flat",
+  "pattern": "A 堅い決着型・絞り込み版（穴ワイド2点）",
+  "inv": 15000,
+  "ret": 0,
+  "hon_fin": 4
+ },
+ {
+  "date": "20260822",
+  "race": "札幌9R",
+  "conf": 10,
+  "layer": "engine",
+  "pattern": "A1 穴ワイド2点",
+  "inv": 15000,
+  "ret": 0,
+  "hon_fin": 4
+ },
+ {
+  "date": "20260822",
+  "race": "新潟6R",
+  "conf": 9,
+  "layer": "flat",
+  "pattern": "B 標準中穴型",
+  "inv": 12100,
+  "ret": 0,
+  "hon_fin": 12
+ },
+ {
+  "date": "20260822",
+  "race": "新潟6R",
+  "conf": 9,
+  "layer": "engine",
+  "pattern": "F1 3連複軸2頭3点",
+  "inv": 12000,
+  "ret": 0,
+  "hon_fin": 12
+ },
+ {
+  "date": "20260822",
+  "race": "中京8R",
+  "conf": 7,
+  "layer": "flat",
+  "pattern": "A 堅い決着型",
+  "inv": 4900,
+  "ret": 6020,
+  "hon_fin": 2
+ },
+ {
+  "date": "20260822",
+  "race": "中京8R",
+  "conf": 7,
+  "layer": "engine",
+  "pattern": "F1 3連複軸2頭3点",
+  "inv": 5000,
+  "ret": 0,
+  "hon_fin": 2
+ }
+]
