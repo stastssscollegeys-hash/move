@@ -111,6 +111,10 @@ def build_hypotheses(rows) -> list[tuple[str, callable]]:
         H.append((f"馬体重増減={lab}", lambda r, lo=lo, hi=hi: (wd := weight_diff(r)) is not None and lo <= wd <= hi))
     for lo, hi, lab in ((57.0, 99, "57kg以上"), (0, 53.9, "54kg未満")):
         H.append((f"斤量={lab}", lambda r, lo=lo, hi=hi: (k := r.get("斤量_kg")) and lo <= float(k) <= hi))
+    # 中日数（2026-09-27 db_repair_fields.py でDB内の前走日から生成。前走がDBに無い馬は None＝対象外）
+    for lo, hi, lab in ((1, 7, "連闘(〜7日)"), (8, 14, "中1週"), (15, 35, "中2〜4週"),
+                        (36, 90, "中5週〜3ヶ月"), (91, 180, "休み明け(3〜6ヶ月)"), (181, 9999, "長期休養明け(6ヶ月〜)")):
+        H.append((f"中日数={lab}", lambda r, lo=lo, hi=hi: isinstance(r.get("中日数"), int) and lo <= r["中日数"] <= hi))
     # 上位種牡馬（出走数の多い順）
     sires = defaultdict(int)
     for r in rows:
