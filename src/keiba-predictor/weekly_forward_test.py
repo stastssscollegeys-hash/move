@@ -144,6 +144,10 @@ def main():
             'roi': round(s_all['roi'], 4), 'hit': round(s_all['hit'], 4),
             'ci_lo': round(s_all['lo'], 4), 'ci_hi': round(s_all['hi'], 4),
             'dropped_leaky': n_drop,
+            # 2026-10-02: 指数のF02タイム指数・F06枠バイアスを実測ベースに直した（index_factors.py）。
+            #   2026-10-03 以降のレースは修正後の指数で選んだ◎。累計を読むときはここが切り替わり目。
+            'factor_fix_from': '20261003',
+            'days_after_fix': sum(1 for d in dates if str(d) >= '20261003'),
         })
         LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=2), encoding='utf-8')
         print()

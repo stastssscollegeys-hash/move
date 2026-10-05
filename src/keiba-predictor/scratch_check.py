@@ -24,13 +24,8 @@ BASE = Path.home() / 'Desktop' / '競馬予想レポート'
 
 
 def latest_snapshots(date: str) -> dict:
-    d = BASE / 'daily_pdca' / 'db' / 'odds_snapshots' / date
-    out = {}
-    for f in sorted(d.glob('*.json')):
-        rid, hhmm = f.stem.split('_')
-        if rid not in out or hhmm > out[rid][0]:
-            out[rid] = (hhmm, f)
-    return out
+    from odds_snapshot import latest_snapshots as _latest   # 取得時刻で最新を選ぶ（HHMM比較は前夜分を拾う）
+    return {rid: (f.stem.split('_')[1], f) for rid, f in _latest(date).items()}
 
 
 def main():

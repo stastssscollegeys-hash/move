@@ -24,9 +24,8 @@ for date in sys.argv[1:]:
         for r in json.loads(Path(f).read_text(encoding="utf-8"))["records"]:
             if r["date"] == date:
                 rec.setdefault((r["競馬場"], int(r["R"])), {})[int(r["馬番"])] = r["馬名"]
-    latest = {}
-    for f in sorted(glob.glob(str(SNAP / date / "*.json"))):
-        latest[os.path.basename(f).split("_")[0]] = f
+    from odds_snapshot import latest_snapshots      # 取得時刻で最新を選ぶ
+    latest = {rid: str(f) for rid, f in latest_snapshots(date).items()}
     n = ng = 0
     for rid, f in latest.items():
         d = json.loads(Path(f).read_text(encoding="utf-8"))

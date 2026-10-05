@@ -53,6 +53,7 @@ NO_FIX = os.environ.get('KEIBA_NO_FIX') == '1'
 
 # daily_pdca の重み・枠バイアス・馬場適性表（独自指数の正本）
 from config import WEIGHTS, GATE_BIAS, SURFACE_SC
+from index_factors import time_index, waku_score, FACTOR_VERSION   # 実測から作る因子（2026-10-02）
 
 VENUE_NAMES = {1:'札幌',2:'函館',3:'福島',4:'新潟',5:'東京',
                6:'中山',7:'中京',8:'京都',9:'阪神',10:'小倉'}
@@ -118,16 +119,22 @@ def calc_dokuji_forecast(horse: dict, past: list, race_info: dict,
     else:
         f01 = 50.0
 
-    # F02 タイム指数（同距離±200mの最速タイムを距離基準と比較）
+    # F02 タイム指数
+    # 2026-10-02 修正: 旧式は基準が「距離×61秒/km＋3秒」固定で、芝の66%・ダートの62%が100点に張り付いていた
+    #   （別距離の時計も補正なしで比較）。同じ芝ダの直近3走を、その距離・馬場の実測の基準タイムと比べる式に変更。
+    #   KEIBA_NO_FIX=1 で旧式を再現できる（engine_fix_audit.py の比較用）。
     same_dist = [p for p in past
                  if p.get('distance') and abs(p['distance'] - dist_m) <= 200
-                 and p.get('stime')]
-    if same_dist and dist_m > 0:
-        best_ts = min(p['stime'] for p in same_dist)
-        base = dist_m / 1000.0 * 61.0
-        f02 = min(100.0, max(0.0, (base + 3 - best_ts) / 3.0 * 100.0))
+                 and p.get('stime')]                      # F08距離適性でも使う
+    if NO_FIX:
+        if same_dist and dist_m > 0:
+            best_ts = min(p['stime'] for p in same_dist)
+            base = dist_m / 1000.0 * 61.0
+            f02 = min(100.0, max(0.0, (base + 3 - best_ts) / 3.0 * 100.0))
+        else:
+            f02 = 50.0
     else:
-        f02 = 50.0
+        f02 = time_index(past, track_now)
 
     # F03 着差スコア（着差データがないため着順から近似 + 勝利補正）
     recent_ranks = [p['rank'] for p in past[:3] if p.get('rank')]
@@ -155,9 +162,16 @@ def calc_dokuji_forecast(horse: dict, past: list, race_info: dict,
     f05 = min(100.0, 50.0 + tr_wr * 280.0) if tr_wr > 0 else 50.0
 
     # F06 枠順バイアス（会場別）
+    # 2026-10-02 修正: 手書きの表（54〜76点）は全期間の実測と合っていなかった。蓄積DBの
+    #   「実測3着内÷人気から期待される3着内」から作り、偶然で説明できる分は標準65点へ寄せる（index_factors.waku_score）。
     waku = horse.get('waku') or 0
     try:
-        f06 = float(GATE_BIAS.get(venue, {}).get(int(waku), 65)) if waku else 65.0
+        if not waku:
+            f06 = 65.0
+        elif NO_FIX:
+            f06 = float(GATE_BIAS.get(venue, {}).get(int(waku), 65))
+        else:
+            f06 = waku_score(venue, waku)
     except Exception:
         f06 = 65.0
 
@@ -591,7 +605,8 @@ def main():
     # 後段レポート用の生データJSONダンプ
     json_out = out_dir / f"週末ビッグデータ_{first}-{last[4:]}_records.json"
     with open(json_out, 'w', encoding='utf-8') as f:
-        json.dump({'records': all_records, 'summaries': race_summaries},
+        json.dump({'factor_version': ('旧式(KEIBA_NO_FIX)' if NO_FIX else FACTOR_VERSION),
+                   'records': all_records, 'summaries': race_summaries},
                   f, ensure_ascii=False)
 
     # ── コンソールサマリー ────────────────────────────────────

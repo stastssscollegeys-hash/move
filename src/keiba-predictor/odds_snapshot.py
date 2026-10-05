@@ -233,10 +233,14 @@ def fetch_horse_map(s: requests.Session, race_id: str) -> tuple[dict, dict, str 
                 waku = int(waku_td.get_text(strip=True))
             except ValueError:
                 waku = None
+        # 2026-10-02: 馬体重（発走の約1時間前に発表）。これを保存していなかったため、
+        #   kaime_core の消し「馬体重-10kg以下」は一度も判定されていなかった。未発表の間は空文字。
+        wt_td = row.select_one("td.Weight")
         horses[f"{umaban:02d}"] = {
             "umaban": umaban,
             "waku": waku,
             "horse_name": name_a.get_text(strip=True),
+            "weight": wt_td.get_text(strip=True) if wt_td is not None else "",
         }
 
     if not horses:
@@ -309,6 +313,29 @@ def save_snapshot(snap: dict) -> Path:
     path = out_dir / f"{snap['race_id']}_{snap['fetched_hhmm']}.json"
     path.write_text(json.dumps(snap, ensure_ascii=False), encoding="utf-8")
     return path
+
+
+def latest_snapshots(date: str) -> dict:
+    """その開催日のスナップショットを、レースごとに **取得時刻がいちばん新しい1件** だけ返す {race_id: Path}。
+    🔴 ファイル名の HHMM で比べてはいけない。前夜22:42に取ったものが当日朝08:41より「新しい」と判定され、
+       2026-09-27 は当日朝の再計算が前夜のオッズで行われていた（2026-10-02に発見）。
+       JSON先頭にある fetched_at（日付つき）で比べる。読めないときだけファイルの更新時刻を使う。"""
+    import os
+    best: dict[str, tuple[str, Path]] = {}
+    d = OUT_BASE / date
+    if not d.exists():
+        return {}
+    for f in d.glob("*.json"):
+        rid = f.stem.split("_")[0]
+        try:
+            with open(f, encoding="utf-8") as fh:
+                m = re.search(r'"fetched_at":\s*"([^"]+)"', fh.read(2000))
+        except OSError:
+            m = None
+        ts = m.group(1) if m else datetime.fromtimestamp(os.path.getmtime(f)).isoformat(timespec="seconds")
+        if rid not in best or ts > best[rid][0]:
+            best[rid] = (ts, f)
+    return {rid: f for rid, (ts, f) in sorted(best.items())}
 
 
 def fetch_one_race(s: requests.Session, race_id: str, fallback_date: str | None = None) -> dict:

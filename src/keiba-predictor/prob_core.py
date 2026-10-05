@@ -29,8 +29,6 @@ import collections, itertools, json, sys
 from pathlib import Path
 
 LAMBDA = (1.00, 0.80, 0.70)      # kaime_design_v7 と同じ（自前1,111Rで推定）
-TOPN = 8                          # 3着内シナリオを列挙する上位頭数（それ以下は「候補外」として確率を残す）
-COVERED = 0.80                    # 上位8頭で決まる決着の割合（残り20%は候補外）
 
 # 両関門を通った要素だけ。値は「同じ人気帯の期待3着内数に対する実測の比」。
 KESHI = {
@@ -62,20 +60,25 @@ def adjust(q: dict[int, float], flags: dict[int, dict] | None) -> dict[int, floa
 
 
 def top3_scenarios(p: dict[int, float]) -> dict[tuple, float]:
-    """λ-Harville で (1着,2着,3着) の確率。上位TOPN頭だけ列挙し、合計をCOVEREDに揃える"""
-    pool = sorted(p, key=lambda u: -p[u])[:TOPN]
+    """λ-Harville で (1着,2着,3着) の確率を **全頭ぶん** 出す（合計1.0）。
+    2026-10-02: 旧版は上位8頭だけ列挙して合計を0.80に揃えていたが、prob_calib_audit.py（2,388R）で
+    1番人気の3着内を57.6%と見積もっており（実測66.0%）、9番人気以下は0%になっていた。
+    全頭で計算すると 66.6%／9番人気 9.9%（実測9.9%）と合う。対数損失も 0.629 → 0.401。"""
+    us = list(p)
+    w2 = {u: max(p[u], 1e-9) ** LAMBDA[1] for u in us}
+    w3 = {u: max(p[u], 1e-9) ** LAMBDA[2] for u in us}
+    S2, S3 = sum(w2.values()), sum(w3.values())
     out = {}
-    for perm in itertools.permutations(pool, 3):
-        rest = {u: max(p[u], 1e-4) for u in pool}
-        pr = 1.0
-        for i, u in enumerate(perm):
-            w = {k: v ** LAMBDA[i] for k, v in rest.items()}
-            tot = sum(w.values())
-            pr *= w[u] / tot
-            del rest[u]
-        out[perm] = pr
-    tot = sum(out.values()) or 1.0
-    return {k: v / tot * COVERED for k, v in out.items()}
+    for a in us:
+        for b in us:
+            if b == a:
+                continue
+            pab = p[a] * w2[b] / (S2 - w2[a])
+            d3 = S3 - w3[a] - w3[b]
+            for c in us:
+                if c != a and c != b:
+                    out[(a, b, c)] = pab * w3[c] / d3
+    return out
 
 
 def ticket_probs(sc: dict[tuple, float], p: dict[int, float]) -> dict[str, dict[tuple, float]]:

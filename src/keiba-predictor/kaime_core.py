@@ -78,7 +78,7 @@ def context_for(d, rec=None):
 
 DB = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db"
 LEDGER = DB / "rule_k1_ledger.json"
-RULE_VERSION = "K1.0"
+RULE_VERSION = "K1.1"   # 2026-10-02: 確率を全頭λ-Harvilleに変更／馬体重の消しが実際に判定されるようになった
 REGISTERED = "2026-09-27"
 EV_MIN = 1.00     # EV_est = 払戻率 × lift。消しが確率を 1/0.8=25%以上動かした券だけが超える
 BUDGET = 10000
@@ -272,10 +272,8 @@ def main():
     ap.add_argument("--report", action="store_true")
     a = ap.parse_args()
     if a.day:
-        files = sorted(glob.glob(str(DB / "odds_snapshots" / a.day / "*.json")))
-        latest = {}
-        for f in files:                       # レースごとに最新時刻のスナップショットだけ使う
-            latest[Path(f).name.split("_")[0]] = f
+        from odds_snapshot import latest_snapshots   # レースごとに取得時刻が最新の1件（HHMM比較は前夜分を拾う）
+        latest = {rid: str(f) for rid, f in latest_snapshots(a.day).items()}
         recs = a.records
         if not recs:
             cand = sorted(glob.glob(str(Path.home() / "Desktop" / "競馬予想レポート" / "*" / f"週末ビッグデータ_*{a.day[4:]}*_records.json")))

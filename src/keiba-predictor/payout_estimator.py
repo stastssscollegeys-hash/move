@@ -61,11 +61,14 @@ def load_coef() -> dict:
 
 def estimate(ticket: str, odds: list[float]) -> float | None:
     """単勝オッズのリストから配当倍率を推定する"""
-    c = load_coef().get(ticket)
+    coef = load_coef()
+    c = coef.get(ticket)
     if not c or not odds or any(o is None or o <= 0 for o in odds):
         return None
     if len(odds) != NHORSE.get(ticket, len(odds)):
         return None
+    if ticket == "馬単":                      # odds = [1着の単勝, 2着の単勝]。向き別の係数があれば使う
+        c = coef.get("馬単_人気順" if odds[0] <= odds[1] else "馬単_逆順") or c
     prod = 1.0
     for o in odds:
         prod *= o
@@ -128,6 +131,11 @@ def calibrate(verbose: bool = True) -> dict:
                 if prod <= 0:
                     continue
                 samples[tk].append((math.log(prod), math.log(yen / 100.0)))
+                # 2026-10-02: 馬単は向きで配当が約3割違う（payout_est_audit.py・全組オッズ5,776組）。
+                #   1着が単勝オッズの低いほう（人気順）か高いほう（逆順）かで係数を分ける。
+                if tk == "馬単":
+                    samples["馬単_人気順" if od[0] <= od[1] else "馬単_逆順"].append(
+                        (math.log(prod), math.log(yen / 100.0)))
 
     coef = {}
     for tk, pts in samples.items():

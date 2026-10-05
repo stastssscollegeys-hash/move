@@ -24,11 +24,8 @@ def main():
     ap.add_argument('--date', required=True)
     a = ap.parse_args()
     snap_dir = BASE / 'daily_pdca' / 'db' / 'odds_snapshots' / a.date
-    latest = {}
-    for f in sorted(snap_dir.glob('*.json')):
-        rid, hhmm = f.stem.split('_')
-        if rid not in latest or hhmm > latest[rid][0]:
-            latest[rid] = (hhmm, f)
+    from odds_snapshot import latest_snapshots      # 取得時刻で最新を選ぶ（HHMM比較は前夜分を拾う不具合があった）
+    latest = {rid: (f.stem.split('_')[1], f) for rid, f in latest_snapshots(a.date).items()}
     out = {"_comment": f"odds_snapshot.py の最新スナップショット（単勝）から生成。レース別の取得時刻は _fetched を参照"}
     fetched = {}
     for rid, (hhmm, f) in sorted(latest.items()):
