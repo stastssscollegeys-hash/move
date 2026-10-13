@@ -128,6 +128,8 @@ F = [
     "時計の指数（馬場差補正・直近5走平均）", "同じ距離帯での最良指数", "時計データなし",
     # 当日の前半のトラックバイアス（その日・その場・同じ芝ダの、それより前のレースの結果から。2026-10-05 bias_carry_test.py で持ち越しを確認）
     "当日の内枠有利度×内枠", "当日の内枠有利度×外枠", "当日の前残り度×前で運ぶ割合",
+    # 前日（連続開催日・同じ競馬場・同じ芝ダ）の内枠有利度。daybias_test.py（2026-10-13）で内枠は翌日に引きずる。PREVDAY=1 で試す
+    "前日の内枠有利度×内枠", "前日の内枠有利度×外枠",
     # 調教（JRA-VAN の坂路・ウッド。chokyo.py。レース前日までの記録だけ。2026-10-05）
     "調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
     "調教 本数（21日・対数）", "調教 前走時より速い（坂路）", "調教データなし（14日）",
@@ -137,6 +139,9 @@ IX = {name: i for i, name in enumerate(F_ALL)}
 # 2026-10-02 実験して採用しなかった特徴量（年ごとの前向き検証で 対数尤度差 +0.00586 → +0.00572 と改善せず）。計算は残し、学習には使わない
 EXTRA = ["騎手×厩舎での度合い", "騎手×競馬場での度合い", "馬自身の同コースでの度合い", "先行争い（前で運ぶ馬の数）×自分の前傾", "単騎逃げ濃厚"]
 DAYBIAS = ["当日の内枠有利度×内枠", "当日の内枠有利度×外枠", "当日の前残り度×前で運ぶ割合"]
+PREVDAY = ["前日の内枠有利度×内枠", "前日の内枠有利度×外枠"]
+if os.environ.get("PREVDAY") != "1":                      # 検証が済むまでは学習に使わない（PREVDAY=1 で試す・2026-10-13）
+    EXTRA = EXTRA + PREVDAY
 if os.environ.get("DAYBIAS") != "1":                      # 検証が済むまでは学習に使わない（DAYBIAS=1 で試す）
     EXTRA = EXTRA + DAYBIAS
 CHOKYO = ["調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
@@ -280,6 +285,7 @@ def build(extra_rows=None):
         return f
 
     out = []
+    prevday = {}                                  # (場, 芝ダ) → (日付, その日の内枠の 3着内−人気からの期待 の平均)
     for d in dates + live_dates:
         pending = []
         dayacc = collections.defaultdict(lambda: {"in": [], "fr": [], "races": 0})      # (場, 芝ダ) → その日のそれまでの結果
@@ -422,6 +428,13 @@ def build(extra_rows=None):
                     if wk:
                         X[i, IX["当日の内枠有利度×内枠"]] = Wd * 10.0 * float(wk <= 3)
                         X[i, IX["当日の内枠有利度×外枠"]] = Wd * 10.0 * float(wk >= 6)
+            pv = prevday.get((k[1], sf))
+            if pv and (_day(d) - _day(pv[0])).days == 1:
+                for i, h in enumerate(hs):
+                    wk = h.get("枠")
+                    if wk:
+                        X[i, IX["前日の内枠有利度×内枠"]] = pv[1] * 10.0 * float(wk <= 3)
+                        X[i, IX["前日の内枠有利度×外枠"]] = pv[1] * 10.0 * float(wk >= 6)
             if acc["races"] >= 3 and len(acc["fr"]) >= 8:
                 Bd = sum(acc["fr"]) / len(acc["fr"])
                 X[:, IX["当日の前残り度×前で運ぶ割合"]] = Bd * 10.0 * (X[:, IX["前で運ぶ割合（直近5走）"]] + 0.4)
@@ -443,6 +456,9 @@ def build(extra_rows=None):
                             odds=np.array([h["_o"] for h in hs]), uma=[h["_u"] for h in hs],
                             part="live" if hs[0].get("_live") else "train" if d < cut1 else "valid" if d < cut2 else "test",
                             names=[h.get("馬名") for h in hs], fins=[h["_f"] for h in hs]))
+        for (vn_, sf_), acc_ in dayacc.items():           # その日の内枠の偏りを翌日用に残す（その日が終わってから）
+            if acc_["races"] >= 6 and len(acc_["in"]) >= 12:
+                prevday[(vn_, sf_)] = (d, sum(acc_["in"]) / len(acc_["in"]))
         # ── その日が終わってから履歴を更新する（同日の結果を特徴量に混ぜない）──
         raws = collections.defaultdict(list)
         day_entries = []
