@@ -28,7 +28,7 @@ TAGS = J["hashtags"]
 
 
 def header(r):
-    return f"🏇【{r['name']} {r['grade']}】{DATE}\n━━ {r['venue']} {r['course']} / 登録{r['entries']}頭 ━━"
+    return f"🏇【{r['name']} {r['grade']}】{r.get('date_label') or DATE}\n━━ {r['venue']} {r['course']} / 登録{r['entries']}頭 ━━"
 
 
 def sec(title):
