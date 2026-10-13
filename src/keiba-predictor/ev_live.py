@@ -44,6 +44,12 @@ RATIO = 1.30
 MINQ = {"馬連": 0.03, "ワイド": 0.08, "馬単": 0.02}
 TYPES = ("馬連", "ワイド", "馬単")
 BUDGET = 10000                     # 1レースの仮想予算（台帳用・実際には買わない）
+# 単勝の前向き台帳（別ファイル）。2026-10-14 事前登録: walk_bands_test.py（2019-26・確定オッズ）で 3〜6倍×EV≧1.0 が
+# 118.2%［104.7〜131.7%］・6/8年。ただし 5帯×3しきい値から選んだ在サンプルの切り方で、確定オッズ。発走前の実オッズで前向きに確かめる
+LEDGER_TAN = DB / "ev_ledger_tan.json"
+RULE_TAN = "T1"                    # 単勝・発走前の実オッズ 3.0以上6.0未満・モデル確率×実オッズ≧1.0・100円ずつ。変えたら版を上げる
+TAN_BAND = (3.0, 6.0)
+TAN_EV = 1.0
 TARGET = {"堅い": 2.5, "普通": 4.0, "荒れ": 8.0}
 
 
@@ -250,32 +256,50 @@ def run(date: str, register: bool, only=None):
             n += 1
         LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"\n台帳に {n} 点を追加（累計 {len(led)} 点）→ {LEDGER}")
+        # 単勝 T1（別台帳・1レース1回）
+        lt = json.loads(LEDGER_TAN.read_text(encoding="utf-8")) if LEDGER_TAN.exists() else []
+        done_t = {x["race_id"] for x in lt}
+        m = 0
+        for rk, ro in race_out.items():
+            if ro["race_id"] in done_t or (only is not None and rk not in only):
+                continue
+            for h in ro["horses"]:
+                if TAN_BAND[0] <= h["odds"] < TAN_BAND[1] and h["p_model"] * h["odds"] >= TAN_EV:
+                    lt.append(dict(rule=RULE_TAN, date=date, race_id=ro["race_id"], venue=ro["venue"], R=ro["R"], title=ro["title"], type="単勝",
+                                   combo=[h["uma"]], names=[h["name"]], p_model=h["p_model"], p_market=h["p_market"], odds_now=h["odds"],
+                                   ev_now=round(h["p_model"] * h["odds"], 3), stake=100, registered_at=datetime.datetime.now().isoformat(timespec="minutes"),
+                                   settled=False, payout=None))
+                    m += 1
+        LEDGER_TAN.write_text(json.dumps(lt, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"単勝台帳（{RULE_TAN}）に {m} 点を追加（累計 {len(lt)} 点）→ {LEDGER_TAN}")
 
 
 def settle():
     """払戻は JV速報の HR（RT/HR_日付.txt。jv_rt.ps1 -Spec 0B12 で取得）で精算する（2026-10-05 netkeiba から切り替え）"""
-    led = json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.exists() else []
-    pays = {}
-    for d in {x["date"] for x in led if not x["settled"]}:
-        f = RAW.parent / "RT" / f"HR_{d}.txt"
-        if f.exists():
-            b = f.read_bytes()
-            for i in range(0, len(b) - 718, 719):
-                h = T.parse_hr(b[i:i + 719])
-                if h:
-                    pays[(d, h["venue"], h["R"])] = h["pay"]
-    n = 0
-    for x in led:
-        if x["settled"]:
-            continue
-        p = pays.get((x["date"], x["venue"], x["R"]))
-        if not p:
-            continue
-        key = tuple(x["combo"]) if x["type"] in ("馬単", "3連単") else tuple(sorted(x["combo"]))
-        x["payout"], x["settled"] = p.get(x["type"], {}).get(key, 0) * x["stake"] / 100.0, True
-        n += 1
-    LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"精算 {n}点")
+    for path in (LEDGER, LEDGER_TAN):                   # 馬連等（E2.1）と単勝（T1）の両方の台帳
+        led = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        pays = {}
+        for d in {x["date"] for x in led if not x["settled"]}:
+            f = RAW.parent / "RT" / f"HR_{d}.txt"
+            if f.exists():
+                b = f.read_bytes()
+                for i in range(0, len(b) - 718, 719):
+                    h = T.parse_hr(b[i:i + 719])
+                    if h:
+                        pays[(d, h["venue"], h["R"])] = h["pay"]
+        n = 0
+        for x in led:
+            if x["settled"]:
+                continue
+            p = pays.get((x["date"], x["venue"], x["R"]))
+            if not p:
+                continue
+            key = tuple(x["combo"]) if x["type"] in ("馬単", "3連単") else tuple(sorted(x["combo"]))
+            x["payout"], x["settled"] = p.get(x["type"], {}).get(key, 0) * x["stake"] / 100.0, True
+            n += 1
+        if led:
+            path.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"精算 {n}点（{path.name}）")
 
 
 def report():
@@ -297,6 +321,10 @@ def report():
         line(t, [x for x in done if x["type"] == t])
     for k in ("堅い", "普通", "荒れ"):
         line(k, [x for x in done if x.get("kind") == k])
+    lt = json.loads(LEDGER_TAN.read_text(encoding="utf-8")) if LEDGER_TAN.exists() else []
+    dt = [x for x in lt if x["settled"]]
+    print(f"■ {RULE_TAN} 単勝 前向き台帳（実オッズ{TAN_BAND[0]:g}〜{TAN_BAND[1]:g}倍・期待値≧{TAN_EV}）  登録 {len(lt)}点 / 精算済み {len(dt)}点")
+    line("単勝T1", dt)
     print("  採用: 300レース以上で、レース単位の95%区間の下限が100%超（事前登録）。それまで実際には買わない")
 
 
