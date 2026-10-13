@@ -126,16 +126,19 @@ def train_all():
     E.SOURCE = HIST
     hist_rows = E.load_rows()
     last = max(r["date"] for r in hist_rows)
+    # 件数だけ残して履歴は捨てる（E.build が同じ履歴を読み直すため、残すと二重に載り MemoryError になる 2026-10-13）
+    n_hist = len({(r["date"], r["競馬場"], r["R"]) for r in hist_rows})
+    del hist_rows
     res_rows, _ = jv_results_and_entries("00000000")
     extra = [r for r in res_rows if r["date"] > last]
-    return hist_rows, extra, last
+    return n_hist, extra, last
 
 
 def run(date: str, register: bool, only=None):
-    hist_rows, extra, last = train_all()
+    n_hist, extra, last = train_all()
     res_rows, ent_rows = jv_results_and_entries(date)
     extra = [r for r in res_rows if r["date"] > last]
-    print(f"■ 履歴 {len({(r['date'], r['競馬場'], r['R']) for r in hist_rows}):,}レース（〜{last}）＋ JV-Link の最新成績 {len({(r['date'], r['競馬場'], r['R']) for r in extra}):,}レース")
+    print(f"■ 履歴 {n_hist:,}レース（〜{last}）＋ JV-Link の最新成績 {len({(r['date'], r['競馬場'], r['R']) for r in extra}):,}レース")
     snap = snapshot_odds(date)
     live = []
     skipped = []
