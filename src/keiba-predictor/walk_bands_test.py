@@ -5,7 +5,7 @@ walk_bands_test.py — 年ごとの前向き検証の「EV≧しきい値」単�
 run_walk の「10倍以下・EV≧1.0 が109.1%［99.1〜119.5%］」が、10倍という切り方の産物でないかを見る。
   ・年ごとに その年より前で学習 → その年の単勝（EV≧thr）を オッズ帯 別に 回収率
   ・帯ごとに全年まとめの回収率と95%区間（レース単位ブートストラップ）、プラスの年数
-使い方: python walk_bands_test.py [--thr 1.0] [--l2 0.01]      # 約3〜5分・メモリ3GB前後
+使い方: python walk_bands_test.py [--thr 1.0] [--l2 0.01] [--first 2018] [--fine]      # 約3〜5分・メモリ3GB前後
 """
 from __future__ import annotations
 import argparse, sys
@@ -20,26 +20,30 @@ import predict_day as P
 
 E.SOURCE = P.HIST
 BANDS = [(1.0, 3.0), (3.0, 6.0), (6.0, 10.0), (10.0, 20.0), (20.0, 1e9)]
+FINE = [(2.0, 3.0), (3.0, 4.0), (4.0, 5.0), (5.0, 6.0), (6.0, 8.0), (8.0, 10.0)]     # 3〜6倍の結果が切り方の偶然でないかを見る
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--thr", type=float, default=1.0)
     ap.add_argument("--l2", type=float, default=0.01)
+    ap.add_argument("--first", type=int, default=2019, help="検証の最初の年（学習が5,000レース以上あれば2018も可）")
+    ap.add_argument("--fine", action="store_true", help="2〜10倍を細かい帯で")
     a = ap.parse_args()
+    bands = FINE if a.fine else BANDS
     races, _ = E.build()
     years = sorted({r["key"][0][:4] for r in races})
     # 帯ごと・年ごとに レースごとの (賭け金, 戻り) を溜める
-    acc = {b: {} for b in BANDS}
+    acc = {b: {} for b in bands}
     for y in years:
-        if int(y) < 2019:
+        if int(y) < a.first:
             continue
         tr = [r for r in races if r["key"][0][:4] < y]
         te = [r for r in races if r["key"][0][:4] == y]
         if len(tr) < 5000 or not te:
             continue
         beta, w = E.fit(E.pack(tr), a.l2)
-        for b in BANDS:
+        for b in bands:
             st, rt = [], []
             for r in te:
                 p = E.probs(r, beta, w)
@@ -48,9 +52,9 @@ def main():
                 st.append(100.0 * len(sel))
                 rt.append(100.0 * r["odds"][r["win"]] if r["win"] in sel else 0.0)
             acc[b][y] = (np.array(st), np.array(rt))
-    print(f"■ EV≧{a.thr} の単勝をオッズ帯別に（年ごとの前向き・正則化{a.l2}）")
+    print(f"■ EV≧{a.thr} の単勝をオッズ帯別に（年ごとの前向き・{a.first}年〜・正則化{a.l2}）")
     print(f"{'オッズ帯':>10}{'点数':>8}{'回収率':>9}{'95%区間':>17}{'プラスの年':>11}   年別")
-    for b in BANDS:
+    for b in bands:
         ys = sorted(acc[b])
         st = np.concatenate([acc[b][y][0] for y in ys]); rt = np.concatenate([acc[b][y][1] for y in ys])
         roi, lo, hi = E.roi_ci(st, rt)
