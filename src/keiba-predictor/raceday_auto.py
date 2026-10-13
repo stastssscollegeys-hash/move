@@ -24,6 +24,7 @@ import target_import as T
 HERE = Path(__file__).resolve().parent
 PS32 = r"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
 RAW = Path("C:/keiba_db/jv_raw")
+MAX_TRIES = 3
 LOGD = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "raceday_logs"
 
 
@@ -83,6 +84,7 @@ def finished():
 def main():
     py = sys.executable
     handled = set()
+    tries = {}
     log(f"■ {A.date} 自動運転を開始（発走{A.lead}分前に登録・{A.interval}秒ごと）")
     while True:
         jv_rt("0B15", str(RAW / "RT" / "entry"))        # 出走表・馬場・発走時刻（RA/SE）。0B12 の成績を上書きしないよう別フォルダ
@@ -100,11 +102,21 @@ def main():
             log(f"発走前の処理: {names}")
             sh([py, "odds_snapshot.py", "--date", A.date])
             sh([py, "jv_live_odds.py", "--date", A.date, "--races", names, "--compare"])
-            sh([py, "ev_live.py", "--date", A.date, "--register", "--races", names])
+            rc = sh([py, "ev_live.py", "--date", A.date, "--register", "--races", names]).returncode
+            if rc != 0:
+                # 失敗（MemoryError等）のレースは次の周期で再試行する。発走を過ぎたら due から外れるので無限には回らない
+                for k in due:
+                    tries[k] = tries.get(k, 0) + 1
+                give_up = [k for k in due if tries[k] >= MAX_TRIES]
+                log(f"  ev_live 失敗（{names}）。再試行 {', '.join(f'{v}{r}:{tries[(v, r)]}回' for v, r in due)}")
+                handled.update(give_up)
+                time.sleep(A.interval)
+                continue
             sh([py, "predict_day.py", "--date", A.date])
             sh([py, "gen_flat_sns.py", "--dir", A.date])
             if any(r == 11 for _, r in due):
                 sh([py, "gen_cards_sns.py", "--dir", A.date])
+            sh([py, "word_order_by_ev.py", "--dir", A.date])    # 期待値の取れるレースを上・それ以外を参考として下（冪等）
             handled.update(due)
         rest = [k for k in pt if k not in done]
         if pt and not rest:
