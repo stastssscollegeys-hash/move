@@ -98,6 +98,32 @@ def main():
             if len(hi) >= 300 and len(lo) >= 300:
                 a, b = ratio(hi), ratio(lo)
                 print(f"  前で運ぶ型 {lab}: 前日前残り→{a[0]:.3f}(n={a[2]:,}) ／ 前日前が止まる→{b[0]:.3f}(n={b[2]:,}) ／ 差 {(a[0] - b[0]) * 100:+.1f}pt")
+    # 年ごとの出方（ルールは固定値±0.06で当てはめていないので、毎年が未使用データ）
+    print("\n■ 年ごと（内枠の馬・同じ柵・前日の内枠が +0.06以上／-0.06以下）")
+    for sf in ("芝", "ダ"):
+        print(f"  {sf}  年    前日内有利(n)     前日内不利(n)     差")
+        pos = tot = 0
+        pool_hi, pool_lo = [], []
+        for y in range(2016, 2027):
+            hi = [o for o in obs if o["sf"] == sf and o["same"] and o["inner"] and o["year"] == str(y) and o["Wp"] >= 0.06]
+            lo = [o for o in obs if o["sf"] == sf and o["same"] and o["inner"] and o["year"] == str(y) and o["Wp"] <= -0.06]
+            pool_hi += hi; pool_lo += lo
+            if len(hi) < 50 or len(lo) < 50:
+                print(f"     {y}  （サンプル不足 {len(hi)}/{len(lo)}）")
+                continue
+            a, b = ratio(hi), ratio(lo)
+            d = (a[0] - b[0]) * 100
+            tot += 1; pos += d > 0
+            print(f"     {y}  {a[0]:.3f}({a[2]:>5,})   {b[0]:.3f}({b[2]:>5,})   {d:+5.1f}pt")
+        print(f"     → 差がプラスの年 {pos}/{tot}")
+    # 「前日内有利なら1.0より上」「内不利なら下」を毎年の 差の符号 で見る（0.5の二項検定）
+    # 最近3年だけ（直近の傾向でも続いているか）
+    for sf in ("芝", "ダ"):
+        hi = [o for o in obs if o["sf"] == sf and o["same"] and o["inner"] and o["year"] >= "2024" and o["Wp"] >= 0.06]
+        lo = [o for o in obs if o["sf"] == sf and o["same"] and o["inner"] and o["year"] >= "2024" and o["Wp"] <= -0.06]
+        if len(hi) >= 100 and len(lo) >= 100:
+            a, b = ratio(hi), ratio(lo)
+            print(f"  {sf} 直近3年(2024-26): 前日内有利→{a[0]:.3f}(n={a[2]:,}) ／ 内不利→{b[0]:.3f}(n={b[2]:,}) ／ 差 {(a[0] - b[0]) * 100:+.1f}pt")
 
 
 if __name__ == "__main__":
