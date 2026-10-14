@@ -18,6 +18,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 import ev_engine as E
 import predict_day as P
 from course_profile import style_of
+from horse_profile import OUT_JSON as HP_JSON, card_text
+HP = json.loads(HP_JSON.read_text(encoding="utf-8")) if HP_JSON.exists() else {}
 
 E.SOURCE = P.HIST
 
@@ -132,7 +134,13 @@ def main():
                   f" → {r.get('着順')}着/{r.get('頭数')}頭（{r.get('人気')}番人気）通過{r.get('コーナー通過') or '-'} 上がり{r.get('後3F') or '-'}({r.get('後3F順位') or '-'}位)"
                   f" 着差{r.get('着差') or '-'} {r.get('馬体重') or ''} {r.get('騎手')}")
         gap = (E._day(a.date) - E._day(last["date"])).days
-        print(f"- 前走から {gap}日\n")
+        print(f"- 前走から {gap}日")
+        hp = HP.get(last.get("horse_id") or "")
+        if hp:                                      # horse_profile.py の得意・苦手（人気から期待される3着内との差）
+            for ln in card_text(hp).splitlines()[3:5]:
+                if ln.startswith("- **"):
+                    print(ln)
+        print()
 
 
 if __name__ == "__main__":

@@ -133,6 +133,9 @@ F = [
     # 調教（JRA-VAN の坂路・ウッド。chokyo.py。レース前日までの記録だけ。2026-10-05）
     "調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
     "調教 本数（21日・対数）", "調教 前走時より速い（坂路）", "調教データなし（14日）",
+    # 馬ごとの条件の得意不得意（horse_profile.py の型の分析から・2026-10-14）。HORSEFIT=1 で試す
+    "馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
+    "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし",
 ]
 F_ALL = list(F)
 IX = {name: i for i, name in enumerate(F_ALL)}
@@ -142,6 +145,10 @@ DAYBIAS = ["当日の内枠有利度×内枠", "当日の内枠有利度×外枠
 PREVDAY = ["前日の内枠有利度×内枠", "前日の内枠有利度×外枠"]
 if os.environ.get("PREVDAY") != "1":                      # 検証が済むまでは学習に使わない（PREVDAY=1 で試す・2026-10-13）
     EXTRA = EXTRA + PREVDAY
+HORSEFIT = ["馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
+            "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし"]
+if os.environ.get("HORSEFIT") != "1":                     # 検証が済むまでは学習に使わない（HORSEFIT=1 で試す・2026-10-14）
+    EXTRA = EXTRA + HORSEFIT
 if os.environ.get("DAYBIAS") != "1":                      # 検証が済むまでは学習に使わない（DAYBIAS=1 で試す）
     EXTRA = EXTRA + DAYBIAS
 CHOKYO = ["調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
@@ -383,6 +390,21 @@ def build(extra_rows=None):
                 if e:
                     x[IX["馬自身が市場評価より勝つ度合い"]] = e[0] / (e[1] + K_HORSE) * 10.0
                 x[IX["キャリア出走数（対数）"]] = math.log1p(len(past)) - 1.5
+                mb = re.match(r"(\d+)", str(h.get("馬体重") or ""))
+                if mb:
+                    bw = int(mb.group(1))
+                    x[IX["馬体重（470kgとの差・40kg単位）"]] = max(-2.0, min(2.0, (bw - 470) / 40.0))
+                    x[IX["馬体重 439kg以下"]] = float(bw <= 439)
+                if past and mt:
+                    sb = [pp for pp in past if pp["surf"] == sf and pp["m"] and band(pp["m"]) == band(mt)]
+                    x[IX["同じ芝ダ×距離帯で3着内の経験"]] = float(any(pp["fin"] and pp["fin"] <= 3 for pp in sb))
+                    rs_ = [(1.0 if pp["fin"] == 1 else 0.0) - pp["q"] for pp in sb if pp["fin"] and pp.get("q") is not None]
+                    if rs_:
+                        x[IX["馬自身の同じ芝ダ×距離帯での度合い"]] = sum(rs_) / (len(rs_) + K_HORSE) * 10.0
+                if past and hs[0].get("馬場状態") in ("重", "不良"):
+                    hv = [pp for pp in past if pp.get("baba") in ("重", "不良")]
+                    x[IX["今回道悪×道悪で3着内の経験"]] = float(any(pp["fin"] and pp["fin"] <= 3 for pp in hv))
+                    x[IX["今回道悪×道悪の経験なし"]] = float(not hv)
                 if CK:
                     cf = chokyo_feats(h.get("horse_id"), d, p["date"] if p else None)
                     if not cf or cf["none"]:
@@ -507,6 +529,7 @@ def build(extra_rows=None):
             c = [int(v) for v in re.findall(r"\d+", str(h.get("コーナー通過") or ""))]
             ent_h = dict(date=d, fin=f, n=n, pop=num(h.get("人気")), odds=h["_o"], m=mt, surf=sf, jockey=h.get("騎手"),
                          style=h.get("脚質"), l3rank=num(h.get("後3F順位")), c4=c[-1] if c else None, cls=cls_now, raw=raw, adj=None, live=bool(h.get("_live")),
+                         baba=h.get("馬場状態"), q=qi,
                          pace=((h.get("前3F_レース") - h.get("後3F_レース")) if (h.get("前3F_レース") and h.get("後3F_レース")) else None))
             if raw is not None:
                 raws[(h.get("競馬場"), sf)].append(raw)
