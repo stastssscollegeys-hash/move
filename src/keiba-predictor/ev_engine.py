@@ -133,9 +133,12 @@ F = [
     # 調教（JRA-VAN の坂路・ウッド。chokyo.py。レース前日までの記録だけ。2026-10-05）
     "調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
     "調教 本数（21日・対数）", "調教 前走時より速い（坂路）", "調教データなし（14日）",
-    # 馬ごとの条件の得意不得意（horse_profile.py の型の分析から・2026-10-14）。HORSEFIT=1 で試す
+    # 馬ごとの条件の得意不得意（horse_profile.py の型の分析から・2026-10-14 採用）。HORSEFIT=0 で外せる
     "馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
     "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし",
+    # 馬体重の組み合わせ（weight_analysis.py・2026-10-14）。WEIGHT2=1 で試す
+    "休み明け×体重の減り（10kg単位）", "中5週以内×12kg以上増", "牝馬×増減の大きさ（10kg単位）", "レースで一番軽い",
+    "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）",
 ]
 F_ALL = list(F)
 IX = {name: i for i, name in enumerate(F_ALL)}
@@ -147,7 +150,11 @@ if os.environ.get("PREVDAY") != "1":                      # 検証が済むま�
     EXTRA = EXTRA + PREVDAY
 HORSEFIT = ["馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
             "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし"]
-if os.environ.get("HORSEFIT") != "1":                     # 検証が済むまでは学習に使わない（HORSEFIT=1 で試す・2026-10-14）
+WEIGHT2 = ["休み明け×体重の減り（10kg単位）", "中5週以内×12kg以上増", "牝馬×増減の大きさ（10kg単位）", "レースで一番軽い",
+           "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）"]
+if os.environ.get("WEIGHT2") != "1":                      # 2026-10-14 不採用（前向き +0.00633→+0.00633・改善4/8年）。WEIGHT2=1 で試せる
+    EXTRA = EXTRA + WEIGHT2
+if os.environ.get("HORSEFIT") == "0":                     # 2026-10-14 採用（年ごとの前向き検証 +0.00601→+0.00633、8年中7年で改善）。HORSEFIT=0 で外せる
     EXTRA = EXTRA + HORSEFIT
 if os.environ.get("DAYBIAS") != "1":                      # 検証が済むまでは学習に使わない（DAYBIAS=1 で試す）
     EXTRA = EXTRA + DAYBIAS
@@ -156,6 +163,8 @@ CHOKYO = ["調教 直近14日の最良（坂路・日差）", "調教 直近14�
 if os.environ.get("CHOKYO") == "0":                       # 2026-10-05 採用（年ごとの前向き検証 +0.00606→+0.00657、8年中7年で改善）。CHOKYO=0 で外せる
     EXTRA = EXTRA + CHOKYO
 KEEP = [i for i, n in enumerate(F_ALL) if n not in EXTRA]
+# 台帳に書く確率エンジンの版（切り替え前後の成績を分けて見るため）
+MODEL_VERSION = "2026-10-14 調教＋馬の得意条件" if "馬体重 439kg以下" not in EXTRA else "2026-10-05 調教"
 F = [F_ALL[i] for i in KEEP]
 
 
@@ -305,6 +314,8 @@ def build(extra_rows=None):
             cls_now = race_class(hs[0])
             sf, mt = surf(hs[0].get("距離")), meters(hs[0].get("距離"))
             X, q = np.zeros((n, len(F_ALL))), []
+            _bws = [int(m_.group(1)) for m_ in (re.match(r"(\d+)", str(y.get("馬体重") or "")) for y in hs) if m_]
+            min_bw = min(_bws) if len(_bws) == n else None      # 全頭の体重が出ているときだけ「一番軽い」を使う
             for i, (h, kg) in enumerate(zip(hs, kin)):
                 qi = (1 / h["_o"]) / s
                 q.append(qi)
@@ -395,6 +406,23 @@ def build(extra_rows=None):
                     bw = int(mb.group(1))
                     x[IX["馬体重（470kgとの差・40kg単位）"]] = max(-2.0, min(2.0, (bw - 470) / 40.0))
                     x[IX["馬体重 439kg以下"]] = float(bw <= 439)
+                    # 馬体重の組み合わせ（WEIGHT2）
+                    x[IX["レースで一番軽い"]] = float(bw == min_bw and n >= 8)
+                    if sf == "ダ":
+                        x[IX["ダート×馬体重（470kgとの差）"]] = max(-2.0, min(2.0, (bw - 470) / 40.0))
+                    gw = [pp["bw"] for pp in past if pp.get("bw") and pp["fin"] and pp["fin"] <= 3]
+                    if gw:
+                        x[IX["好走時の体重との離れ（10kg単位）"]] = min(3.0, abs(bw - sum(gw) / len(gw)) / 10.0)
+                md = re.search(r"\(([+-]?\d+)\)", str(h.get("馬体重") or ""))
+                if md and p:
+                    dw = int(md.group(1))
+                    gap_ = (_day(d) - _day(p["date"])).days
+                    if gap_ >= 91:
+                        x[IX["休み明け×体重の減り（10kg単位）"]] = max(0.0, min(3.0, -dw / 10.0))
+                    if gap_ <= 35:
+                        x[IX["中5週以内×12kg以上増"]] = float(dw >= 12)
+                    if sa.startswith("牝"):
+                        x[IX["牝馬×増減の大きさ（10kg単位）"]] = min(3.0, abs(dw) / 10.0)
                 if past and mt:
                     sb = [pp for pp in past if pp["surf"] == sf and pp["m"] and band(pp["m"]) == band(mt)]
                     x[IX["同じ芝ダ×距離帯で3着内の経験"]] = float(any(pp["fin"] and pp["fin"] <= 3 for pp in sb))
@@ -529,7 +557,7 @@ def build(extra_rows=None):
             c = [int(v) for v in re.findall(r"\d+", str(h.get("コーナー通過") or ""))]
             ent_h = dict(date=d, fin=f, n=n, pop=num(h.get("人気")), odds=h["_o"], m=mt, surf=sf, jockey=h.get("騎手"),
                          style=h.get("脚質"), l3rank=num(h.get("後3F順位")), c4=c[-1] if c else None, cls=cls_now, raw=raw, adj=None, live=bool(h.get("_live")),
-                         baba=h.get("馬場状態"), q=qi,
+                         baba=h.get("馬場状態"), q=qi, bw=_bw(h.get("馬体重")),
                          pace=((h.get("前3F_レース") - h.get("後3F_レース")) if (h.get("前3F_レース") and h.get("後3F_レース")) else None))
             if raw is not None:
                 raws[(h.get("競馬場"), sf)].append(raw)
@@ -544,6 +572,11 @@ def build(extra_rows=None):
 
 
 # ── 条件付きロジット ─────────────────────────────────────────────────
+def _bw(s):
+    m_ = re.match(r"(\d+)", str(s or ""))
+    return int(m_.group(1)) if m_ else None
+
+
 def probs(race, beta, w):
     u = beta * np.log(race["q"]) + race["X"] @ w
     u -= u.max()

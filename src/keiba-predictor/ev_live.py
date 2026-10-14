@@ -106,8 +106,11 @@ def load_wh(date: str):
             if len(e) < 45:
                 break
             uma, wt, sg, df = e[:2].decode("ascii", "ignore"), e[38:41].decode("ascii", "ignore"), e[41:42].decode("ascii", "ignore"), e[42:45].decode("ascii", "ignore")
-            if uma.strip().isdigit() and wt.strip().isdigit() and df.strip().isdigit() and df.strip() != "999":
-                out[(venue, R, int(uma))] = f"{int(wt)}({'-' if sg == '-' else '+'}{int(df)})"
+            if uma.strip().isdigit() and wt.strip().isdigit() and int(wt) > 0:
+                if df.strip().isdigit() and df.strip() != "999":
+                    out[(venue, R, int(uma))] = f"{int(wt)}({'-' if sg == '-' else '+'}{int(df)})"
+                else:                                      # 初出走・前走計不能は増減なし。学習データ（TARGET）と同じ "506" の形（2026-10-14: 以前は体重ごと捨てていた）
+                    out[(venue, R, int(uma))] = f"{int(wt)}"
     return out
 
 
@@ -252,7 +255,7 @@ def run(date: str, register: bool, only=None):
                 continue
             if only is not None and (f"{c['venue']}{c['R']}" not in only or c["race_id"] in done_races):
                 continue                                   # 自動運転: 発走前の指定レースだけ・1レース1回
-            led.append(dict(c, rule=RULE, date=date, registered_at=datetime.datetime.now().isoformat(timespec="minutes"), settled=False, payout=None))
+            led.append(dict(c, rule=RULE, date=date, model=E.MODEL_VERSION, registered_at=datetime.datetime.now().isoformat(timespec="minutes"), settled=False, payout=None))
             n += 1
         LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"\n台帳に {n} 点を追加（累計 {len(led)} 点）→ {LEDGER}")
@@ -267,7 +270,7 @@ def run(date: str, register: bool, only=None):
                 if TAN_BAND[0] <= h["odds"] < TAN_BAND[1] and h["p_model"] * h["odds"] >= TAN_EV:
                     lt.append(dict(rule=RULE_TAN, date=date, race_id=ro["race_id"], venue=ro["venue"], R=ro["R"], title=ro["title"], type="単勝",
                                    combo=[h["uma"]], names=[h["name"]], p_model=h["p_model"], p_market=h["p_market"], odds_now=h["odds"],
-                                   ev_now=round(h["p_model"] * h["odds"], 3), stake=100, registered_at=datetime.datetime.now().isoformat(timespec="minutes"),
+                                   ev_now=round(h["p_model"] * h["odds"], 3), stake=100, model=E.MODEL_VERSION, registered_at=datetime.datetime.now().isoformat(timespec="minutes"),
                                    settled=False, payout=None))
                     m += 1
         LEDGER_TAN.write_text(json.dumps(lt, ensure_ascii=False, indent=1), encoding="utf-8")
