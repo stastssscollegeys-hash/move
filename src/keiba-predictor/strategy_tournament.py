@@ -297,6 +297,127 @@ def mk_tri_ratio(t, pool=5):
     return f
 
 
+# ── λ-Harville（2着は p^0.80、3着は p^0.70 に比例）と、組ごとの推定配当 ──────────
+LAM2, LAM3 = 0.80, 0.70
+KINDS = ("馬連", "ワイド", "馬単", "3連複", "3連単")
+
+
+def lam_tables(p):
+    return p, p ** LAM2, p ** LAM3
+
+
+def lex(T, i, j):                        # i→j（1-2着）
+    p, p2, _ = T
+    return p[i] * p2[j] / (p2.sum() - p2[i])
+
+
+def ltri(T, i, j, k):                    # i→j→k
+    p, p2, p3 = T
+    return p[i] * p2[j] / (p2.sum() - p2[i]) * p3[k] / (p3.sum() - p3[i] - p3[j])
+
+
+def lprob(T, kind, c):
+    """券種 kind・組 c（馬の添字のタプル）の λ-Harville 確率"""
+    n = len(T[0])
+    if kind == "馬単":
+        return lex(T, *c)
+    if kind == "馬連":
+        return lex(T, c[0], c[1]) + lex(T, c[1], c[0])
+    if kind == "3連単":
+        return ltri(T, *c)
+    if kind == "3連複":
+        return sum(ltri(T, *pp) for pp in itertools.permutations(c))
+    if kind == "ワイド":                  # 2頭とも3着内
+        i, j = c
+        s = lex(T, i, j) + lex(T, j, i)
+        for k in range(n):
+            if k in (i, j):
+                continue
+            s += ltri(T, i, k, j) + ltri(T, k, i, j) + ltri(T, j, k, i) + ltri(T, k, j, i)
+        return s
+    raise ValueError(kind)
+
+
+def combo_key(r, kind, c):
+    us = [u(r, x) for x in c]
+    return "-".join(str(x) for x in (us if kind in ("馬単", "3連単") else sorted(us)))
+
+
+COEF = {}                                # kind → (a, b): log(配当倍率) = a + b·log(1/市場λ確率)
+
+
+def calibrate_odds(rows):
+    """発見期間の的中組だけで、市場のλ確率 → 実際の配当倍率 を券種ごとに当てはめる。
+    的中組は「本当に来やすい＝人気が集まりやすい」側に寄るので、推定配当はやや低め（期待値は控えめに出る）"""
+    xs = {k: [] for k in KINDS}
+    for r, m, pv in rows:
+        if not (DISCOVER[0] <= r["key"][0][:4] <= DISCOVER[1]):
+            continue
+        T = lam_tables(r["q"])
+        idx = {uu: i for i, uu in enumerate(r["uma"])}
+        for kind in KINDS:
+            for combo, pay in (pv.get(kind) or {}).items():
+                try:
+                    c = tuple(idx[int(x)] for x in combo.split("-"))
+                except (KeyError, ValueError):
+                    continue
+                q = lprob(T, kind, c)
+                if q > 0 and pay > 0:
+                    xs[kind].append((math.log(1 / q), math.log(pay / 100)))
+    for kind, v in xs.items():
+        a_ = np.array(v)
+        b, a = np.polyfit(a_[:, 0], a_[:, 1], 1)
+        resid = a_[:, 1] - (a + b * a_[:, 0])
+        COEF[kind] = (float(a), float(b))
+        print(f"   推定配当 {kind}: log倍率 = {a:+.3f} + {b:.3f}·log(1/市場確率)  （{len(v):,}組・誤差 {resid.std():.2f}）")
+
+
+def est_odds(kind, q):
+    a, b = COEF[kind]
+    return math.exp(a + b * math.log(1 / q))
+
+
+def mk_exotic_ev(kind, t, pool=5):
+    """上位pool頭の組で、モデルのλ確率 × 推定配当 ≧ t の組を全部"""
+    size = 3 if kind in ("3連複", "3連単") else 2
+    gen = itertools.permutations if kind in ("馬単", "3連単") else itertools.combinations
+
+    def f(r):
+        S(r)
+        if "_TP" not in r:
+            r["_TP"], r["_TQ"] = lam_tables(r["p"]), lam_tables(r["q"])
+        out = []
+        for c in gen(r["_rank"][:pool], size):
+            pm, pq = lprob(r["_TP"], kind, c), lprob(r["_TQ"], kind, c)
+            if pq > 0 and pm * est_odds(kind, pq) >= t:
+                out.append((kind, combo_key(r, kind, c), 100))
+        return out
+    return f
+
+
+def calibration_table(rows, kind, pool=5):
+    """確認期間で、上位pool頭の組の予測確率（素朴Harville／λ）と実際の的中率を帯別に比べる"""
+    size = 3 if kind in ("3連複", "3連単") else 2
+    gen = itertools.permutations if kind in ("馬単", "3連単") else itertools.combinations
+    bins = [0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 1.0]
+    acc = {"素朴": collections.defaultdict(lambda: [0.0, 0, 0]), "λ": collections.defaultdict(lambda: [0.0, 0, 0])}
+    for r, m, pv in rows:
+        if r["key"][0][:4] < CONFIRM_FROM:
+            continue
+        S(r)
+        T = lam_tables(r["p"])
+        T1 = (r["p"], r["p"], r["p"])               # 素朴Harville
+        hits = set((pv.get(kind) or {}).keys())
+        for c in gen(r["_rank"][:pool], size):
+            key = combo_key(r, kind, c)
+            for lab, TT in (("素朴", T1), ("λ", T)):
+                pr_ = lprob(TT, kind, c)
+                b = next(i for i in range(len(bins) - 1) if pr_ < bins[i + 1])
+                a = acc[lab][b]
+                a[0] += pr_; a[1] += 1; a[2] += key in hits
+    return bins, acc
+
+
 BASE = {
     # 単勝
     "単勝・1番人気（比較用）": st_win_fav,
@@ -339,6 +460,10 @@ BASE = {
     "3連単・上位5頭で比≧2.0": mk_tri_ratio(2.0),
     "3連単・上位5頭で比≧3.0": mk_tri_ratio(3.0),
 }
+# 第2回（2026-10-14）: λ-Harville の確率 × 推定配当 で期待値を出して選ぶ
+for _k in KINDS:
+    for _t in (1.0, 1.2, 1.5):
+        BASE[f"{_k}・λ期待値≧{_t}（上位5頭）"] = mk_exotic_ev(_k, _t)
 
 SEGMENTS = {
     "全レース": lambda m: True,
@@ -405,6 +530,7 @@ def run(report_path=None):
         m = dict(meta[k], n=len(r["uma"]))
         rows.append((r, m, pay[k]))
     print(f"■ 採点対象 {len(rows):,}レース（{rows[0][0]['key'][0]}〜{rows[-1][0]['key'][0]}）")
+    calibrate_odds(rows)
 
     # 戦略×条件ごとに レース単位の (賭け金, 戻り, 年) を溜める
     combos = [(s, "全レース") for s in BASE] + [(s, g) for s in SEG_STRATS for g in SEGMENTS if g != "全レース"]
@@ -489,6 +615,19 @@ def run(report_path=None):
             d, k = disc.get((s, g)), conf.get((s, g))
             dk = f"{d['roi'] * 100:.0f}%→{k['roi'] * 100:.0f}%" if d and k else "－"
             pr(f"| {g} | {f['n']:,} | {f['hit'] * 100:.1f}% | {f['roi'] * 100:.1f}% | {f['lo'] * 100:.0f}〜{f['hi'] * 100:.0f}% | {f['pos']}/{f['years']} | {dk} |")
+    pr("\n## 5. 確率の当たり具合（確認期間・モデル上位5頭の組）: 素朴Harville と λ補正\n")
+    pr("予測した確率の合計と、実際に当たった数を帯ごとに比べる。比（実際/予測）が1に近いほど正確。\n")
+    pr("推定配当の式（発見期間の的中組で当てはめ）: " + "／".join(f"{k} log倍率={a:+.2f}+{b:.2f}·log(1/q)" for k, (a, b) in COEF.items()) + "\n")
+    for kind in KINDS:
+        bins, acc = calibration_table(rows, kind)
+        pr(f"\n### {kind}\n")
+        pr("| 予測確率の帯 | 組数 | 素朴: 予測→実際（比） | λ: 組数 | λ: 予測→実際（比） |")
+        pr("|---|---:|---|---:|---|")
+        for b in range(len(bins) - 1):
+            a1, a2 = acc["素朴"].get(b), acc["λ"].get(b)
+            f1 = f"{a1[1]:,} | {a1[0]:.0f}→{a1[2]:,}（{a1[2] / a1[0]:.2f}）" if a1 and a1[0] > 0 else "0 | －"
+            f2 = f"{a2[1]:,} | {a2[0]:.0f}→{a2[2]:,}（{a2[2] / a2[0]:.2f}）" if a2 and a2[0] > 0 else "0 | －"
+            pr(f"| {bins[b] * 100:g}〜{bins[b + 1] * 100:g}% | {f1} | {f2} |")
     if REGISTRY.exists():
         reg = json.loads(REGISTRY.read_text(encoding="utf-8"))
         pr("\n## 4. 事前登録した候補の登録後の成績（ここだけが本当の答え合わせ）\n")
