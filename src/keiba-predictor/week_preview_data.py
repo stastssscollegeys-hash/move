@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.stdout.reconfigure(encoding="utf-8")
 import ev_engine as E
 import predict_day as P
+from course_profile import style_of
 
 E.SOURCE = P.HIST
 
@@ -82,8 +83,9 @@ def main():
             p3.append(tp)
         for h in hs:
             n = int(h.get("頭数") or len(hs))
-            if h.get("脚質"):
-                s = sty[h["脚質"]]; s[0] += 1; s[1] += fin(h) <= 3
+            st_ = style_of(h.get("コーナー通過"), n)          # 元の「脚質」は2番手以内を全部「逃げ」にしている（2026-10-14修正）
+            if st_:
+                s = sty[st_]; s[0] += 1; s[1] += fin(h) <= 3
             if h.get("枠"):
                 b = "内(1-3枠)" if h["枠"] <= 3 else "中(4-6枠)" if h["枠"] <= 6 else "外(7-8枠)"
                 w = wak[b]; w[0] += 1; w[1] += fin(h) <= 3

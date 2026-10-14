@@ -32,6 +32,8 @@ def num(v):
         return None
 
 
+from course_profile import style_of       # 脚質はコーナー通過順から付け直す（定義は course_profile.style_of）
+
 rows = []
 for f in sorted(SRC.glob("results_*.json")):
     rows += json.loads(f.read_text(encoding="utf-8"))
@@ -62,7 +64,7 @@ for key, hs in by_race.items():
         r["_band"] = "短距離(〜1300)" if m <= 1300 else "マイル(1400〜1600)" if m <= 1600 else "中距離(1700〜2200)" if m <= 2200 else "長距離(2300〜)"
         r["_course"] = f"{r['競馬場']}{r['距離']}"
         r["_baba"] = "良" if r["馬場状態"] == "良" else "稍重" if r["馬場状態"] == "稍重" else "重・不良"
-        r["_style"] = r.get("脚質") or "?"
+        r["_style"] = style_of(r.get("コーナー通過"), n) or "?"     # 元の「脚質」は最初のコーナー2番手以内を全部「逃げ」にしている（2026-10-14修正）
         w = r.get("枠")
         r["_waku"] = "内(1-3枠)" if w and w <= 3 else "中(4-5枠)" if w and w <= 5 else "外(6-8枠)" if w else "?"
         sa = str(r.get("性齢") or "")

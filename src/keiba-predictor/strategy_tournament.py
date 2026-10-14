@@ -460,6 +460,23 @@ BASE = {
     "3連単・上位5頭で比≧2.0": mk_tri_ratio(2.0),
     "3連単・上位5頭で比≧3.0": mk_tri_ratio(3.0),
 }
+def st_umaren_u1(r):
+    """台帳ルールU1.0（SKILL v5.1・2023〜25の実オッズで117.3%）と同じ選び方: 全組で λ比≧1.3・市場λ確率≧3%・比の高い順に最大2点"""
+    S(r)
+    if "_TP" not in r:
+        r["_TP"], r["_TQ"] = lam_tables(r["p"]), lam_tables(r["q"])
+    c = []
+    for a, b in itertools.combinations(range(len(r["p"])), 2):
+        pq = lprob(r["_TQ"], "馬連", (a, b))
+        if pq < 0.03:
+            continue
+        ra = lprob(r["_TP"], "馬連", (a, b)) / pq
+        if ra >= 1.3:
+            c.append((ra, combo_key(r, "馬連", (a, b))))
+    return [("馬連", k, 100) for _, k in sorted(c, reverse=True)[:2]]
+
+
+BASE["馬連・U1（λ比≧1.3・市場3%以上・最大2点）"] = st_umaren_u1
 # 第2回（2026-10-14）: λ-Harville の確率 × 推定配当 で期待値を出して選ぶ
 for _k in KINDS:
     for _t in (1.0, 1.2, 1.5):
@@ -634,6 +651,8 @@ def run(report_path=None):
         pr("| ID | 戦略 | 条件 | 登録日 | 登録後: R | 的中率 | 回収率［95%］ | 収支(円) |")
         pr("|---|---|---|---|---:|---:|---|---:|")
         for c in reg["candidates"]:
+            if c["strategy"] not in BASE:          # --only で外した戦略
+                continue
             st, rt, hit = [], [], []
             for r, m, pv in rows:
                 if r["key"][0] < c["eval_from"] or not SEGMENTS[c["segment"]](m):
@@ -663,7 +682,12 @@ if __name__ == "__main__":
     ap.add_argument("--build", action="store_true")
     ap.add_argument("--first", type=int, default=2019)
     ap.add_argument("--report")
+    ap.add_argument("--only", help="戦略名に含まれる文字で絞る（試し用。--report と一緒に使う）")
     a = ap.parse_args()
+    if a.only:
+        for k in [k for k in BASE if a.only not in k]:
+            del BASE[k]
+        SEG_STRATS[:] = [s for s in SEG_STRATS if s in BASE]
     if a.build:
         build_cache(a.first)
     else:
