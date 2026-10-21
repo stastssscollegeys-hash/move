@@ -181,6 +181,7 @@ if os.environ.get("CHOKYO") == "0":                       # 2026-10-05 採用（
 KEEP = [i for i, n in enumerate(F_ALL) if n not in EXTRA]
 # 台帳に書く確率エンジンの版（切り替え前後の成績を分けて見るため）
 MODEL_VERSION = "2026-10-14 調教＋馬の得意条件" if "馬体重 439kg以下" not in EXTRA else "2026-10-05 調教"
+BUILD_INFO = {}                 # build の副産物（当日の再計算用: 人気順位ごとの3着内率 exp3）。benter_live.py が使う
 F = [F_ALL[i] for i in KEEP]
 
 
@@ -286,6 +287,7 @@ def build(extra_rows=None):
                 rk = min(14, 1 + sum(1 for y in races[k] if y["_o"] < h["_o"]))
                 p3[rk][0] += 1; p3[rk][1] += bool(h["_f"] and h["_f"] <= 3)
     EXP3 = {rk: v[1] / v[0] for rk, v in p3.items() if v[0]}
+    BUILD_INFO["exp3"] = EXP3
 
     CK = {}
     if os.environ.get("CHOKYO") != "0":
@@ -337,9 +339,10 @@ def build(extra_rows=None):
             kin_avg = statistics.mean([x for x in kin if x]) if any(kin) else None
             cls_now = race_class(hs[0])
             sf, mt = surf(hs[0].get("距離")), meters(hs[0].get("距離"))
-            X, q = np.zeros((n, len(F_ALL))), []
+            X, q = np.zeros((n, len(F_ALL)), np.float32 if os.environ.get("LEAN") == "1" else float), []   # LEAN=1: 20年分を載せるため半分の精度（benter.py・2026-10-21）
             _bws = [int(m_.group(1)) for m_ in (re.match(r"(\d+)", str(y.get("馬体重") or "")) for y in hs) if m_]
             min_bw = min(_bws) if len(_bws) == n else None      # 全頭の体重が出ているときだけ「一番軽い」を使う
+            aux = []                                            # 当日のレースだけ: 馬体重の発表後に列を入れ直すための (前走からの日数, 好走時の平均体重)
             for i, (h, kg) in enumerate(zip(hs, kin)):
                 qi = (1 / h["_o"]) / s
                 q.append(qi)
@@ -347,6 +350,9 @@ def build(extra_rows=None):
                 past = hist.get(hk, [])
                 p = past[-1] if past else None
                 x = X[i]
+                if h.get("_live"):
+                    _gw = [pp["bw"] for pp in past if pp.get("bw") and pp["fin"] and pp["fin"] <= 3]
+                    aux.append(((_day(d) - _day(p["date"])).days if p else None, sum(_gw) / len(_gw) if _gw else None))
                 if p and p["fin"] and p["n"] > 1:
                     x[IX["前走着順（0=1着〜1=最下位）"]] = (p["fin"] - 1) / (p["n"] - 1) - 0.4
                     x[IX["前走1着"]] = float(p["fin"] == 1)
@@ -565,7 +571,8 @@ def build(extra_rows=None):
             out.append(dict(key=k, q=np.array(q), X=X[:, KEEP], win=-1 if hs[0].get("_live") else [h["_f"] == 1 for h in hs].index(True),
                             odds=np.array([h["_o"] for h in hs]), uma=[h["_u"] for h in hs],
                             part="live" if hs[0].get("_live") else "train" if d < cut1 else "valid" if d < cut2 else "test",
-                            names=[h.get("馬名") for h in hs], fins=[h["_f"] for h in hs]))
+                            names=[h.get("馬名") for h in hs], fins=[h["_f"] for h in hs],
+                            **({"Xf": X, "aux": aux, "sf": sf, "waku": [h.get("枠") for h in hs]} if hs[0].get("_live") else {})))     # 当日のレースは全特徴量も残す（benter_live.py）
         for (vn_, sf_), acc_ in dayacc.items():           # その日の内枠の偏りを翌日用に残す（その日が終わってから）
             if acc_["races"] >= 6 and len(acc_["in"]) >= 12:
                 prevday[(vn_, sf_)] = (d, sum(acc_["in"]) / len(acc_["in"]))

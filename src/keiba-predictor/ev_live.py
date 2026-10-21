@@ -59,6 +59,9 @@ RULE_TAN = "T1"                    # 単勝・発走前の実オッズ 3.0以上
 TAN_BAND = (3.0, 6.0)
 TAN_EV = 1.0
 TARGET = {"堅い": 2.5, "普通": 4.0, "荒れ": 8.0}
+# 単勝 B1（2026-10-21 事前登録）: 市場＋木（ずれ）の確率×登録時の単勝オッズ≧1.0 に100円ずつ。中身と根拠は benter_live.py
+LEDGER_B1 = DB / "ledger_b1.json"
+LEDGER_B1_RACES = DB / "ledger_b1_races.json"           # 登録時の木の点数・オッズ（後で10分前・5分前の版を計算し直すため）
 
 
 def jv_results_and_entries(date: str):
@@ -208,8 +211,23 @@ def run(date: str, register: bool, only=None, quick=False):
             inv = np.array([1 / tan[u] for u in uma])
             liv.append(dict(key=c["key"], uma=uma, X=c["X"][keep], q=inv / inv.sum(), odds=np.array([tan[u] for u in uma]), part="live"))
         print(f"■ 軽い再計算（朝の特徴量・係数を使用・{cache['made_at']}）当日 {len(liv)}レース")
-        return _score(date, register, only, liv, beta, w, snap, train)
-    return _run_full(date, register, only, cache_f)
+        _score(date, register, only, liv, beta, w, snap, train)
+    else:
+        cache, snap = _run_full(date, register, only, cache_f)
+    _b1(date, register, only, cache, snap)
+
+
+def _b1(date, register, only, cache, snap):
+    """単勝 B1（市場＋木）。馬体重と当日のトラックバイアスは登録の直前に入れ直す"""
+    import benter_live as BL
+    if "exp3" not in cache:
+        print("  B1: 朝の特徴量が古い形式（全特徴量なし）。ev_live.py --date を通常実行し直すと計算できます")
+        return
+    res_rows, _ = jv_results_and_entries(date)
+    rs = BL.score(cache["races"], snap, load_wh(date), res_rows, date, cache["exp3"])
+    BL.show(rs)
+    if register and not REPLAY:
+        BL.register(rs, date, only, LEDGER_B1, LEDGER_B1_RACES)
 
 
 def _run_full(date, register, only, cache_f):
@@ -245,9 +263,11 @@ def _run_full(date, register, only, cache_f):
     beta, w = E.fit(E.pack(train), 0.01)
     import pickle
     cache_f.parent.mkdir(exist_ok=True)
-    cache_f.write_bytes(pickle.dumps(dict(made_at=datetime.datetime.now().isoformat(timespec="minutes"), beta=beta, w=w,
-                                          races=[dict(key=r["key"], uma=r["uma"], X=r["X"]) for r in liv])))
-    return _score(date, register, only, liv, beta, w, snap, train)
+    cache = dict(made_at=datetime.datetime.now().isoformat(timespec="minutes"), beta=beta, w=w, exp3=dict(E.BUILD_INFO.get("exp3") or {}),
+                 races=[dict(key=r["key"], uma=r["uma"], X=r["X"], Xf=r.get("Xf"), aux=r.get("aux"), sf=r.get("sf"), waku=r.get("waku")) for r in liv])
+    cache_f.write_bytes(pickle.dumps(cache))
+    _score(date, register, only, liv, beta, w, snap, train)
+    return cache, snap
 
 
 def _score(date, register, only, liv, beta, w, snap, train):
@@ -384,7 +404,7 @@ def register_to(path, rule, items, date, only):
 
 
 def settle():
-    for path in (LEDGER, LEDGER_U1, LEDGER_TAN):          # 馬連等（E2.1）・馬連（U1）・単勝（T1）
+    for path in (LEDGER, LEDGER_U1, LEDGER_TAN, LEDGER_B1):          # 馬連等（E2.1）・馬連（U1）・単勝（T1）・単勝（B1）
         _settle(path)
 
 
@@ -417,7 +437,7 @@ def _settle(LEDGER):
 
 
 def report():
-    for path, rule in ((LEDGER_U1, RULE_U1), (LEDGER, RULE), (LEDGER_TAN, RULE_TAN)):
+    for path, rule in ((LEDGER_B1, "B1"), (LEDGER_U1, RULE_U1), (LEDGER, RULE), (LEDGER_TAN, RULE_TAN)):
         _report(path, rule)
 
 

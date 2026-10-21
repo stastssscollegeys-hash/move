@@ -58,7 +58,7 @@ def build_cache(first=2019, l2=0.01):
 def load_meta():
     import predict_day as P
     meta, pay = {}, {}
-    for f in sorted(Path(P.HIST).glob("results_*.json")):
+    for f in sorted(Path(P.HIST).parent.glob("history_target_old/results_*.json")) + sorted(Path(P.HIST).glob("results_*.json")):   # 2006〜2015 は history_target_old（2026-10-21）
         for r in json.loads(f.read_text(encoding="utf-8")):
             k = (r["date"], r["競馬場"], int(float(r["R"])))
             if k in meta:
@@ -73,7 +73,7 @@ def load_meta():
                 m = 0
             meta[k] = dict(surf="芝" if d.startswith("芝") else "ダ", m=m, cls=cls, baba=r.get("馬場状態") or "",
                            venue=r["競馬場"])
-    for f in sorted(Path(P.HIST).glob("payouts_*.json")):
+    for f in sorted(Path(P.HIST).parent.glob("history_target_old/payouts_*.json")) + sorted(Path(P.HIST).glob("payouts_*.json")):
         for k, v in json.loads(f.read_text(encoding="utf-8")).items():
             d, vn, R = k.split("|")
             pay[(d, vn, int(R))] = v
@@ -683,7 +683,16 @@ if __name__ == "__main__":
     ap.add_argument("--first", type=int, default=2019)
     ap.add_argument("--report")
     ap.add_argument("--only", help="戦略名に含まれる文字で絞る（試し用。--report と一緒に使う）")
+    ap.add_argument("--discover", nargs=2)
+    ap.add_argument("--confirm-from")
+    ap.add_argument("--cache", help="別のモデルの前向き確率で採点する（例: _cache/benter_probs.pkl・2026-10-21）")
     a = ap.parse_args()
+    if a.cache:
+        CACHE = HERE / a.cache if not Path(a.cache).is_absolute() else Path(a.cache)
+    if a.discover:                                   # 例: --discover 2010 2019 --confirm-from 2020（20年分の検証用）
+        DISCOVER = tuple(a.discover)
+    if a.confirm_from:
+        CONFIRM_FROM = a.confirm_from
     if a.only:
         for k in [k for k in BASE if a.only not in k]:
             del BASE[k]

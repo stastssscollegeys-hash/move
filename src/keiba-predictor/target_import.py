@@ -266,7 +266,11 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--years", nargs="+", type=int, default=list(range(2016, 2027)))
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument("--out", help="出力フォルダ（2026-10-21: 2006〜2015年は本番の history_target と分けて history_target_old に置く。"
+                                  "本番エンジンはメモリの都合で10年分のまま）")
     a = ap.parse_args()
+    if a.out:
+        OUT = Path(a.out)
     OUT.mkdir(parents=True, exist_ok=True)
     for y in a.years:
         rows = convert_year(y)
