@@ -21,6 +21,9 @@ import bet_engine as B
 from kaime_format import circ
 
 BASE = Path.home() / "Desktop" / "競馬予想レポート"
+import os as _os
+if _os.environ.get("REPLAY"):                      # 再生テストは _replay/ の中で作る
+    BASE = BASE / "_replay"
 SEP = "─────"
 DETAIL = "─── 詳細 ───"
 FOLD = 140                                   # X の折りたたみ（字数）
@@ -36,6 +39,8 @@ CONT = json.loads((D / "research" / "draw_content.json").read_text(encoding="utf
 DATE, TAGS = CONT["post_date_label"], CONT["hashtags"]
 CR = {r["name"]: r for r in CONT["races"]}
 ORDER = {"◎": 0, "○": 1, "▲": 2, "△": 3, "🔥": 4}
+_WF = D / "research" / "next_week_watch.json"     # 1週間前プレビューの注目馬（2026-10-21: 印から外れた馬は理由を書く）
+WATCH = {r["name"]: r for r in json.loads(_WF.read_text(encoding="utf-8"))["races"]} if _WF.exists() else {}
 ODDS_NOTE = "オッズは発走前に動きます。発走前に実際のオッズで計算し直します。"
 
 
@@ -143,10 +148,10 @@ class Race:
         return L
 
     def make_bets(self):
+        if self.c["ref_bets"]:                          # 2026-10-07: 公開は標準形V1
+            return [dict(b, kind="標準") for b in self.c["ref_bets"]]
         if self.c["bets"]:
             return [dict(b, kind="E2") for b in self.c["bets"]]
-        if self.c["ref_bets"]:
-            return [dict(b, kind="参考") for b in self.c["ref_bets"]]
         uma = sorted(self.h)
         p = np.array([self.h[u]["p_model"] for u in uma]); q = np.array([self.h[u]["p_market"] for u in uma])
         p, q = p / p.sum(), q / q.sum()
@@ -170,6 +175,8 @@ class Race:
         return sum(b["stake"] * b["p_model"] * self.od(b) for b in self.ref) / s
 
     def kaime_short(self):
+        if self.ref[0]["kind"] == "標準":
+            return f"{len(self.ref)}点・{sum(b['stake'] for b in self.ref):,}円"
         if self.ev_total() < 1.0 and self.ref[0]["kind"] != "E2":
             return f"見送り（期待値{self.ev_total()*100:.0f}%）"
         return " ".join(f"{b['type']}{'-'.join(circ(x) for x in b['combo'])}" for b in self.ref[:3]) + (f"ほか{len(self.ref)-3}点" if len(self.ref) > 3 else "")
@@ -177,12 +184,16 @@ class Race:
     def kaime_lines(self):
         L = [f"💰 買い目 {len(self.ref)}点・{sum(b['stake'] for b in self.ref):,}円"]
         for b in self.ref:
-            L.append(f"【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円／的中{b['p_model']*100:.1f}%×{self.od(b):.1f}倍＝期待値{b['p_model']*self.od(b):.2f}")
+            L.append(f"{'🎯' if b.get('value') else ''}【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円／的中{b['p_model']*100:.1f}%×{self.od(b):.1f}倍＝期待値{b['p_model']*self.od(b):.2f}")
         L.append(f"全体の期待回収率 {self.ev_total()*100:.0f}%")
         return L
 
     def verdict(self):
         ev = self.ev_total()
+        if self.ref[0]["kind"] == "標準":
+            v = [b for b in self.ref if b.get("value")]
+            base = "印は人気ではなく「人気に対する割安さ」の順。相手は◎からのワイドで広く押さえています。"
+            return base + ("🎯人気より割安な馬連が出たので、勝負レースとして別枠で足しています。" if v else "")
         if self.ref[0]["kind"] == "E2":
             return "モデルが市場より1.3倍以上高く見ている組み合わせがあり、買う根拠のある買い目です。"
         return (f"期待値は{ev*100:.0f}%で、100%を超える組み合わせはありません。印の馬を買う場合の参考です。" if ev < 1.0 else "期待値は100%を超えていますが、検証済みの条件（市場との比1.3倍以上）には届きません。")
@@ -224,6 +235,8 @@ def brief(r, u):
     ok = next((first_clause(x, 46) for x in r.facts(u) if x.startswith(("最終追い切り", "木曜", "陣営"))), None)
     if ok:
         L.append(f"・{ok}")
+    elif h.get("chokyo"):
+        L.append(f"・調教: {h['chokyo']}")                # JRA-VAN の調教タイム（全馬・自動）
     used = " ".join(r.points(u)) + " ".join(L)
     for x in r.facts(u):
         fc = first_clause(x, 60)
@@ -238,6 +251,74 @@ def brief(r, u):
     if bf and not bf[1]:
         L.append(f"⚠{bf[0]}")
     return L
+
+
+RANK_EXP = {"◎": 1, "○": 2, "▲": 3}
+
+
+def pop_view(r):
+    """上位人気（1〜3番人気）なのに印が無い・△以下の馬（2026-10-10 ユーザー指示: なぜ評価を下げたかはリスナーが気になる）"""
+    out = []
+    for u, h in sorted(r.h.items(), key=lambda x: x[1]["pop"]):
+        if h["pop"] > 3:
+            continue
+        lab = r.c["marks"].get(str(u))
+        if lab in ("◎", "○", "▲"):
+            continue
+        out.append((u, lab))
+    return out
+
+
+def gap_marks(r):
+    """印の重さに比べて人気が大きく低い馬（◎○▲で期待順位より3つ以上下の人気・🔥は全部）"""
+    return [(lab, u) for lab, u in r.marked if (lab in RANK_EXP and r.h[u]["pop"] - RANK_EXP[lab] >= 3) or lab == "🔥"]
+
+
+def why_low(r, u):
+    """人気馬の評価を下げた理由（確率の比較＋手書きの説明 pop_view）"""
+    h = r.h[u]
+    rt = h["p_model"] / h["p_market"] if h["p_market"] else 1
+    rel = ("人気が示す確率より低く、買われすぎと見ています" if rt < 0.9 else
+           "人気が示す確率とほぼ同じで、割安さがありません")
+    L = [f"勝つ確率{h['p_model']*100:.0f}%／人気が示す確率{h['p_market']*100:.0f}% → {rel}"]
+    pv = (r.t.get("pop_view") or {}).get(str(u))
+    if pv:
+        L += [f"・{x}" for x in (pv if isinstance(pv, list) else [pv])]
+    return L
+
+
+def watch_dropped(r):
+    """1週間前の注目馬で、最終版で印が付かなかった馬（2026-10-21 ユーザー指示: 秋華賞で注目馬ギャラボーグが印なし→2着。
+    注目していた馬が黙って消えないよう、外した理由を1頭1投稿で書く）。人気馬の投稿（pop_view）と重なる馬は除く"""
+    w = WATCH.get(r.c["name"])
+    if not w:
+        return []
+    byname = {h["name"]: u for u, h in r.h.items()}
+    popv = {u for u, _ in pop_view(r)}
+    out = []
+    for x in w.get("watch", []):
+        u = byname.get(x["horse"])
+        if u is not None and str(u) not in r.c["marks"] and u not in popv:
+            out.append((u, x))
+    return out
+
+
+def why_dropped(r, u, x):
+    """注目馬を印から外した理由（確率の比較＋割安さの順位＋手書きの説明 watch_view）"""
+    h = r.h[u]
+    rk = sorted(r.h, key=lambda k: -r.h[k]["ratio"]).index(u) + 1
+    L = [f"勝つ確率{h['p_model']*100:.1f}%／人気が示す確率{h['p_market']*100:.1f}%（割安さは{len(r.h)}頭中{rk}番目）"]
+    wv = (r.t.get("watch_view") or {}).get(str(u))
+    if wv:
+        L += [f"・{y}" for y in (wv if isinstance(wv, list) else [wv])]
+    else:
+        PROBLEMS.append(f"{r.c['name']}: 注目馬 {r.nm(u)} を印から外した理由（draw_content の watch_view）が未記入")
+    return L
+
+
+def why_high(r, u):
+    h = r.h[u]
+    return [f"勝つ確率{h['p_model']*100:.1f}%／人気が示す確率{h['p_market']*100:.1f}%（{h['p_model']/h['p_market']:.2f}倍）"] + [f"・{x}" for x in r.points(u, 2)]
 
 
 def x_posts(r):
@@ -270,6 +351,28 @@ def x_posts(r):
     for u in r.caution:
         L += [f"軸にしない {r.nm(u)}（{r.h[u]['pop']}番人気）", f"　勝つ確率{r.pct(u)}", ""]
     P.append(("X⑤ 相手と穴", L + [r.tag()]))
+    for u, lab in pop_view(r):                       # 1頭1投稿（2頭まとめると500字を超えて理由が削られた）
+        w = why_low(r, u)
+        L = [r.head(), "", f"人気馬をどう見たか（{r.h[u]['pop']}番人気）", "",
+             f"{lab or '印なし'}{r.nm(u)}　単勝{r.h[u]['odds']}倍", w[0], "",
+             "印は強さの順ではなく「勝つ確率が人気より高いか（割安さ）」の順です。", "", SEP] + w[1:] + ["",
+             "評価を下げた＝負けると見ている、ではありません。人気どおりの確率なら、買っても得にならないという意味です。", r.tag()]
+        P.append((f"X 人気馬をどう見たか {r.nm(u)}", L))
+    for u, x in watch_dropped(r):                    # 1週間前の注目馬で印が付かなかった馬（1頭1投稿）
+        w = why_dropped(r, u, x)
+        L = [r.head(), "", f"1週間前の注目馬をどう見たか（{r.h[u]['pop']}番人気）", "",
+             f"印なし{r.nm(u)}　単勝{r.h[u]['odds']}倍", w[0], "",
+             f"1週間前に注目した理由：{x['lead']}", "", SEP] + w[1:] + ["",
+             "印は強さの順ではなく「勝つ確率が人気より高いか（割安さ）」の順です。印を外した＝負けると見ている、ではありません。", r.tag()]
+        P.append((f"X 注目馬をどう見たか {r.nm(u)}", L))
+    gm = gap_marks(r)
+    if gm:
+        L = [r.head(), "", "人気より印が重い馬", ""] + [f"{lab}{r.nm(u)}（{r.h[u]['pop']}番人気）" for lab, u in gm] + ["",
+             "人気に対して勝つ確率が高く出た馬に、重い印を付けています。", "", SEP]
+        for lab, u in gm:
+            L += [f"{lab}{r.nm(u)}　{r.h[u]['pop']}番人気・{r.h[u]['odds']}倍"] + why_high(r, u) + [""]
+        L += ["人気薄の印は当たる回数は少なくても、来たときの配当で取り返す考え方です。", r.tag()]
+        P.append(("X 人気と印のずれ", L))
     L = [r.head(), "", "展開と馬場", ""]
     if r.bias:
         L += [r.bias, ""]
@@ -280,6 +383,8 @@ def x_posts(r):
     L = [r.head(), ""] + [f"{lab}{r.nm(u)}" for lab, u in r.marked] + ["", f"買い目：{r.kaime_short()}", ""] + [f"{b['type']} {'-'.join(circ(x) for x in b['combo'])}　{b['stake']:,}円（的中{b['p_model']*100:.0f}%×{r.od(b):.1f}倍＝{b['p_model']*r.od(b):.2f}）" for b in r.ref] + \
         ["", f"期待回収率 {r.ev_total()*100:.0f}%", r.verdict(), "", "買い目は「的中率×オッズ＝期待値」で決めています。100%を超えない組み合わせは買う根拠がありません。", f"※{ODDS_NOTE}", r.tag()]
     P.append(("X⑦ 買い目", L))
+    NUM = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
+    P = [(f"X{NUM[i]} {t.split(' ', 1)[1]}", x) for i, (t, x) in enumerate(P)]   # 追加の投稿があっても通し番号にする
     out = []
     for t, x in P:                                   # 520字を超えたら「・」の行を後ろから削る
         x = list(x)
@@ -299,9 +404,12 @@ def fit(head, bullets, tail, limit=500):
 
 
 def threads_posts(r):
-    xs = dict(x_posts(r))
+    xs = {t.split(" ", 1)[1]: x for t, x in x_posts(r)}
     T = []
-    order = [("X① 予想印", "1/6 予想印"), ("X② ◎", "2/6 ◎本命"), ("X③ ○", "3/6 ○対抗"), ("X④ ▲", "4/6 ▲単穴"), ("X⑤ 相手と穴", "5/6 相手と穴"), ("X⑦ 買い目", "6/6 買い目")]
+    want = [("予想印", "予想印"), ("◎", "◎本命"), ("○", "○対抗"), ("▲", "▲単穴"), ("相手と穴", "相手と穴"), ("人気馬をどう見たか", "人気馬をどう見たか"),
+            ("注目馬をどう見たか", "注目馬をどう見たか"), ("人気と印のずれ", "人気と印のずれ"), ("買い目", "買い目")]
+    want = [(k2, lab if k2 == k else k2) for k, lab in want for k2 in xs if k2 == k or k2.startswith(k + " ")]
+    order = [(k, f"{i}/{len(want)} {lab}") for i, (k, lab) in enumerate(want, 1)]
     for k, lab in order:
         lines = xs[k].split("\n")
         lines.insert(2, f"（{lab}）")
@@ -310,6 +418,10 @@ def threads_posts(r):
             i = max(i for i, l in enumerate(lines) if l.startswith("・"))
             lines.pop(i)
             body = "\n".join(lines)
+        for drop in ("※", "買い目は「的中率"):          # 買い目の点数が多いとき（ワイド流し）は説明の行から削る
+            if len(body) > 500:
+                lines = [l for l in lines if not l.startswith(drop)]
+                body = "\n".join(lines)
         T.append((f"Threads {lab}", body))
     return T
 
@@ -338,6 +450,18 @@ def note_article(r):
         N += [f"{lab}{r.nm(u)}　勝つ確率{r.pct(u)}"] + [f"✅{x}" for x in r.points(u)] + brief(r, u) + [""]
     for u in r.caution:
         N += [f"軸にしない馬 {r.nm(u)}（{r.h[u]['pop']}番人気）　勝つ確率{r.pct(u)}"] + [f"・{x}" for x in r.facts(u)[:2]] + [""]
+    if pop_view(r) or gap_marks(r):
+        N += ["人気と印がずれた馬", "印は強さの順ではなく「勝つ確率が人気より高いか（割安さ）」の順です。"]
+        for u, lab in pop_view(r):
+            N += [f"{lab or '印なし'}{r.nm(u)}（{r.h[u]['pop']}番人気）を下げた理由"] + why_low(r, u)
+        for lab, u in gap_marks(r):
+            N += [f"{lab}{r.nm(u)}（{r.h[u]['pop']}番人気）を上げた理由"] + why_high(r, u)
+        N += ["評価を下げた＝負けると見ている、ではありません。人気どおりの確率なら、買っても得にならないという意味です。", ""]
+    if watch_dropped(r):
+        N += ["1週間前の注目馬で印を外した馬"]
+        for u, x in watch_dropped(r):
+            N += [f"{r.nm(u)}（{r.h[u]['pop']}番人気）　1週間前に注目した理由：{x['lead']}"] + why_dropped(r, u, x)
+        N += ["印を外した＝負けると見ている、ではありません。", ""]
     N += ["8. 全頭短評"]
     for h in c["horses"]:
         u = h["uma"]
@@ -436,6 +560,7 @@ try:
     doc.save(out)
 except PermissionError:
     out = D / f"{a.dir}_重賞_SNS投稿案_エンジン版_new.docx"; doc.save(out)
+PROBLEMS = list(dict.fromkeys(PROBLEMS))            # X・Threads・note で同じ指摘が重なるのをまとめる
 print("検査: " + ("問題なし" if not PROBLEMS else f"{len(PROBLEMS)}件"))
 for x in PROBLEMS:
     print("  ⚠", x)

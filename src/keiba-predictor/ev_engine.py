@@ -34,7 +34,7 @@ import numpy as np
 sys.stdout.reconfigure(encoding="utf-8")
 DB = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db"
 MODEL = DB / "ev_model.json"
-SOURCE = DB / "history" if any((DB / "history").glob("results_*.json")) else DB / "race_results.json"
+SOURCE = DB / "history_target"     # 2026-10-07 一本化: JRA-VAN（TARGET＋jv_to_history.py）。旧 netkeiba の db/history・race_results.json は使わない（--source で明示したときだけ）
 SPLIT = (0.60, 0.80)      # 学習の終わり／調整の終わり（日付の割合）
 K_ENT = 50.0              # 騎手・厩舎の累積を0へ寄せる強さ（出走数の単位）
 K_HORSE = 5.0
@@ -128,22 +128,59 @@ F = [
     "時計の指数（馬場差補正・直近5走平均）", "同じ距離帯での最良指数", "時計データなし",
     # 当日の前半のトラックバイアス（その日・その場・同じ芝ダの、それより前のレースの結果から。2026-10-05 bias_carry_test.py で持ち越しを確認）
     "当日の内枠有利度×内枠", "当日の内枠有利度×外枠", "当日の前残り度×前で運ぶ割合",
+    # 前日（連続開催日・同じ競馬場・同じ芝ダ）の内枠有利度。daybias_test.py（2026-10-13）で内枠は翌日に引きずる。PREVDAY=1 で試す
+    "前日の内枠有利度×内枠", "前日の内枠有利度×外枠",
     # 調教（JRA-VAN の坂路・ウッド。chokyo.py。レース前日までの記録だけ。2026-10-05）
     "調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
     "調教 本数（21日・対数）", "調教 前走時より速い（坂路）", "調教データなし（14日）",
+    # 新馬戦だけ調教の重みを変える（過去走がないので調教の情報が大きいはず。2026-10-05 試験）
+    "新馬戦×調教（坂路）", "新馬戦×調教（ウッド）", "新馬戦×調教（終い）",
+    # 先週のトラックバイアス（2026-10-07 week_bias_test.py）: 芝・同じ開催・同じ柵・馬場が同程度なら先週の内外の偏りが続く（0.94↔1.06倍）。
+    #   柵替えの週は先週の偏りがリセットされ、内枠がやや有利（1.04倍）
+    "先週の内枠有利度×内枠（芝・同じ柵・馬場同程度）", "柵替えの週×内枠（芝）",
+    # 馬ごとの条件の得意不得意（horse_profile.py の型の分析から・2026-10-14 採用）。HORSEFIT=0 で外せる
+    "馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
+    "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし",
+    # 馬体重の組み合わせ（weight_analysis.py・2026-10-14）。WEIGHT2=1 で試す
+    "休み明け×体重の減り（10kg単位）", "中5週以内×12kg以上増", "牝馬×増減の大きさ（10kg単位）", "レースで一番軽い",
+    "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）",
+    # 重賞実績のある馬の休み明け（2026-10-21 秋華賞: 桜花賞2着から189日ぶりのギャラボーグが7番人気2着・印なし）。LAYOFFG=1 で試す
+    "休み明け×前走重賞3着内", "重賞で連対の経験", "G1で連対の経験",
 ]
 F_ALL = list(F)
 IX = {name: i for i, name in enumerate(F_ALL)}
 # 2026-10-02 実験して採用しなかった特徴量（年ごとの前向き検証で 対数尤度差 +0.00586 → +0.00572 と改善せず）。計算は残し、学習には使わない
 EXTRA = ["騎手×厩舎での度合い", "騎手×競馬場での度合い", "馬自身の同コースでの度合い", "先行争い（前で運ぶ馬の数）×自分の前傾", "単騎逃げ濃厚"]
 DAYBIAS = ["当日の内枠有利度×内枠", "当日の内枠有利度×外枠", "当日の前残り度×前で運ぶ割合"]
+PREVDAY = ["前日の内枠有利度×内枠", "前日の内枠有利度×外枠"]
+if os.environ.get("PREVDAY") != "1":                      # 検証が済むまでは学習に使わない（PREVDAY=1 で試す・2026-10-13）
+    EXTRA = EXTRA + PREVDAY
+HORSEFIT = ["馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下", "同じ芝ダ×距離帯で3着内の経験", "馬自身の同じ芝ダ×距離帯での度合い",
+            "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし"]
+WEIGHT2 = ["休み明け×体重の減り（10kg単位）", "中5週以内×12kg以上増", "牝馬×増減の大きさ（10kg単位）", "レースで一番軽い",
+           "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）"]
+if os.environ.get("WEIGHT2") != "1":                      # 2026-10-14 不採用（前向き +0.00633→+0.00633・改善4/8年）。WEIGHT2=1 で試せる
+    EXTRA = EXTRA + WEIGHT2
+if os.environ.get("HORSEFIT") == "0":                     # 2026-10-14 採用（年ごとの前向き検証 +0.00601→+0.00633、8年中7年で改善）。HORSEFIT=0 で外せる
+    EXTRA = EXTRA + HORSEFIT
 if os.environ.get("DAYBIAS") != "1":                      # 検証が済むまでは学習に使わない（DAYBIAS=1 で試す）
     EXTRA = EXTRA + DAYBIAS
 CHOKYO = ["調教 直近14日の最良（坂路・日差）", "調教 直近14日の最良（ウッド・日差）", "調教 最終追い切りの終い（日差）",
           "調教 本数（21日・対数）", "調教 前走時より速い（坂路）", "調教データなし（14日）"]
+NEWBIE = ["新馬戦×調教（坂路）", "新馬戦×調教（ウッド）", "新馬戦×調教（終い）"]
+WEEKBIAS = ["先週の内枠有利度×内枠（芝・同じ柵・馬場同程度）", "柵替えの週×内枠（芝）"]
+if os.environ.get("WEEKBIAS") != "1":                   # 検証が済むまでは学習に使わない（WEEKBIAS=1 で試す）
+    EXTRA = EXTRA + WEEKBIAS
+LAYOFFG = ["休み明け×前走重賞3着内", "重賞で連対の経験", "G1で連対の経験"]
+if os.environ.get("LAYOFFG") != "1":                    # 検証が済むまでは学習に使わない（LAYOFFG=1 で試す・2026-10-21）
+    EXTRA = EXTRA + LAYOFFG
+if os.environ.get("NEWBIE") != "1":
+    EXTRA = EXTRA + NEWBIE
 if os.environ.get("CHOKYO") == "0":                       # 2026-10-05 採用（年ごとの前向き検証 +0.00606→+0.00657、8年中7年で改善）。CHOKYO=0 で外せる
     EXTRA = EXTRA + CHOKYO
 KEEP = [i for i, n in enumerate(F_ALL) if n not in EXTRA]
+# 台帳に書く確率エンジンの版（切り替え前後の成績を分けて見るため）
+MODEL_VERSION = "2026-10-14 調教＋馬の得意条件" if "馬体重 439kg以下" not in EXTRA else "2026-10-05 調教"
 F = [F_ALL[i] for i in KEEP]
 
 
@@ -253,8 +290,8 @@ def build(extra_rows=None):
     CK = {}
     if os.environ.get("CHOKYO") != "0":
         import pickle
-        ckf = DB / "chokyo_index.pkl"
-        CK = pickle.loads(ckf.read_bytes()) if ckf.exists() else {}
+        import chokyo as _CKM                       # 省メモリ形式（馬ごとに必要なときだけ展開）
+        CK = _CKM.load()
     import bisect
 
     def chokyo_feats(hid, d, prev_d):
@@ -279,7 +316,16 @@ def build(extra_rows=None):
                 f["faster"] = min(hs) - min(ph)
         return f
 
+    import race_meta as _RM
+    META = _RM.load()
+
+    def wkey(dd):
+        dt = _day(dd)
+        return (dt - datetime.timedelta(days=(dt.weekday() - 4) % 7)).isoformat()   # その週の金曜（土日月で1つの週末）
+    wkacc = {}                                                                        # (場, 芝ダ, 週) → {"in": [...], "bad": [悪い馬場のレース数, レース数], "kai": Counter, "rail": Counter}
+
     out = []
+    prevday = {}                                  # (場, 芝ダ) → (日付, その日の内枠の 3着内−人気からの期待 の平均)
     for d in dates + live_dates:
         pending = []
         dayacc = collections.defaultdict(lambda: {"in": [], "fr": [], "races": 0})      # (場, 芝ダ) → その日のそれまでの結果
@@ -292,6 +338,8 @@ def build(extra_rows=None):
             cls_now = race_class(hs[0])
             sf, mt = surf(hs[0].get("距離")), meters(hs[0].get("距離"))
             X, q = np.zeros((n, len(F_ALL))), []
+            _bws = [int(m_.group(1)) for m_ in (re.match(r"(\d+)", str(y.get("馬体重") or "")) for y in hs) if m_]
+            min_bw = min(_bws) if len(_bws) == n else None      # 全頭の体重が出ているときだけ「一番軽い」を使う
             for i, (h, kg) in enumerate(zip(hs, kin)):
                 qi = (1 / h["_o"]) / s
                 q.append(qi)
@@ -327,6 +375,10 @@ def build(extra_rows=None):
                         x[IX["クラス上げ"]], x[IX["クラス下げ"]] = float(cls_now > p["cls"]), float(cls_now < p["cls"])
                     if p["jockey"] and h.get("騎手") and p["jockey"] != h.get("騎手"):
                         x[IX["乗り替わり"]] = 1.0
+                    if gap >= 91 and (p["cls"] or 0) >= 6 and p["fin"] and p["fin"] <= 3:
+                        x[IX["休み明け×前走重賞3着内"]] = 1.0
+                x[IX["重賞で連対の経験"]] = float(any((pp["cls"] or 0) >= 6 and pp["fin"] and pp["fin"] <= 2 for pp in past))
+                x[IX["G1で連対の経験"]] = float(any((pp["cls"] or 0) >= 7 and pp["fin"] and pp["fin"] <= 2 for pp in past))
                 m = re.search(r"\(([+-]?\d+)\)", str(h.get("馬体重") or ""))
                 if m:
                     w = int(m.group(1))
@@ -377,6 +429,38 @@ def build(extra_rows=None):
                 if e:
                     x[IX["馬自身が市場評価より勝つ度合い"]] = e[0] / (e[1] + K_HORSE) * 10.0
                 x[IX["キャリア出走数（対数）"]] = math.log1p(len(past)) - 1.5
+                mb = re.match(r"(\d+)", str(h.get("馬体重") or ""))
+                if mb:
+                    bw = int(mb.group(1))
+                    x[IX["馬体重（470kgとの差・40kg単位）"]] = max(-2.0, min(2.0, (bw - 470) / 40.0))
+                    x[IX["馬体重 439kg以下"]] = float(bw <= 439)
+                    # 馬体重の組み合わせ（WEIGHT2）
+                    x[IX["レースで一番軽い"]] = float(bw == min_bw and n >= 8)
+                    if sf == "ダ":
+                        x[IX["ダート×馬体重（470kgとの差）"]] = max(-2.0, min(2.0, (bw - 470) / 40.0))
+                    gw = [pp["bw"] for pp in past if pp.get("bw") and pp["fin"] and pp["fin"] <= 3]
+                    if gw:
+                        x[IX["好走時の体重との離れ（10kg単位）"]] = min(3.0, abs(bw - sum(gw) / len(gw)) / 10.0)
+                md = re.search(r"\(([+-]?\d+)\)", str(h.get("馬体重") or ""))
+                if md and p:
+                    dw = int(md.group(1))
+                    gap_ = (_day(d) - _day(p["date"])).days
+                    if gap_ >= 91:
+                        x[IX["休み明け×体重の減り（10kg単位）"]] = max(0.0, min(3.0, -dw / 10.0))
+                    if gap_ <= 35:
+                        x[IX["中5週以内×12kg以上増"]] = float(dw >= 12)
+                    if sa.startswith("牝"):
+                        x[IX["牝馬×増減の大きさ（10kg単位）"]] = min(3.0, abs(dw) / 10.0)
+                if past and mt:
+                    sb = [pp for pp in past if pp["surf"] == sf and pp["m"] and band(pp["m"]) == band(mt)]
+                    x[IX["同じ芝ダ×距離帯で3着内の経験"]] = float(any(pp["fin"] and pp["fin"] <= 3 for pp in sb))
+                    rs_ = [(1.0 if pp["fin"] == 1 else 0.0) - pp["q"] for pp in sb if pp["fin"] and pp.get("q") is not None]
+                    if rs_:
+                        x[IX["馬自身の同じ芝ダ×距離帯での度合い"]] = sum(rs_) / (len(rs_) + K_HORSE) * 10.0
+                if past and hs[0].get("馬場状態") in ("重", "不良"):
+                    hv = [pp for pp in past if pp.get("baba") in ("重", "不良")]
+                    x[IX["今回道悪×道悪で3着内の経験"]] = float(any(pp["fin"] and pp["fin"] <= 3 for pp in hv))
+                    x[IX["今回道悪×道悪の経験なし"]] = float(not hv)
                 if CK:
                     cf = chokyo_feats(h.get("horse_id"), d, p["date"] if p else None)
                     if not cf or cf["none"]:
@@ -391,6 +475,10 @@ def build(extra_rows=None):
                         x[IX["調教 本数（21日・対数）"]] = math.log1p(cf["n21"]) - 1.5
                         if cf["faster"] is not None:
                             x[IX["調教 前走時より速い（坂路）"]] = max(-3.0, min(3.0, -cf["faster"] / 2.0))
+                        if cls_now == 0.0:
+                            x[IX["新馬戦×調教（坂路）"]] = x[IX["調教 直近14日の最良（坂路・日差）"]]
+                            x[IX["新馬戦×調教（ウッド）"]] = x[IX["調教 直近14日の最良（ウッド・日差）"]]
+                            x[IX["新馬戦×調教（終い）"]] = x[IX["調教 最終追い切りの終い（日差）"]]
                 last5 = past[-5:]
                 if last5:
                     x[IX["連対率（直近5走）"]] = sum(1 for pp in last5 if pp["fin"] and pp["fin"] <= 2) / len(last5) - 0.25
@@ -414,6 +502,24 @@ def build(extra_rows=None):
                 else:
                     x[IX["時計データなし"]] = 1.0
                 pending.append((h, hk, qi, n, cls_now))
+            # 先週のトラックバイアス（同じ場・同じ芝ダの前の週末）
+            if sf == "芝":
+                mk = META.get(k) or ("", "", "")
+                pw = wkacc.get((k[1], sf, (datetime.date.fromisoformat(wkey(d)) - datetime.timedelta(days=7)).isoformat()))
+                if pw and mk[0]:
+                    pk = pw["kai"].most_common(1)[0][0] if pw["kai"] else ""
+                    prl = pw["rail"].most_common(1)[0][0] if pw["rail"] else ""
+                    bad_now = float(str(hs[0].get("馬場状態") or "良") != "良")
+                    bad_prev = pw["bad"][0] / max(1, pw["bad"][1])
+                    if pk == mk[0] and prl and mk[2] and prl == mk[2] and abs(bad_now - bad_prev) < 0.5 and len(pw["in"]) >= 30:
+                        Wp = sum(pw["in"]) / len(pw["in"])
+                        for i, h in enumerate(hs):
+                            if h.get("枠"):
+                                X[i, IX["先週の内枠有利度×内枠（芝・同じ柵・馬場同程度）"]] = Wp * 10.0 * float(h["枠"] <= 3)
+                    if pk == mk[0] and prl and mk[2] and prl != mk[2]:
+                        for i, h in enumerate(hs):
+                            if h.get("枠"):
+                                X[i, IX["柵替えの週×内枠（芝）"]] = float(h["枠"] <= 3)
             acc = dayacc[(k[1], sf)]
             if acc["races"] >= 3 and len(acc["in"]) >= 8:
                 Wd = sum(acc["in"]) / len(acc["in"])
@@ -422,6 +528,13 @@ def build(extra_rows=None):
                     if wk:
                         X[i, IX["当日の内枠有利度×内枠"]] = Wd * 10.0 * float(wk <= 3)
                         X[i, IX["当日の内枠有利度×外枠"]] = Wd * 10.0 * float(wk >= 6)
+            pv = prevday.get((k[1], sf))
+            if pv and (_day(d) - _day(pv[0])).days == 1:
+                for i, h in enumerate(hs):
+                    wk = h.get("枠")
+                    if wk:
+                        X[i, IX["前日の内枠有利度×内枠"]] = pv[1] * 10.0 * float(wk <= 3)
+                        X[i, IX["前日の内枠有利度×外枠"]] = pv[1] * 10.0 * float(wk >= 6)
             if acc["races"] >= 3 and len(acc["fr"]) >= 8:
                 Bd = sum(acc["fr"]) / len(acc["fr"])
                 X[:, IX["当日の前残り度×前で運ぶ割合"]] = Bd * 10.0 * (X[:, IX["前で運ぶ割合（直近5走）"]] + 0.4)
@@ -434,6 +547,16 @@ def build(extra_rows=None):
                     if h.get("脚質") in ("逃げ", "先行"):
                         acc["fr"].append(rres)
                 acc["races"] += 1
+                wa = wkacc.setdefault((k[1], sf, wkey(d)), {"in": [], "bad": [0, 0], "kai": collections.Counter(), "rail": collections.Counter()})
+                for h in hs:
+                    if h.get("枠") and h["枠"] <= 3:
+                        wa["in"].append(float(h["_f"] <= 3) - EXP3.get(min(14, 1 + sum(1 for y in hs if y["_o"] < h["_o"])), 0.2))
+                wa["bad"][0] += str(hs[0].get("馬場状態") or "良") != "良"; wa["bad"][1] += 1
+                mk2 = META.get(k)
+                if mk2:
+                    wa["kai"][mk2[0]] += 1
+                    if mk2[2]:
+                        wa["rail"][mk2[2]] += 1
             fr = X[:, IX["前で運ぶ割合（直近5走）"]] + 0.4          # 前で運ぶ割合（0〜1）。過去走なしは0
             has = X[:, IX["前走データなし"]] == 0
             nf = int(((fr >= 0.6) & has).sum())
@@ -443,6 +566,9 @@ def build(extra_rows=None):
                             odds=np.array([h["_o"] for h in hs]), uma=[h["_u"] for h in hs],
                             part="live" if hs[0].get("_live") else "train" if d < cut1 else "valid" if d < cut2 else "test",
                             names=[h.get("馬名") for h in hs], fins=[h["_f"] for h in hs]))
+        for (vn_, sf_), acc_ in dayacc.items():           # その日の内枠の偏りを翌日用に残す（その日が終わってから）
+            if acc_["races"] >= 6 and len(acc_["in"]) >= 12:
+                prevday[(vn_, sf_)] = (d, sum(acc_["in"]) / len(acc_["in"]))
         # ── その日が終わってから履歴を更新する（同日の結果を特徴量に混ぜない）──
         raws = collections.defaultdict(list)
         day_entries = []
@@ -491,6 +617,7 @@ def build(extra_rows=None):
             c = [int(v) for v in re.findall(r"\d+", str(h.get("コーナー通過") or ""))]
             ent_h = dict(date=d, fin=f, n=n, pop=num(h.get("人気")), odds=h["_o"], m=mt, surf=sf, jockey=h.get("騎手"),
                          style=h.get("脚質"), l3rank=num(h.get("後3F順位")), c4=c[-1] if c else None, cls=cls_now, raw=raw, adj=None, live=bool(h.get("_live")),
+                         baba=h.get("馬場状態"), q=qi, bw=_bw(h.get("馬体重")),
                          pace=((h.get("前3F_レース") - h.get("後3F_レース")) if (h.get("前3F_レース") and h.get("後3F_レース")) else None))
             if raw is not None:
                 raws[(h.get("競馬場"), sf)].append(raw)
@@ -505,6 +632,11 @@ def build(extra_rows=None):
 
 
 # ── 条件付きロジット ─────────────────────────────────────────────────
+def _bw(s):
+    m_ = re.match(r"(\d+)", str(s or ""))
+    return int(m_.group(1)) if m_ else None
+
+
 def probs(race, beta, w):
     u = beta * np.log(race["q"]) + race["X"] @ w
     u -= u.max()
@@ -555,7 +687,8 @@ def loglik(packed, beta, w):
 
 def boot_mean(x, n=4000, seed=1):
     rng = np.random.default_rng(seed)
-    m = rng.choice(x, size=(n, len(x)), replace=True).mean(axis=1)
+    # 一度に (n, レース数) を作ると約800MBで落ちる（2026-10-21）→ 200回ずつ作る
+    m = np.concatenate([rng.choice(x, size=(min(200, n - i), len(x)), replace=True).mean(axis=1) for i in range(0, n, 200)])
     return float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))
 
 

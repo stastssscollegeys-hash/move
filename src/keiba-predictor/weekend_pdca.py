@@ -32,7 +32,7 @@ def from_cards(path, only=None):
         k = (c["venue"], c["R"])
         if only and k not in only:
             continue
-        bets = [dict(type=b["type"], combo=b["combo"], stake=b["stake"], kind="E2" if c["bets"] else "参考") for b in (c["bets"] or c["ref_bets"])]
+        bets = [dict(type=b["type"], combo=b["combo"], stake=b["stake"], kind="標準" if c["ref_bets"] else "E2") for b in (c["ref_bets"] or c["bets"])]
         out[k] = dict(marks={int(u): m for u, m in c["marks"].items()}, bets=bets, src=Path(path).name)
     return out
 
@@ -154,7 +154,7 @@ def main():
         for key, x in v.items():
             st_ = " ".join(f"{s}{y['ratio']:.2f}" for s, y in x["style"].items() if y)
             wk = " ".join(f"{s}{y['ratio']:.2f}" for s, y in x["waku"].items() if y)
-            L.append(f"- {d[4:6]}/{d[6:]} {key}（{x['races']}R・{'/'.join(x['baba'])}）時計{x['time_vs_normal'] or 0:+.2f}秒 ペース{x['pace_vs_normal'] or 0:+.2f} ｜脚質 {st_} ｜枠 {wk}")
+            L.append(f"- {d[4:6]}/{d[6:]} {key}（{x['races']}R・{'/'.join(x['baba'])}）時計{x['time_vs_normal'] or 0:+.2f}秒 ペース{x['pace_vs_normal'] or 0:+.2f} ｜脚質（逃げ＝最初のコーナー2番手以内） {st_} ｜枠 {wk}")
     L.append("")
     (BASE / a.sun / "research" / f"weekend_pdca_{a.sun}.json").write_text(json.dumps(dict(marks={m: dict(n=n[m], win=win[m], top3=top3[m]) for m in n},
         fav=dict(n=fav_n, win=fav_w, top3=fav_t3, same=same), bets={k: dict(stake=st[k], ret=rt[k]) for k in st}, ledger=dict(stake=sl, ret=rl), races=per_race),

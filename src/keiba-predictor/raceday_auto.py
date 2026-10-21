@@ -14,7 +14,7 @@ raceday_auto.py — 土日の当日の流れを自動で回す（2026-10-05新�
 ログ: daily_pdca/db/raceday_logs/{日付}.log
 """
 from __future__ import annotations
-import argparse, datetime, subprocess, sys, time
+import argparse, datetime, os, subprocess, sys, time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -24,6 +24,7 @@ import target_import as T
 HERE = Path(__file__).resolve().parent
 PS32 = r"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
 RAW = Path("C:/keiba_db/jv_raw")
+MAX_TRIES = 3
 LOGD = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "raceday_logs"
 
 
@@ -64,6 +65,14 @@ def post_times():
             hm = r[873:877].decode("ascii", "ignore")
             if hm.isdigit() and (x["venue"], x["R"]) not in out:
                 out[(x["venue"], x["R"])] = datetime.datetime.strptime(A.date + hm, "%Y%m%d%H%M")
+    tc = RAW / "RT" / "info" / f"TC_{A.date}.txt"           # 発走時刻の変更: TC 区分1 作成日8 日付8 場2 回2 日2 R2 発表8 変更後4 変更前4
+    if tc.exists():
+        import jv_odds as J
+        for ln in tc.read_bytes().decode("ascii", "ignore").splitlines():
+            if ln[:2] == "TC" and len(ln) >= 43 and ln[11:19] == A.date:
+                v, R, new = J.VENUE.get(ln[19:21]), int(ln[25:27]), ln[35:39]
+                if v and new.isdigit():
+                    out[(v, R)] = datetime.datetime.strptime(A.date + new, "%Y%m%d%H%M")
     return out
 
 
@@ -83,10 +92,42 @@ def finished():
 def main():
     py = sys.executable
     handled = set()
-    log(f"■ {A.date} 自動運転を開始（発走{A.lead}分前に登録・{A.interval}秒ごと）")
+    tries = {}
+    sim = datetime.datetime.strptime(A.date + A.sim.replace(":", ""), "%Y%m%d%H%M") if A.sim else None
+    if sim and not os.environ.get("REPLAY"):
+        log("--sim は REPLAY=日付 と一緒に使う（再生テスト専用）"); return
+    log(f"■ {A.date} 自動運転を開始（発走{A.lead}分前に登録・{A.interval}秒ごと）" + (f"・再生テスト {A.sim}〜" if sim else ""))
+    # 朝に1回だけ重い計算（10年分で学習・全レースの特徴量と予想カード）。以後は --quick でオッズだけ入れ替える（2026-10-07・メモリ不足対策）
+    log("朝の通常計算（10年分で学習・全レースのカード）")
+    if not sim:
+        jv_rt("0B15", str(RAW / "RT" / "entry")); jv_rt("0B11", str(RAW / "RT" / "wh"))
+        jv_rt("0B14", str(RAW / "RT" / "info"))            # 馬場の発表（WE）を朝のカードの「先週の傾向」に使う（2026-10-08）
+        sh([py, "odds_snapshot.py", "--date", A.date])
+    sh([py, "ev_live.py", "--date", A.date], timeout=3600)
+    sh([py, "predict_day.py", "--date", A.date], timeout=3600)
     while True:
+        if sim:
+            pt = post_times()
+            now = sim
+            done = {k for k, t in pt.items() if t + datetime.timedelta(minutes=5) <= now}
+            due = sorted(k for k, t in pt.items() if k not in handled and k not in done and t - datetime.timedelta(minutes=A.lead) <= now < t)
+            if due:
+                names = ",".join(f"{v}{r}" for v, r in due)
+                log(f"[再生 {now:%H:%M}] 発走前の処理: {names}")
+                sh([py, "ev_live.py", "--date", A.date, "--quick", "--register", "--races", names])
+                sh([py, "predict_day.py", "--date", A.date, "--quick"])
+                sh([py, "gen_flat_sns.py", "--dir", A.date])
+                if any(r == 11 for _, r in due):
+                    sh([py, "gen_cards_sns.py", "--dir", A.date])
+                handled.update(due)
+            if pt and len(done) == len(pt):
+                log(f"■ 再生テスト終了（処理したレース {len(handled)}/{len(pt)}）")
+                return
+            sim += datetime.timedelta(seconds=A.interval)
+            continue
         jv_rt("0B15", str(RAW / "RT" / "entry"))        # 出走表・馬場・発走時刻（RA/SE）。0B12 の成績を上書きしないよう別フォルダ
         jv_rt("0B11", str(RAW / "RT" / "wh"))           # 馬体重
+        jv_rt("0B14", str(RAW / "RT" / "info"))         # 出走取消(AV)・騎手変更(JC)・発走時刻変更(TC)・天候馬場の変更(WE)
         jv_rt("0B12")                                   # 成績・払戻
         sh([py, "day_review.py", "--date", A.date])
         pt = post_times()
@@ -100,11 +141,21 @@ def main():
             log(f"発走前の処理: {names}")
             sh([py, "odds_snapshot.py", "--date", A.date])
             sh([py, "jv_live_odds.py", "--date", A.date, "--races", names, "--compare"])
-            sh([py, "ev_live.py", "--date", A.date, "--register", "--races", names])
-            sh([py, "predict_day.py", "--date", A.date])
+            rc = sh([py, "ev_live.py", "--date", A.date, "--quick", "--register", "--races", names]).returncode
+            if rc != 0:
+                # 失敗（MemoryError等）のレースは次の周期で再試行する。発走を過ぎたら due から外れるので無限には回らない
+                for k in due:
+                    tries[k] = tries.get(k, 0) + 1
+                give_up = [k for k in due if tries[k] >= MAX_TRIES]
+                log(f"  ev_live 失敗（{names}）。再試行 {', '.join(f'{v}{r}:{tries[(v, r)]}回' for v, r in due)}")
+                handled.update(give_up)
+                time.sleep(A.interval)
+                continue
+            sh([py, "predict_day.py", "--date", A.date, "--quick"])
             sh([py, "gen_flat_sns.py", "--dir", A.date])
             if any(r == 11 for _, r in due):
                 sh([py, "gen_cards_sns.py", "--dir", A.date])
+            sh([py, "word_order_by_ev.py", "--dir", A.date])    # 期待値の取れるレースを上・それ以外を参考として下（冪等）
             handled.update(due)
         rest = [k for k in pt if k not in done]
         if pt and not rest:
@@ -122,5 +173,6 @@ if __name__ == "__main__":
     ap.add_argument("--date", required=True)
     ap.add_argument("--lead", type=int, default=35)
     ap.add_argument("--interval", type=int, default=300)
+    ap.add_argument("--sim", default="", help="再生テストの開始時刻 HH:MM（REPLAY=日付 と一緒に。時計を interval 秒ずつ進めて流す）")
     A = ap.parse_args()
     main()

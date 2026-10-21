@@ -127,7 +127,7 @@ def main():
         if pc is not None:
             out.append(f"- ペース（前3F−後3F）: 同じ距離帯の過去平均より {pc:+.2f}秒 → " +
                        ("速い流れ（差し・追い込み向き）" if pc >= 0.4 else "遅い流れ（前向き）" if pc <= -0.4 else "平均的"))
-        out.append("- 脚質（人気から期待される3着内に対する実際の比）: " + " ／ ".join(f"{k}{x['ratio']:.2f}倍({x['n']}頭)" for k, x in sty.items() if x))
+        out.append("- 脚質（人気から期待される3着内に対する実際の比・「逃げ」は最初のコーナー2番手以内）: " + " ／ ".join(f"{k}{x['ratio']:.2f}倍({x['n']}頭)" for k, x in sty.items() if x))
         out.append("- 枠: " + " ／ ".join(f"{k}{x['ratio']:.2f}倍({x['n']}頭)" for k, x in wk.items() if x))
         out.append(f"- 勝ち馬の脚質: {dict(win_sty)} ／ 1番人気の勝ち {w1}/{n1}")
         out.append("")

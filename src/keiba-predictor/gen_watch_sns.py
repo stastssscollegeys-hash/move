@@ -3,7 +3,7 @@
 gen_watch_sns.py — 来週重賞の「注目馬」SNS投稿案（X＋Threads・docx）を汎用生成する（2026-09-27）
 ================================================================================================
 入力: {日付フォルダ}/research/next_week_watch.json（レース・型・注目馬・注意馬）
-出力: X＝1レース3投稿（①レースの型＋注目馬一覧 ②注目馬詳細・前半 ③後半＋注意馬＋締め）
+出力: X＝①レースの型＋注目馬一覧 ②〜 注目馬詳細（3頭ずつ）＋注意馬・ほかの登録馬（caution/others/absent があれば別投稿）
       Threads＝レース概要1投稿＋**1頭1投稿**（各500字以内・自動チェック）
       docx＝上記すべて（Threadsは見出しに文字数）
 ルール（SKILL v4.0 §2 SNS）: 2行ヘッダー→リード→───見出し／印の直後に人気を書かない／サイト名・人物名・内部用語を書かない／
@@ -28,7 +28,7 @@ TAGS = J["hashtags"]
 
 
 def header(r):
-    return f"🏇【{r['name']} {r['grade']}】{DATE}\n━━ {r['venue']} {r['course']} / 登録{r['entries']}頭 ━━"
+    return f"🏇【{r['name']} {r['grade']}】{r.get('date_label') or DATE}\n━━ {r['venue']} {r['course']} / 登録{r['entries']}頭 ━━"
 
 
 def sec(title):
@@ -44,22 +44,51 @@ def horse_block(h, with_jockey=True):
     return "\n".join(lines)
 
 
+CIRC = "①②③④⑤⑥⑦⑧⑨"
+PER_POST = 3      # Xの詳細1投稿あたりの頭数（G1で注目馬を広げたとき投稿を分ける・2026-10-19）
+CLOSE = "登録段階なので、枠順と当日の馬体重が出たら最終版を出します。"
+
+
+def other_items(r):
+    """ひとこと短評だけの馬（others: horse/jockey/line）と回避・除外の一行（absent）"""
+    items = [f"・{h['horse']}" + (f"（想定 {h['jockey']}）" if h.get("jockey") and h["jockey"] != "—" else "") + f"\n{h['line']}"
+             for h in r.get("others", [])]
+    return items + ([r["absent"]] if r.get("absent") else [])
+
+
+def other_pages(r, limit=500):
+    """Threads用: ひとこと短評を500字に収まるページに分ける"""
+    pages, cur = [], []
+    for it in other_items(r):
+        if cur and len(header(r)) + len("\n\n".join(cur + [it])) + 60 > limit:
+            pages.append(cur)
+            cur = []
+        cur.append(it)
+    return pages + ([cur] if cur else [])
+
+
 def x_posts(r):
     names = "／".join(h["horse"] for h in r["watch"])
     p1 = "\n".join([header(r), "", r["lead"], "", sec("レースの型（過去10回の自前集計）")] + [f"・{x}" for x in r["profile"]] +
                    ["", sec("注目馬"), names, "", "各馬の根拠はスレッドで👇", f"{TAGS} {r['tag']}"])
-    half = (len(r["watch"]) + 1) // 2
-    p2 = "\n".join([header(r), "【注目馬 詳細①】", ""] + [horse_block(h) + "\n" for h in r["watch"][:half]] + [f"{TAGS} {r['tag']}"])
-    p3_parts = [header(r), "【注目馬 詳細②】", ""] + [horse_block(h) + "\n" for h in r["watch"][half:]]
+    posts = [p1]
+    for k in range(0, len(r["watch"]), PER_POST):
+        posts.append("\n".join([header(r), f"【注目馬 詳細{CIRC[k // PER_POST]}】", ""] +
+                               [horse_block(h) + "\n" for h in r["watch"][k:k + PER_POST]] + [f"{TAGS} {r['tag']}"]))
+    tail = []
     if r.get("caution"):
-        p3_parts += [sec("人気になったら注意したい馬")] + [horse_block(h, with_jockey=False) + "\n" for h in r["caution"]]
-    p3_parts += ["登録段階なので、枠順と当日の馬体重が出たら最終版を出します。", f"{TAGS} {r['tag']}"]
-    p3 = "\n".join(p3_parts)
-    return [p1, p2, p3]
+        tail += [sec("人気になったら注意したい馬")] + [horse_block(h, with_jockey=False) + "\n" for h in r["caution"]]
+    if other_items(r):
+        tail += [sec("ほかの登録馬（ひとこと）")] + other_items(r) + [""]
+    if tail:
+        posts.append("\n".join([header(r), "【注意したい馬・ほかの登録馬】", ""] + tail + [CLOSE, f"{TAGS} {r['tag']}"]))
+    else:
+        posts[-1] = posts[-1].rsplit("\n", 1)[0] + f"\n{CLOSE}\n{TAGS} {r['tag']}"
+    return posts
 
 
 def threads_posts(r):
-    total = 1 + len(r["watch"]) + len(r.get("caution", []))
+    total = 1 + len(r["watch"]) + len(r.get("caution", [])) + len(other_pages(r))
     out = []
     t0 = "\n".join([header(r), f"（1/{total}）レースの型", "", r["lead"], ""] + [f"・{x}" for x in r["profile"][:3]] +
                    ["", "注目馬は1頭ずつ次の投稿で👇", f"{TAGS} {r['tag']}"])
@@ -75,6 +104,9 @@ def threads_posts(r):
     for h in r.get("caution", []):
         body = "\n".join([header(r), f"（{i}/{total}）注意したい人気馬：{h['horse']}", ""] + [f"・{x}" for x in h["detail"]] + ["", f"→ {h['stance']}", f"{r['tag']}"])
         out.append(body)
+        i += 1
+    for pg in other_pages(r):
+        out.append("\n".join([header(r), f"（{i}/{total}）ほかの登録馬（ひとこと）", "", "\n\n".join(pg), "", f"{r['tag']}"]))
         i += 1
     return out
 
@@ -97,7 +129,7 @@ doc.add_paragraph("登録段階（枠順・オッズ未定）の注目馬。数�
 nban = 0
 for r in J["races"]:
     doc.add_heading(f"{r['name']}（{r['grade']}・{r['venue']} {r['course']}）", 1)
-    doc.add_heading("X投稿（3本）", 2)
+    doc.add_heading(f"X投稿（{len(x_posts(r))}本）", 2)
     for k, p in enumerate(x_posts(r), 1):
         first = p.split("\n")
         lead_chars = len("".join(first[:4]))

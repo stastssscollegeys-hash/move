@@ -11,10 +11,14 @@ race_profile.py — 対象レースの過去10年分（同じレース名）を�
       このJSONは gen_watch_sns.py / draw_final.py の本文の素材、および ev_engine の「このレース〜」特徴量の説明に使う。
       （予想に効く形の数値は ev_engine が同じ履歴から自動で作る。ここは人が読む・文章に使う用）
 使い方: python race_profile.py 毎日王冠 [--dir 20261004] [--years 10]
+        改称・同名の別レースがあるとき: --alias 旧名1,旧名2 --dist 芝1800 --grade G2 --month 10（2026-10-08追加。名前だけだと別時期の同名レースが混ざる）
 """
 from __future__ import annotations
 import argparse, collections, json, re, statistics, sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from course_profile import style_of
 
 sys.stdout.reconfigure(encoding="utf-8")
 BASE = Path.home() / "Desktop" / "競馬予想レポート"
@@ -30,8 +34,13 @@ def main():
     ap.add_argument("name")
     ap.add_argument("--dir")
     ap.add_argument("--years", type=int, default=10)
+    ap.add_argument("--alias", default="", help="改称前の名前（カンマ区切り）。例: アイルランドトロフィー府中牝馬ステークス,府中牝馬ステークス")
+    ap.add_argument("--dist", default="", help="距離で絞る（例: 芝1800）。同名の別レース（条件戦・別時期）の混入を防ぐ")
+    ap.add_argument("--grade", default="", help="格で絞る（例: G2）")
+    ap.add_argument("--month", default="", help="開催月で絞る（例: 10）")
     a = ap.parse_args()
     target = norm(a.name)
+    names = {target} | {norm(x) for x in a.alias.split(",") if x}
     rows, pays = [], {}
     for f in sorted(SRC.glob("results_*.json")):
         rows += json.loads(f.read_text(encoding="utf-8"))
@@ -44,7 +53,9 @@ def main():
         v.sort(key=lambda r: (r["date"], r["R"]))
     eds = collections.defaultdict(list)
     for r in rows:
-        if norm(r["レース名"]) == target and r.get("着順int") and r.get("人気"):
+        if (norm(r["レース名"]) in names and r.get("着順int") and r.get("人気")
+                and (not a.dist or str(r["距離"]).startswith(a.dist)) and (not a.grade or str(r.get("条件", "")).startswith(a.grade))
+                and (not a.month or r["date"][4:6] == a.month.zfill(2))):
             eds[(r["date"], r["競馬場"], r["R"])].append(r)
     keys = sorted(eds)[-a.years:]
     if not keys:
@@ -100,7 +111,7 @@ def main():
         kind = "堅い型" if statistics.median(tri) < 30000 and sum(1 for x in top3 if x <= 3) / len(top3) >= 0.6 else "荒れる型" if statistics.median(tri) >= 80000 or sum(1 for x in top3 if x <= 3) / len(top3) <= 0.4 else "標準"
         md.append(f"→ **{kind}**")
         J["kind"] = kind
-    for label, keyf, name in (("脚質（そのレースの通過順位から）", lambda h: h.get("脚質") or None, "style"),
+    for label, keyf, name in (("脚質（そのレースの通過順位から付け直し）", lambda h: style_of(h.get("コーナー通過"), h.get("頭数")) or None, "style"),   # 元データの「脚質」は2番手以内を全部「逃げ」にしている（2026-10-19修正・旧版は先行を過小・差しを過大に出していた）
                               ("枠", lambda h: ("内1-3" if h["枠"] <= 3 else "中4-5" if h["枠"] <= 5 else "外6-8") if h.get("枠") else None, "waku"),
                               ("年齢", lambda h: re.sub(r"[^\d]", "", h["性齢"]) or None, "age"), ("性別", lambda h: h["性齢"][:1], "sex")):
         t = tab(keyf, label)

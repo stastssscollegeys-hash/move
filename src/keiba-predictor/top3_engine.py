@@ -119,6 +119,7 @@ def main():
     Z, y, g, keys = dataset(races, cols)
     years = sorted({k[0][:4] for k in keys})
     gains, bets = [], {t: [0, 0.0] for t in (1.0, 1.1, 1.2, 1.3, 1.5)}
+    saved = {}                                     # 年ごとの前向き予測（買い目の検証で使う）
     bets_y = {t: {} for t in bets}
     print(f"{'年':>5}{'学習R':>8}{'検証R':>7}{'対数損失の改善/頭':>18}{'  複勝 比≧1.2':>16}")
     for yv in years:
@@ -133,6 +134,7 @@ def main():
         per_race = []
         for i in te:
             pm, pb, yy = pred(Z[i], w), pred(Z[i][:, :2], w0), y[i]
+            saved[keys[i]] = dict(uma=races_by_key[keys[i]]["uma"], t3=pm)
             llm = np.mean(yy * np.log(pm) + (1 - yy) * np.log(1 - pm))
             llb = np.mean(yy * np.log(pb) + (1 - yy) * np.log(1 - pb))
             per_race.append(llm - llb)
@@ -148,6 +150,8 @@ def main():
         gains.append(np.array(per_race))
         b = bets_y[1.2].get(yv, [1, 0])
         print(f"{yv:>5}{len(tr):>8,}{len(te):>7,}{np.mean(per_race):>+18.5f}   {b[0]:>6,}頭 {b[1]/max(b[0],1):6.1f}%")
+    import pickle
+    (E.DB / "top3_walk_pred.pkl").write_bytes(pickle.dumps(saved))
     gg = np.concatenate(gains)
     rng = np.random.default_rng(1)
     bs = [rng.choice(gg, len(gg)).mean() for _ in range(2000)]

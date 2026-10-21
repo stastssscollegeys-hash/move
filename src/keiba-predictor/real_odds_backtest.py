@@ -22,8 +22,29 @@ import bet_engine as B
 import jv_odds as J
 
 
+def top3_adjust(pm, uma, t3m):
+    """ワイド・3連複の確率を、3着内モデルの確率に合わせて馬ごとに補正する（合計は保つ）"""
+    keys3, pr3 = pm["3連複"]
+    t3h = {u: 0.0 for u in uma}
+    for k, v in zip(keys3, pr3):
+        for u in k:
+            t3h[u] += v
+    f = {u: (t3m[u] / t3h[u]) if t3h[u] > 1e-9 else 1.0 for u in uma}
+    for t in ("ワイド", "3連複"):
+        if t not in pm:
+            continue
+        keys, pr = pm[t]
+        adj = np.array([v * np.prod([f[u] for u in k]) for k, v in zip(keys, pr)])
+        pm[t] = (keys, adj * (pr.sum() / adj.sum()))
+    return pm
+
+
 def main():
+    import os, pickle
     preds, pay = C.predictions(), C.load_pay()
+    T3 = None
+    if os.environ.get("TOP3") == "1":
+        T3 = pickle.loads((B.Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "top3_walk_pred.pkl").read_bytes()) if hasattr(B, "Path") else None
     store = J.OddsStore()
     have = set(store.races())
     rows = []
@@ -32,6 +53,9 @@ def main():
         if k not in have:
             continue
         pm = B.tables(pr["p"], pr["uma"])
+        if T3 is not None and k in T3:
+            t3m = dict(zip(T3[k]["uma"], T3[k]["t3"]))
+            pm = top3_adjust(pm, pr["uma"], t3m)
         pqh = B.tables(pr["q"], pr["uma"])
         odds = {}
         o1 = store.get(k, "O1") or {}

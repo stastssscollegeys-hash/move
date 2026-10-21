@@ -28,7 +28,8 @@ OUT = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db"
 def race_keys(date):
     """RT の RA（なければ蓄積の RA）から {(場, R): JVレースキー}"""
     keys = {}
-    for f in [RT / f"RA_{date}.txt"] + sorted(Path("C:/keiba_db/jv_raw/RACE").glob(f"RA_{date[:4]}.txt")):
+    # 前日は出走表（RT/entry）にしか無い（2026-10-10）
+    for f in [RT / f"RA_{date}.txt", RT / "entry" / f"RA_{date}.txt"] + sorted(Path("C:/keiba_db/jv_raw/RACE").glob(f"RA_{date[:4]}.txt")):
         if not f.exists():
             continue
         b = f.read_bytes()

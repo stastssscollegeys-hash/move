@@ -14,6 +14,9 @@ from kaime_format import circ
 import bet_engine as BE
 
 BASE = Path.home() / "Desktop" / "競馬予想レポート"
+import os as _os
+if _os.environ.get("REPLAY"):                      # 再生テストは _replay/ の中で作る
+    BASE = BASE / "_replay"
 SEP = "─────"
 BAN = ["netkeiba", "SPAIA", "うましる", "競馬ラボ", "重賞ナビ", "PDCA", "EV", "インフルエンサー", "両関門", "Harville", "lift", "合算", "指数"]
 ORDER = {"◎": 0, "○": 1, "▲": 2, "△": 3, "🔥": 4}
@@ -47,19 +50,19 @@ def marked(c):
 
 
 def bets(c):
-    src = c["bets"] or c["ref_bets"]
+    """公開の買い目: 標準形V1 ＋（あれば）妙味の馬連。妙味の馬連が出たレースは「勝負レース」"""
+    src = c["ref_bets"] or c["bets"]
     if not src:
         return None, "見送り（期待値に見合う組み合わせがありません）"
-    kind = "E2" if c["bets"] else "参考"
-    L = []
-    tot = 0.0
-    for b in src:
-        od = b.get("odds_now") or b.get("odds_est") or (BE.TAKE[b["type"]] / b["p_market"])
-        ev = b["p_model"] * od
-        tot += b["stake"] * ev
-        L.append(f"【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円／期待値{ev:.2f}")
-    s = sum(b["stake"] for b in src)
-    return kind, [f"💰 買い目{len(src)}点・{s:,}円" + ("" if kind == "E2" else "（参考）")] + L + [f"全体の期待回収率 {tot / s * 100:.0f}%"]
+    std = [b for b in src if not b.get("value")]
+    val = [b for b in src if b.get("value")]
+
+    def ln(b):
+        return f"【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円"
+    L = [f"💰 買い目 合計{len(src)}点・{sum(b['stake'] for b in src):,}円"] + [ln(b) for b in std]
+    if val:
+        L += ["", "🎯 妙味の馬連（人気より割安な組み合わせ）"] + [ln(b) for b in val]
+    return ("勝負" if val else "標準"), L
 
 
 def one_race(c):
@@ -67,6 +70,8 @@ def one_race(c):
     top = next(h for h in c["horses"] if h["uma"] == ms[0][1])
     kind, bl = bets(c)
     why = [r for r in top["reasons"][:2]]
+    if top.get("chokyo") and not any(w.startswith("調教") for w in why):
+        why.append(f"調教: {top['chokyo']}")
     trend = [t for t in c["trends"] if t.startswith("前日")][:1]
     X = [head(c), "", SEP, "🎯 予想印", SEP] + [f"{mk} {nm(c, u)}" for mk, u in ms] + ["", f"◎の見立て: 勝つ確率{top['p_model'] * 100:.0f}%（人気が示す確率{top['p_market'] * 100:.0f}%）"] + [f"・{x}" for x in why] + [f"・{t}" for t in trend] + [""]
     X += (bl if isinstance(bl, list) else [bl])
@@ -115,13 +120,13 @@ def box(t, text, limit=None):
 
 
 results = [(c, *one_race(c)) for c in CARDS]
-e2 = [(c, k) for c, k, _ in results if k == "E2"]
-summ = [f"🏇{DATE}（{WD}）平場 予想まとめ", "", "買い目は「的中率×オッズ＝期待値」で決めています。", "",
-        SEP, "期待値で買う根拠が出たレース（市場より高く見ている組み合わせ）", SEP]
+e2 = [(c, k) for c, k, _ in results if k == "勝負"]
+summ = [f"🏇{DATE}（{WD}）平場 予想まとめ", "", "印は人気順ではなく「人気に対する割安さ」の順。🔥は人気薄の穴、🎯は人気より割安な馬連が出た勝負レースです。", "",
+        SEP, "🎯 勝負レース（人気より割安な馬連が出たレース）", SEP]
 for c, _ in e2:
     ms = marked(c)
-    summ.append(f"・{c['venue']}{c['R']}R {title(c)}　◎{nm(c, ms[0][1])}　{len(c['bets'])}点")
-summ += ["", f"それ以外の{len(results) - len(e2)}レースは、期待値が100%に届く組み合わせがなく「見送り」か「参考」です。", "各レースの印と根拠は、続くスレッドで👇", f"※{ODDS_NOTE}", TAGS]
+    summ.append(f"・{c['venue']}{c['R']}R {title(c)}　◎{nm(c, ms[0][1])}")
+summ += ["", f"それ以外の{len(results) - len(e2)}レースは、印と標準の買い目だけを載せています。", "各レースの印と根拠は、続くスレッドで👇", f"※{ODDS_NOTE}", TAGS]
 doc.add_heading(f"平場 予想とSNS投稿案 — {DATE}（{WD}）", 0)
 doc.add_paragraph("印・確率は、過去10年のデータ＋コースの傾向＋前日の馬場の特徴を使った新エンジンの値です。")
 box("まとめ投稿（X・先頭に置く）", "\n".join(summ))
@@ -152,7 +157,7 @@ try:
     doc.save(out)
 except PermissionError:
     out = D / f"{a.dir}_平場_予想とSNS投稿案_new.docx"; doc.save(out)
-print(f"平場 {len(results)}レース（E2条件 {len(e2)}・参考 {sum(1 for _, k, _ in results if k == '参考')}・見送り {sum(1 for _, k, _ in results if k is None)}）")
+print(f"平場 {len(results)}レース（勝負レース {len(e2)}）")
 print("検査: " + ("問題なし" if not PROBLEMS else f"{len(PROBLEMS)}件"))
 for p in PROBLEMS[:10]:
     print("  ⚠", p)

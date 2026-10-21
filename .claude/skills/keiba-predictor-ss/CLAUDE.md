@@ -1,9 +1,8 @@
-# keiba-predictor v3.3 — JRA中央競馬 AI予想ツール
+# keiba-predictor — JRA中央競馬 AI予想ツール
 
-> **2026-08-19更新**: 現行構成はSKILL.md冒頭の「★現行バージョン一覧」が正本。
-> 20因子v3.3.1（170点満点）／外部8サイト照合／調教3ソース合議／インフルエンサー合算v2／
-> 買い目v5.5ガード／完全網羅チェックリスト（発行ゲート）。
-> 予想・独自指数計算は必ずSKILL.mdの「★完全網羅チェックリスト」を通すこと。
+> **2026-10-07更新: 現行は SKILL.md v5.0 が正本。** JRA-VAN（JV-Link・TARGET）の10年データ＋調教タイムの確率エンジン（`ev_engine.py`）、
+> 割安さ順の印＋🔥、標準の買い目V1、当日の自動運転（`raceday_auto.py`）、毎週のDB更新（`jv_to_history.py`）。
+> 下の v3.3 の説明（20因子・predict_and_report.py）は旧版。旧手順は `SKILL_full_archive_20260927.md` を参照。
 
 このフォルダをClaude Codeで開くだけで競馬予想が使えます。
 

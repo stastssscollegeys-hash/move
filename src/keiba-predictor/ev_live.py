@@ -34,9 +34,17 @@ import odds_snapshot as O
 
 BASE_DIR = Path.home() / "Desktop" / "競馬予想レポート"
 DB = BASE_DIR / "daily_pdca" / "db"
+# 再生テスト（2026-10-07）: REPLAY=YYYYMMDD で、終わった日をその日の朝の状態として流す。
+#   出走表＝その日の成績から結果を消したもの／オッズ＝JVの確定オッズ（O1〜O6）／学習＝その日より前だけ／出力＝競馬予想レポート/_replay/
+import os
+REPLAY = os.environ.get("REPLAY")
 HIST = DB / "history_target"
 RAW = Path("C:/keiba_db/jv_raw/RACE")
 LEDGER = DB / "ev_ledger.json"
+# ルールU1（2026-10-07 事前登録）: 馬連だけ・市場との比≧1.3・1点1,000円・1レース最大2点（比の高い順）。実オッズの期待値は問わない。
+#   根拠: 3年の実オッズ（umaren_real_test.py）で117.3%［101.8〜133.0］。採用基準は E2.1 と同じ（300レース以上で下限100%超）
+RULE_U1 = "U1.0"
+LEDGER_U1 = DB / "ledger_u1.json"
 MODEL = DB / "ev_model_live.json"
 RULE = "E2.1"                      # 事前登録: 馬連・ワイド・馬単・比≧1.30・実オッズの期待値≧0.9（発売前は問わない）・型ごとの目標倍率（2026-10-05・調教入りエンジン）。変えたら版を上げる
 EV_FLOOR = 0.9
@@ -44,10 +52,37 @@ RATIO = 1.30
 MINQ = {"馬連": 0.03, "ワイド": 0.08, "馬単": 0.02}
 TYPES = ("馬連", "ワイド", "馬単")
 BUDGET = 10000                     # 1レースの仮想予算（台帳用・実際には買わない）
+# 単勝の前向き台帳（別ファイル）。2026-10-14 事前登録: walk_bands_test.py（2019-26・確定オッズ）で 3〜6倍×EV≧1.0 が
+# 118.2%［104.7〜131.7%］・6/8年。ただし 5帯×3しきい値から選んだ在サンプルの切り方で、確定オッズ。発走前の実オッズで前向きに確かめる
+LEDGER_TAN = DB / "ev_ledger_tan.json"
+RULE_TAN = "T1"                    # 単勝・発走前の実オッズ 3.0以上6.0未満・モデル確率×実オッズ≧1.0・100円ずつ。変えたら版を上げる
+TAN_BAND = (3.0, 6.0)
+TAN_EV = 1.0
 TARGET = {"堅い": 2.5, "普通": 4.0, "荒れ": 8.0}
 
 
 def jv_results_and_entries(date: str):
+    if REPLAY:
+        return _replay_results_and_entries(date)
+    return _jv_results_and_entries(date)
+
+
+def _replay_results_and_entries(date: str):
+    res, _ = _jv_results_and_entries("00000000")
+    E.SOURCE = HIST
+    allrows = E.load_rows() + res
+    ent, seen = [], set()
+    for r in allrows:
+        if r["date"] == REPLAY and (r["競馬場"], r["R"], r["馬番"]) not in seen:
+            seen.add((r["競馬場"], r["R"], r["馬番"]))
+            x = dict(r)
+            for k in ("着順", "着順int", "タイム", "着差", "コーナー通過", "後3F", "後3F順位", "脚質", "前3F_レース", "後3F_レース", "ラップ"):
+                x[k] = None
+            ent.append(x)
+    return [r for r in res if r["date"] < REPLAY], ent
+
+
+def _jv_results_and_entries(date: str):
     """jv_raw から (最新の成績行, 当日の出走表行)。成績は TARGET の最終日より後だけ"""
     ras, ses_res, ses_ent = {}, {}, {}
     for f in sorted(list(RAW.glob("RA_*.txt")) + list((RAW.parent / "RT").glob("RA_*.txt")) + list((RAW.parent / "RT" / "entry").glob("RA_*.txt"))):
@@ -100,13 +135,32 @@ def load_wh(date: str):
             if len(e) < 45:
                 break
             uma, wt, sg, df = e[:2].decode("ascii", "ignore"), e[38:41].decode("ascii", "ignore"), e[41:42].decode("ascii", "ignore"), e[42:45].decode("ascii", "ignore")
-            if uma.strip().isdigit() and wt.strip().isdigit() and df.strip().isdigit() and df.strip() != "999":
-                out[(venue, R, int(uma))] = f"{int(wt)}({'-' if sg == '-' else '+'}{int(df)})"
+            if uma.strip().isdigit() and wt.strip().isdigit() and int(wt) > 0:
+                if df.strip().isdigit() and df.strip() != "999":
+                    out[(venue, R, int(uma))] = f"{int(wt)}({'-' if sg == '-' else '+'}{int(df)})"
+                else:                                      # 初出走・前走計不能は増減なし。学習データ（TARGET）と同じ "506" の形（2026-10-14: 以前は体重ごと捨てていた）
+                    out[(venue, R, int(uma))] = f"{int(wt)}"
     return out
 
 
 def snapshot_odds(date: str):
     """{(場, R): ({馬番: 単勝オッズ}, {馬名}, snapshot dict)}"""
+    if REPLAY:
+        import jv_odds as J
+        st = J.OddsStore(years=(int(REPLAY[:4]),))
+        _, ent = _replay_results_and_entries(REPLAY)
+        names = collections.defaultdict(dict)
+        for r in ent:
+            names[(r["競馬場"], r["R"])][r["馬番"]] = r["馬名"]
+        out = {}
+        for (v, R), nm in names.items():
+            odds = {}
+            for oid in ("O1", "O2", "O3", "O4", "O5", "O6"):
+                for t, tab in (st.get((REPLAY, v, R), oid) or {}).items():
+                    odds[t] = {"".join(f"{x:02d}" for x in k): [o] for k, o in tab.items()}
+            tan = {int(k): v_[0] for k, v_ in odds.get("単勝", {}).items()}
+            out[(v, R)] = (tan, nm, dict(race_id=f"replay-{REPLAY}-{v}{R}", venue=v, R=R, title="", odds=odds))
+        return out
     out = {}
     for rid, path in O.latest_snapshots(date).items():
         d = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -125,17 +179,44 @@ def train_all():
     """履歴の全レースで学習。結果は日付つきで保存し、同じ履歴なら使い回す"""
     E.SOURCE = HIST
     hist_rows = E.load_rows()
+    if REPLAY:
+        hist_rows = [r for r in hist_rows if r["date"] < REPLAY]
     last = max(r["date"] for r in hist_rows)
+    # 件数だけ残して履歴は捨てる（E.build が同じ履歴を読み直すため、残すと二重に載り MemoryError になる 2026-10-13）
+    n_hist = len({(r["date"], r["競馬場"], r["R"]) for r in hist_rows})
+    del hist_rows
     res_rows, _ = jv_results_and_entries("00000000")
     extra = [r for r in res_rows if r["date"] > last]
-    return hist_rows, extra, last
+    return n_hist, extra, last
 
 
-def run(date: str, register: bool, only=None):
-    hist_rows, extra, last = train_all()
+def run(date: str, register: bool, only=None, quick=False):
+    """quick=True: 朝の通常実行で保存した特徴量と係数を使い、オッズだけ入れ替えて計算する（10年分を読み直さない・数十秒・軽い）"""
+    cache_f = DB / "ev_cache" / f"{date}{'_replay' if REPLAY else ''}.pkl"
+    if quick and cache_f.exists():
+        import pickle
+        cache = pickle.loads(cache_f.read_bytes())
+        beta, w = cache["beta"], cache["w"]
+        snap = snapshot_odds(date)
+        liv, train = [], []
+        for c in cache["races"]:
+            tan = snap.get((c["key"][1], c["key"][2]), ({}, {}, None))[0]
+            keep = [i for i, u in enumerate(c["uma"]) if tan.get(u) and tan[u] < 900]
+            if len(keep) < 5:
+                continue
+            uma = [c["uma"][i] for i in keep]
+            inv = np.array([1 / tan[u] for u in uma])
+            liv.append(dict(key=c["key"], uma=uma, X=c["X"][keep], q=inv / inv.sum(), odds=np.array([tan[u] for u in uma]), part="live"))
+        print(f"■ 軽い再計算（朝の特徴量・係数を使用・{cache['made_at']}）当日 {len(liv)}レース")
+        return _score(date, register, only, liv, beta, w, snap, train)
+    return _run_full(date, register, only, cache_f)
+
+
+def _run_full(date, register, only, cache_f):
+    n_hist, extra, last = train_all()
     res_rows, ent_rows = jv_results_and_entries(date)
     extra = [r for r in res_rows if r["date"] > last]
-    print(f"■ 履歴 {len({(r['date'], r['競馬場'], r['R']) for r in hist_rows}):,}レース（〜{last}）＋ JV-Link の最新成績 {len({(r['date'], r['競馬場'], r['R']) for r in extra}):,}レース")
+    print(f"■ 履歴 {n_hist:,}レース（〜{last}）＋ JV-Link の最新成績 {len({(r['date'], r['競馬場'], r['R']) for r in extra}):,}レース")
     snap = snapshot_odds(date)
     live = []
     skipped = []
@@ -155,14 +236,21 @@ def run(date: str, register: bool, only=None):
 
     # build は SOURCE の履歴＋extra＋live を時系列に処理する
     orig = E.load_rows
-    E.load_rows = lambda: orig() + extra
+    E.load_rows = (lambda: [r for r in orig() if r["date"] < REPLAY] + extra) if REPLAY else (lambda: orig() + extra)
     races, _ = E.build(extra_rows=live)
     E.load_rows = orig
     train = [r for r in races if r["part"] != "live"]
     liv = [r for r in races if r["part"] == "live"]
     print(f"  学習 {len(train):,}レース ／ 当日 {len(liv)}レース")
     beta, w = E.fit(E.pack(train), 0.01)
+    import pickle
+    cache_f.parent.mkdir(exist_ok=True)
+    cache_f.write_bytes(pickle.dumps(dict(made_at=datetime.datetime.now().isoformat(timespec="minutes"), beta=beta, w=w,
+                                          races=[dict(key=r["key"], uma=r["uma"], X=r["X"]) for r in liv])))
+    return _score(date, register, only, liv, beta, w, snap, train)
 
+
+def _score(date, register, only, liv, beta, w, snap, train):
     cands = []
     race_out = {}
     for r in liv:
@@ -191,6 +279,11 @@ def run(date: str, register: bool, only=None):
                 cands.append(dict(race_id=d["race_id"], venue=key[0], R=key[1], title=(d.get("title") or "")[:24], type=t, combo=list(c),
                                   names=[names[x] for x in c], p_model=round(cm[t][c], 5), p_market=round(cq[t][c], 5), ratio=round(ratio, 3),
                                   odds_now=odds, ev_now=round(cm[t][c] * odds, 3) if odds else None, snap_at=d.get("fetched_at")))
+    by_r = collections.defaultdict(list)                 # U1 は期待値の足切り前の馬連から選ぶ
+    for c in cands:
+        if c["type"] == "馬連":
+            by_r[(c["venue"], c["R"])].append(c)
+    u1 = [dict(c, stake=1000) for v in by_r.values() for c in sorted(v, key=lambda c: -c["ratio"])[:2]]
     cands = [c for c in cands if c["ev_now"] is None or c["ev_now"] >= EV_FLOOR]     # E2.1: 実オッズで期待値0.9未満は外す
     # 型ごとの目標倍率で配分（実オッズがあれば実オッズ、なければ 払戻率÷市場確率）
     import bet_engine as BE
@@ -229,10 +322,18 @@ def run(date: str, register: bool, only=None):
         ro.setdefault("bets", [])
         ro["kind"] = BE.race_kind(np.array([h["p_market"] for h in ro["horses"]]))
     out = Path(DB / "ev_live"); out.mkdir(exist_ok=True)
-    (BASE_DIR / date / "research").mkdir(parents=True, exist_ok=True)
-    (BASE_DIR / date / "research" / f"ev_live_{date}.json").write_text(json.dumps(dict(date=date, rule=RULE, made_at=datetime.datetime.now().isoformat(timespec="minutes"), races=race_out), ensure_ascii=False, indent=1), encoding="utf-8")
+    ((BASE_DIR / "_replay" if REPLAY else BASE_DIR) / date / "research").mkdir(parents=True, exist_ok=True)
+    ((BASE_DIR / "_replay" if REPLAY else BASE_DIR) / date / "research" / f"ev_live_{date}.json").write_text(json.dumps(dict(date=date, rule=RULE, made_at=datetime.datetime.now().isoformat(timespec="minutes"), races=race_out), ensure_ascii=False, indent=1), encoding="utf-8")
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
     (out / f"{date}_{stamp}.json").write_text(json.dumps(dict(date=date, rule=RULE, made_at=stamp, n_train=len(train), cands=cands), ensure_ascii=False, indent=1), encoding="utf-8")
+    if register and REPLAY:
+        print("  再生テストなので台帳には登録しません")
+        register = False
+    if u1:
+        print("")
+        print(f"■ U1（馬連・比≧1.3）候補 {len(u1)}点 / {len({(c['venue'], c['R']) for c in u1})}レース: " + "　".join(f"{c['venue']}{c['R']}R {'-'.join(map(str, c['combo']))}（比{c['ratio']:.2f}）" for c in u1))
+    if register:
+        register_to(LEDGER_U1, RULE_U1, u1, date, only)
     if register:
         led = json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.exists() else []
         have = {(x["race_id"], x["type"], tuple(x["combo"])) for x in led}
@@ -243,39 +344,84 @@ def run(date: str, register: bool, only=None):
                 continue
             if only is not None and (f"{c['venue']}{c['R']}" not in only or c["race_id"] in done_races):
                 continue                                   # 自動運転: 発走前の指定レースだけ・1レース1回
-            led.append(dict(c, rule=RULE, date=date, registered_at=datetime.datetime.now().isoformat(timespec="minutes"), settled=False, payout=None))
+            led.append(dict(c, rule=RULE, date=date, model=E.MODEL_VERSION, registered_at=datetime.datetime.now().isoformat(timespec="minutes"), settled=False, payout=None))
             n += 1
         LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"\n台帳に {n} 点を追加（累計 {len(led)} 点）→ {LEDGER}")
+        # 単勝 T1（別台帳・1レース1回）
+        lt = json.loads(LEDGER_TAN.read_text(encoding="utf-8")) if LEDGER_TAN.exists() else []
+        done_t = {x["race_id"] for x in lt}
+        m = 0
+        for rk, ro in race_out.items():
+            if ro["race_id"] in done_t or (only is not None and rk not in only):
+                continue
+            for h in ro["horses"]:
+                if TAN_BAND[0] <= h["odds"] < TAN_BAND[1] and h["p_model"] * h["odds"] >= TAN_EV:
+                    lt.append(dict(rule=RULE_TAN, date=date, race_id=ro["race_id"], venue=ro["venue"], R=ro["R"], title=ro["title"], type="単勝",
+                                   combo=[h["uma"]], names=[h["name"]], p_model=h["p_model"], p_market=h["p_market"], odds_now=h["odds"],
+                                   ev_now=round(h["p_model"] * h["odds"], 3), stake=100, model=E.MODEL_VERSION, registered_at=datetime.datetime.now().isoformat(timespec="minutes"),
+                                   settled=False, payout=None))
+                    m += 1
+        LEDGER_TAN.write_text(json.dumps(lt, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"単勝台帳（{RULE_TAN}）に {m} 点を追加（累計 {len(lt)} 点）→ {LEDGER_TAN}")
+
+
+def register_to(path, rule, items, date, only):
+    led = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    done_races = {x["race_id"] for x in led}
+    n = 0
+    for c in items:
+        if c["race_id"] in done_races and only is not None:
+            continue
+        if any(x["race_id"] == c["race_id"] and x["combo"] == c["combo"] for x in led):
+            continue
+        if only is not None and f"{c['venue']}{c['R']}" not in only:
+            continue
+        led.append(dict(c, rule=rule, date=date, registered_at=datetime.datetime.now().isoformat(timespec="minutes"), settled=False, payout=None))
+        n += 1
+    path.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"{rule} 台帳に {n} 点を追加（累計 {len(led)} 点）→ {path}")
 
 
 def settle():
+    for path in (LEDGER, LEDGER_U1, LEDGER_TAN):          # 馬連等（E2.1）・馬連（U1）・単勝（T1）
+        _settle(path)
+
+
+def _settle(LEDGER):
     """払戻は JV速報の HR（RT/HR_日付.txt。jv_rt.ps1 -Spec 0B12 で取得）で精算する（2026-10-05 netkeiba から切り替え）"""
-    led = json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.exists() else []
-    pays = {}
-    for d in {x["date"] for x in led if not x["settled"]}:
-        f = RAW.parent / "RT" / f"HR_{d}.txt"
-        if f.exists():
-            b = f.read_bytes()
-            for i in range(0, len(b) - 718, 719):
-                h = T.parse_hr(b[i:i + 719])
-                if h:
-                    pays[(d, h["venue"], h["R"])] = h["pay"]
-    n = 0
-    for x in led:
-        if x["settled"]:
-            continue
-        p = pays.get((x["date"], x["venue"], x["R"]))
-        if not p:
-            continue
-        key = tuple(x["combo"]) if x["type"] in ("馬単", "3連単") else tuple(sorted(x["combo"]))
-        x["payout"], x["settled"] = p.get(x["type"], {}).get(key, 0) * x["stake"] / 100.0, True
-        n += 1
-    LEDGER.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"精算 {n}点")
+    for path in (LEDGER,):
+        led = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        pays = {}
+        for d in {x["date"] for x in led if not x["settled"]}:
+            f = RAW.parent / "RT" / f"HR_{d}.txt"
+            if f.exists():
+                b = f.read_bytes()
+                for i in range(0, len(b) - 718, 719):
+                    h = T.parse_hr(b[i:i + 719])
+                    if h:
+                        pays[(d, h["venue"], h["R"])] = h["pay"]
+        n = 0
+        for x in led:
+            if x["settled"]:
+                continue
+            p = pays.get((x["date"], x["venue"], x["R"]))
+            if not p:
+                continue
+            key = tuple(x["combo"]) if x["type"] in ("馬単", "3連単") else tuple(sorted(x["combo"]))
+            x["payout"], x["settled"] = p.get(x["type"], {}).get(key, 0) * x["stake"] / 100.0, True
+            n += 1
+        if led:
+            path.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"精算 {n}点（{path.name}）")
 
 
 def report():
+    for path, rule in ((LEDGER_U1, RULE_U1), (LEDGER, RULE), (LEDGER_TAN, RULE_TAN)):
+        _report(path, rule)
+
+
+def _report(LEDGER, RULE):
     led = json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.exists() else []
     done = [x for x in led if x["settled"]]
     print(f"■ {RULE} 前向き台帳  登録 {len(led)}点 / 精算済み {len(done)}点")
@@ -294,6 +440,8 @@ def report():
         line(t, [x for x in done if x["type"] == t])
     for k in ("堅い", "普通", "荒れ"):
         line(k, [x for x in done if x.get("kind") == k])
+    if RULE == RULE_TAN:
+        line("単勝T1", done)
     print("  採用: 300レース以上で、レース単位の95%区間の下限が100%超（事前登録）。それまで実際には買わない")
 
 
@@ -303,6 +451,7 @@ if __name__ == "__main__":
     ap.add_argument("--register", action="store_true")
     ap.add_argument("--races", default="", help="登録するレース（例: 東京11,京都11）。指定すると、まだ台帳にないレースだけを1回登録")
     ap.add_argument("--settle", action="store_true")
+    ap.add_argument("--quick", action="store_true", help="朝の通常実行の結果を使い、オッズだけ入れ替えて軽く再計算する")
     ap.add_argument("--report", action="store_true")
     a = ap.parse_args()
     if a.settle:
@@ -310,6 +459,6 @@ if __name__ == "__main__":
     elif a.report:
         report()
     elif a.date:
-        run(a.date, a.register, set(a.races.split(",")) if a.races else None)
+        run(a.date, a.register, set(a.races.split(",")) if a.races else None, quick=a.quick)
     else:
         ap.print_help()
