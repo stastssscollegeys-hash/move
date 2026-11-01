@@ -175,6 +175,8 @@ type: skill
 出走表＝その日の成績から結果を消したもの、オッズ＝JVの確定オッズ、学習＝その日より前だけ、出力＝`競馬予想レポート/_replay/`。台帳には登録しない。道具を変えたら土曜の前に必ずこれで通す。
 自動運転の通しテスト: `REPLAY=YYYYMMDD python raceday_auto.py --date YYYYMMDD --sim 09:00 --interval 1800`（時計を30分ずつ進めて、発走35分前のレースごとに 台帳→カード→投稿 を回す。JVの取得とオッズ取得はしない）。
 
+**事前予想→結果の全レース振り返り（2026-11-01新設）**: `python postmortem_all.py`（対象日は `DATES` に追加）。外れをA 印の見落とし／B 軸が来ない／C 形が合わない／D 印の上位が決着、当たりを型・勝ち馬の印・評価理由別に集計。集計は docs/keiba_postmortem_all.md、学びは docs/keiba_postmortem_lessons_20261101.md。毎週の振り返りで対象日を足して回す。
+
 手動で回すとき（自動運転を使わない場合）:
 `jv\jv_rt.ps1 -Spec 0B12 -Key 日付`（成績）→ `day_review.py --date` → `odds_snapshot.py --date`・`jv_live_odds.py --date --races …` → `ev_live.py --date --register --races …` → `predict_day.py --date` → `gen_cards_sns.py --dir`・`gen_flat_sns.py --dir`
 
