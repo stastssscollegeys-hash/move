@@ -106,7 +106,7 @@ type: skill
 金      python friday_prep.py   # 土日月の出走表・柵・馬場の前日発表（JV 0B15/0B14）＋調教の取り直し＋点検を1回で
           点検: 開催替わり／柵替え（A→B等）／先週の芝の馬場と今週の発表／調教あり割合（80%未満は🔴）／先週の振り返りの有無
         → 重賞は race_profile.py で過去10回。前日発売が始まったら python friday_prep.py --skip-chokyo --cards（カード・投稿案まで）
-土日    python raceday_auto.py --date YYYYMMDD   # 朝に1回起動。全レース終了まで自動
+土日    python raceday_auto.py --date YYYYMMDD   # 朝に1回起動。全レース終了まで自動（日付を入れずに起動するなら src/keiba-predictor/start_raceday.bat。起動済みなら二重起動しない）
         🔴 起動を忘れると前向き台帳（U1・E2.1）が1点も増えない。台帳登録は raceday_auto（または手動の ev_live --register）でしか起きない
            （2026-10-19 判明: U1 は 10/07 の事前登録以来 0点。raceday_auto のログは 10/04 の1件だけ）
         🔴 手動で当日版を作るときも ev_live に --register を付ける。PCのスリープでバックグラウンドの取得が止まる（10/17 は土曜朝の再計算が丸ごと消えた）
