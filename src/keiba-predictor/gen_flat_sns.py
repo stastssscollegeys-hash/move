@@ -58,8 +58,9 @@ def bets(c):
     val = [b for b in src if b.get("value")]
 
     def ln(b):
-        return f"【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円"
-    L = [f"💰 買い目 合計{len(src)}点・{sum(b['stake'] for b in src):,}円"] + [ln(b) for b in std]
+        return f"【{b['type']}】{('→' if b['type'] in ('馬単', '3連単') else '-').join(circ(x) for x in b['combo'])} {b['stake']:,}円"
+    pn = next((b.get("pattern_name") for b in src if b.get("pattern_name")), None)
+    L = [f"💰 買い目 合計{len(src)}点・{sum(b['stake'] for b in src):,}円"] + ([f"買い方の型：{pn}"] if pn else []) + [ln(b) for b in std]
     if val:
         L += ["", "🎯 妙味の馬連（人気より割安な組み合わせ）"] + [ln(b) for b in val]
     return ("勝負" if val else "標準"), L

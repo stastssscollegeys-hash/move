@@ -186,3 +186,145 @@ def register(rs, date, only, ledger: Path, races_log: Path):
     ledger.write_text(json.dumps(led, ensure_ascii=False, indent=1), encoding="utf-8")
     races_log.write_text(json.dumps(rl, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"B1 台帳に {m} 点を追加（累計 {len(led)} 点・登録レース {len(rl)}）→ {ledger}")
+
+
+# ── 後から: 10分前・5分前のオッズで選んでいたら（時系列オッズ 0B41・登録時の木の点数を使う） ─────────
+TS_B1 = Path("C:/keiba_db/jv_raw/TS_b1")
+PS32 = r"C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe"
+HERE = Path(__file__).resolve().parent
+
+
+def _db():
+    import ev_live as L
+    return L
+
+
+def jv_key(x):
+    """netkeiba の race_id（年4・場2・回2・日2・R2）→ JV のレースキー（日付8・場2・回2・日2・R2）"""
+    rid = str(x["race_id"])
+    return x["date"] + rid[4:12] if len(rid) == 12 and rid.isdigit() else None
+
+
+def fetch_ts(dates):
+    """登録済みのレースの時系列オッズを JV（0B41）から取る。32bit PowerShell の jv/jv_ts.ps1 を使う"""
+    import subprocess
+    L = _db()
+    rl = json.loads(L.LEDGER_B1_RACES.read_text(encoding="utf-8")) if L.LEDGER_B1_RACES.exists() else []
+    keys = sorted({jv_key(x) for x in rl if x["date"] in dates and jv_key(x)})
+    keys = [k for k in keys if not (TS_B1 / f"{k}.txt").exists()]
+    if not keys:
+        print("取るレースがありません（未登録か取得済み）")
+        return
+    TS_B1.mkdir(parents=True, exist_ok=True)
+    kf = TS_B1.parent / "ts_keys_b1.txt"
+    kf.write_text("\n".join(keys), encoding="ascii")
+    r = subprocess.run([PS32, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(HERE / "jv" / "jv_ts.ps1"),
+                        "-KeyFile", str(kf), "-Spec", "0B41", "-OutDir", str(TS_B1)], capture_output=True, text=True, errors="replace", timeout=1800)
+    print((r.stdout or "").strip().splitlines()[-1:] or r.returncode)
+
+
+def _post(date):
+    """{(場, R): 'MMDDHHMM'}（当日の RA と 発走時刻の変更 TC から）"""
+    import target_import as T
+    import jv_odds as J
+    raw, out = Path("C:/keiba_db/jv_raw"), {}
+    for f in [raw / "RT" / "entry" / f"RA_{date}.txt", raw / "RT" / f"RA_{date}.txt", raw / "RACE" / f"RA_{date[:4]}.txt"]:
+        if f.exists():
+            b = f.read_bytes()
+            for i in range(0, len(b) - 1271, 1272):
+                r = b[i:i + 1272]
+                x = T.parse_ra(r)
+                hm = r[873:877].decode("ascii", "ignore")
+                if x and x["date"] == date and x["R"] and hm.isdigit():
+                    out.setdefault((x["venue"], x["R"]), date[4:] + hm)
+    tc = raw / "RT" / "info" / f"TC_{date}.txt"
+    if tc.exists():
+        for ln in tc.read_bytes().decode("ascii", "ignore").splitlines():
+            if ln[:2] == "TC" and len(ln) >= 43 and ln[11:19] == date and ln[35:39].isdigit():
+                out[(J.VENUE.get(ln[19:21]), int(ln[25:27]))] = date[4:] + ln[35:39]
+    return out
+
+
+def _snaps(f):
+    import jv_odds as J
+    t = f.read_bytes().decode("ascii", "ignore")
+    s = []
+    for i in range(0, len(t), 962):
+        rec = t[i:i + 962]
+        if rec.startswith("O1"):
+            tan = J.parse_record("O1", rec)["単勝"]
+            if tan:
+                s.append((rec[27:35], {k[0]: v for k, v in tan.items()}))
+    return sorted(s, key=lambda z: z[0])
+
+
+def late_report():
+    """登録時（35〜30分前）と 10分前・5分前 で選んでいたらの回収率を、同じレースで並べる。払戻は JV の HR"""
+    import datetime as dt
+    import target_import as T
+    L = _db()
+    rl = json.loads(L.LEDGER_B1_RACES.read_text(encoding="utf-8")) if L.LEDGER_B1_RACES.exists() else []
+    pays, posts = {}, {}
+    for d in {x["date"] for x in rl}:
+        f = Path("C:/keiba_db/jv_raw/RT") / f"HR_{d}.txt"
+        if f.exists():
+            b = f.read_bytes()
+            for i in range(0, len(b) - 718, 719):
+                h = T.parse_hr(b[i:i + 719])
+                if h:
+                    pays[(d, h["venue"], h["R"])] = h["pay"].get("単勝", {})
+        posts[d] = _post(d)
+    res = {k: [0.0, 0.0, 0] for k in ("登録時", "10分前", "5分前")}
+    per = {k: [] for k in res}
+    for x in rl:
+        pay = pays.get((x["date"], x["venue"], x["R"]))
+        if pay is None:
+            continue
+        cand = {"登録時": dict(zip(x["uma"], x["odds"]))}
+        k = jv_key(x)
+        post = posts[x["date"]].get((x["venue"], x["R"]))
+        if k and post and (TS_B1 / f"{k}.txt").exists():
+            P = dt.datetime.strptime("2000" + post, "%Y%m%d%H%M")
+            sn = _snaps(TS_B1 / f"{k}.txt")
+            for lab, m in (("10分前", 10), ("5分前", 5)):
+                od = None
+                for t, o in sn:
+                    if dt.datetime.strptime("2000" + t, "%Y%m%d%H%M") <= P - dt.timedelta(minutes=m):
+                        od = o
+                if od:
+                    cand[lab] = {u: od.get(u) for u in x["uma"]}
+        s = np.array(x["s_res"], float)
+        for lab, om in cand.items():
+            o = np.array([om.get(u) or np.nan for u in x["uma"]], float)
+            if np.isnan(o).any() or (o <= 0).any():
+                continue
+            q = (1 / o) / (1 / o).sum()
+            u = x["w"][0] * np.log(q) + x["w"][1] * s
+            p = np.exp(u - u.max()); p /= p.sum()
+            sel = [int(uu) for uu, pi, oi in zip(x["uma"], p, o) if pi * oi >= EV_B1]
+            st = STAKE * len(sel)
+            rt = sum(pay.get((uu,), 0) * STAKE / 100.0 for uu in sel)
+            res[lab][0] += st; res[lab][1] += rt; res[lab][2] += 1
+            per[lab].append((st, rt))
+    print("■ B1 選ぶ時点の比較（同じ木の点数・払戻は確定）")
+    for lab, (st, rt, n) in res.items():
+        if not n:
+            print(f"  {lab:<5} データなし" + ("（python benter_live.py --fetch-ts 日付 で時系列オッズを取る）" if lab != "登録時" else ""))
+            continue
+        a = np.array(per[lab])
+        import benter
+        roi, lo, hi = benter.roi_ci(a[:, 0], a[:, 1]) if st else (None, None, None)
+        print(f"  {lab:<5} {n:>4}レース {int(st/STAKE):>4}点  回収率 {(roi or 0)*100:6.1f}%" + (f" ［{lo*100:.0f}〜{hi*100:.0f}%］" if roi is not None else ""))
+
+
+if __name__ == "__main__":
+    import argparse, sys
+    sys.stdout.reconfigure(encoding="utf-8")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--fetch-ts", nargs="+", metavar="YYYYMMDD", help="登録済みレースの時系列オッズ（0B41）を取る")
+    ap.add_argument("--late", action="store_true", help="登録時・10分前・5分前で選んでいたらの回収率")
+    a = ap.parse_args()
+    if a.fetch_ts:
+        fetch_ts(set(a.fetch_ts))
+    if a.late:
+        late_report()

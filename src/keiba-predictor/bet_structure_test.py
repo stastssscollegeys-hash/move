@@ -80,8 +80,8 @@ UNIT = {  # 1点100円で、券種ごとの素の回収率
 def pay_of(pp, ty, combo):
     if ty in ("単勝", "複勝"):
         k = str(combo[0])
-    elif ty == "馬単":
-        k = f"{combo[0]}-{combo[1]}"
+    elif ty in ("馬単", "3連単"):
+        k = "-".join(map(str, combo))
     else:
         k = "-".join(map(str, sorted(combo)))
     return pp.get(ty, {}).get(k, 0)

@@ -161,6 +161,8 @@ def main():
         if pt and not rest:
             sh([py, "ev_live.py", "--settle"])
             sh([py, "ev_live.py", "--report"])
+            sh([py, "benter_live.py", "--fetch-ts", A.date], timeout=1800)     # B1: 10分前・5分前で選んでいたらの比較用（2026-10-21）
+            sh([py, "benter_live.py", "--late"])
             log("■ 全レース終了。精算して終了")
             return
         nxt = min((t for k, t in pt.items() if k not in handled and k not in done), default=None)

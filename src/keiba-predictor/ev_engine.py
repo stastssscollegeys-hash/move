@@ -188,6 +188,10 @@ F = [F_ALL[i] for i in KEEP]
 def load_rows():
     src = Path(SOURCE)
     files = sorted(src.glob("results_*.json")) if src.is_dir() else [src]
+    # 省メモリ実行（空きメモリが3GBに届かないとき）: EV_FROM_YEAR=2021 のようにすると、その年以降の履歴だけ読む（通常は未設定＝全期間）
+    _fy = os.environ.get("EV_FROM_YEAR")
+    if _fy and src.is_dir():
+        files = [f for f in files if int(re.search(r"(\d{4})", f.stem).group(1)) >= int(_fy)]
     rows = []
     for f in files:
         for _ in range(3):                       # 収集中のファイルは書き込みの瞬間に読めないことがある

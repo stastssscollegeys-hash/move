@@ -10,7 +10,7 @@ X の書き方（2026-10-04 ユーザー指示）: Xは「さらに表示」を�
 使い方: python gen_cards_sns.py --dir 20261004
 """
 from __future__ import annotations
-import argparse, json, re, sys
+import argparse, datetime, json, re, sys
 from pathlib import Path
 
 import numpy as np
@@ -40,7 +40,13 @@ DATE, TAGS = CONT["post_date_label"], CONT["hashtags"]
 CR = {r["name"]: r for r in CONT["races"]}
 ORDER = {"◎": 0, "○": 1, "▲": 2, "△": 3, "🔥": 4}
 _WF = D / "research" / "next_week_watch.json"     # 1週間前プレビューの注目馬（2026-10-21: 印から外れた馬は理由を書く）
-WATCH = {r["name"]: r for r in json.loads(_WF.read_text(encoding="utf-8"))["races"]} if _WF.exists() else {}
+WATCH = {}
+# 土日の重賞をまとめて1つのプレビューに入れることがある（2026-10-24: アルテミスSが日曜の菊花賞のフォルダに入っていた）→ 前後2日のフォルダも見る
+for _k in (0, 1, -1, 2, -2):
+    _f = BASE / (datetime.date(int(a.dir[:4]), int(a.dir[4:6]), int(a.dir[6:8])) + datetime.timedelta(days=_k)).strftime("%Y%m%d") / "research" / "next_week_watch.json"
+    if _f.exists():
+        for _r in json.loads(_f.read_text(encoding="utf-8"))["races"]:
+            WATCH.setdefault(_r["name"], _r)
 ODDS_NOTE = "オッズは発走前に動きます。発走前に実際のオッズで計算し直します。"
 
 
@@ -179,12 +185,26 @@ class Race:
             return f"{len(self.ref)}点・{sum(b['stake'] for b in self.ref):,}円"
         if self.ev_total() < 1.0 and self.ref[0]["kind"] != "E2":
             return f"見送り（期待値{self.ev_total()*100:.0f}%）"
-        return " ".join(f"{b['type']}{'-'.join(circ(x) for x in b['combo'])}" for b in self.ref[:3]) + (f"ほか{len(self.ref)-3}点" if len(self.ref) > 3 else "")
+        return " ".join(f"{b['type']}{('→' if b['type'] in ('馬単', '3連単') else '-').join(circ(x) for x in b['combo'])}" for b in self.ref[:3]) + (f"ほか{len(self.ref)-3}点" if len(self.ref) > 3 else "")
+
+    def sns_bet_lines(self):
+        """X・Threads用の買い目の行。3連単は同じ1着・2着・金額の点を1行にまとめる（点数が多くても500字に収める）"""
+        L, groups = [], {}
+        for b in self.ref:
+            if b["type"] == "3連単":
+                groups.setdefault((b["combo"][0], b["combo"][1], b["stake"]), []).append(b)
+            else:
+                sep = "→" if b["type"] == "馬単" else "-"
+                L.append(f"{b['type']} {sep.join(circ(x) for x in b['combo'])}　{b['stake']:,}円（的中{b['p_model']*100:.0f}%×{self.od(b):.1f}倍＝{b['p_model']*self.od(b):.2f}）")
+        for (a, c2, st), bs in groups.items():
+            L.append(f"3連単 {circ(a)}→{circ(c2)}→{''.join(circ(x['combo'][2]) for x in bs)}　各{st:,}円（{len(bs)}点）")
+        return L
 
     def kaime_lines(self):
-        L = [f"💰 買い目 {len(self.ref)}点・{sum(b['stake'] for b in self.ref):,}円"]
+        pn = self.ref[0].get("pattern_name")
+        L = [f"💰 買い目 {len(self.ref)}点・{sum(b['stake'] for b in self.ref):,}円"] + ([f"買い方の型：{pn}"] if pn else [])
         for b in self.ref:
-            L.append(f"{'🎯' if b.get('value') else ''}【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円／的中{b['p_model']*100:.1f}%×{self.od(b):.1f}倍＝期待値{b['p_model']*self.od(b):.2f}")
+            L.append(f"{'🎯' if b.get('value') else ''}【{b['type']}】{('→' if b['type'] in ('馬単', '3連単') else '-').join(circ(x) for x in b['combo'])} {b['stake']:,}円／的中{b['p_model']*100:.1f}%×{self.od(b):.1f}倍＝期待値{b['p_model']*self.od(b):.2f}")
         L.append(f"全体の期待回収率 {self.ev_total()*100:.0f}%")
         return L
 
@@ -192,7 +212,7 @@ class Race:
         ev = self.ev_total()
         if self.ref[0]["kind"] == "標準":
             v = [b for b in self.ref if b.get("value")]
-            base = "印は人気ではなく「人気に対する割安さ」の順。相手は◎からのワイドで広く押さえています。"
+            base = "印は人気ではなく「人気に対する割安さ」の順。" + (self.ref[0].get("pattern_why", "") + "。" if self.ref[0].get("pattern_why") else "相手は◎からのワイドで広く押さえています。")
             return base + ("🎯人気より割安な馬連が出たので、勝負レースとして別枠で足しています。" if v else "")
         if self.ref[0]["kind"] == "E2":
             return "モデルが市場より1.3倍以上高く見ている組み合わせがあり、買う根拠のある買い目です。"
@@ -380,10 +400,10 @@ def x_posts(r):
           f"後ろから行く馬：{'・'.join(circ(u) for u in g['後ろから']) or 'なし'}",
           f"◎{r.nm(hon)}は「{r.h[hon].get('style') or '位置取り不明'}」", "", SEP] + [f"・{x}" for x in r.t["course_note"][:2]] + [f"・{x}" for x in r.t["profile"][1:3]] + ["", r.tag()]
     P.append(("X⑥ 展開と馬場", L))
-    L = [r.head(), ""] + [f"{lab}{r.nm(u)}" for lab, u in r.marked] + ["", f"買い目：{r.kaime_short()}", ""] + [f"{b['type']} {'-'.join(circ(x) for x in b['combo'])}　{b['stake']:,}円（的中{b['p_model']*100:.0f}%×{r.od(b):.1f}倍＝{b['p_model']*r.od(b):.2f}）" for b in r.ref] + \
+    L = [r.head(), ""] + [f"{lab}{r.nm(u)}" for lab, u in r.marked] + ["", f"買い目：{r.kaime_short()}", ""] + r.sns_bet_lines() + \
         ["", f"期待回収率 {r.ev_total()*100:.0f}%", r.verdict(), "", "買い目は「的中率×オッズ＝期待値」で決めています。100%を超えない組み合わせは買う根拠がありません。", f"※{ODDS_NOTE}", r.tag()]
     P.append(("X⑦ 買い目", L))
-    NUM = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
+    NUM = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
     P = [(f"X{NUM[i]} {t.split(' ', 1)[1]}", x) for i, (t, x) in enumerate(P)]   # 追加の投稿があっても通し番号にする
     out = []
     for t, x in P:                                   # 520字を超えたら「・」の行を後ろから削る

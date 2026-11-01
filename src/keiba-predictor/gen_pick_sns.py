@@ -46,7 +46,7 @@ def rank(cards):
 
 def bets_lines(c):
     agg = collections.OrderedDict()
-    for b in sorted(c["ref_bets"], key=lambda b: ("単勝", "馬連", "馬単", "ワイド", "3連複").index(b["type"])):   # 🎯の馬連を通常の馬連の隣に
+    for b in sorted(c["ref_bets"], key=lambda b: ("単勝", "複勝", "馬連", "馬単", "ワイド", "3連複", "3連単").index(b["type"])):   # 🎯の馬連を通常の馬連の隣に
         k = (b["type"], tuple(b["combo"]))
         a = agg.setdefault(k, dict(b, stake=0, value=False))
         a["stake"] += b["stake"]
@@ -56,7 +56,7 @@ def bets_lines(c):
         o = b.get("odds_now")
         est = o is None
         o = o or b["odds_est"]
-        L.append(f"{'🎯' if b['value'] else ''}【{t}】{'-'.join(circ(x) for x in combo)} {b['stake']:,}円（的中{b['p_model']*100:.0f}%×{'想定' if est and t != '単勝' else ''}{o:.1f}倍＝{b['p_model']*o:.2f}）")
+        L.append(f"{'🎯' if b['value'] else ''}【{t}】{('→' if t in ('馬単', '3連単') else '-').join(circ(x) for x in combo)} {b['stake']:,}円（的中{b['p_model']*100:.0f}%×{'想定' if est and t != '単勝' else ''}{o:.1f}倍＝{b['p_model']*o:.2f}）")
     return L, sum(b["stake"] for b in agg.values())
 
 
@@ -70,7 +70,8 @@ def main(A):
     C = {c["key"]: c for c in cards}
     posts = []
     head0 = f"🏇【{P['title']}】{P['post_date_label']}"
-    L = [head0, f"━━ 東京・京都 全{len(cards)}レースから{len(P['races'])}つ ━━", ""]
+    venues = "・".join(dict.fromkeys(c["venue"] for c in cards))
+    L = [head0, f"━━ {venues} 全{len(cards)}レースから{len(P['races'])}つ ━━", ""]
     for r in P["races"]:
         c = C[r["key"]]
         hon = next(int(u) for u, m in c["marks"].items() if m == "◎")
@@ -78,7 +79,7 @@ def main(A):
         L.append(f"{'🎯' if any(b.get('value') for b in c['ref_bets']) else '・'}{r['label']}　◎{circ(hon)}{h['name']}")
     L += ["", P["intro"], "", SEP,
           "印は人気ではなく「勝つ確率が人気より高いか（割安さ）」の順。「確率16%（人気13%）」は、こちらの勝つ確率と、オッズが示す勝つ確率です。🎯は人気に対して1.3倍以上割安な馬連が出た勝負レースです（過去3年の実際のオッズで回収率117%）。",
-          "オッズは前日時点の値です。当日朝に実際のオッズで計算し直します。", P.get("graded_note", ""), TAGS]
+          P.get("odds_note", "オッズは前日時点の値です。当日朝に実際のオッズで計算し直します。"), P.get("graded_note", ""), TAGS]
     posts.append(("まとめ", L))
     for r in P["races"]:
         c = C[r["key"]]

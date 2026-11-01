@@ -29,6 +29,7 @@ import ev_engine as E
 import ev_live as L
 import bet_engine as B
 import combo_backtest as C
+import kaime_compose as KC
 
 BASE = Path.home() / "Desktop" / "競馬予想レポート"
 HIST = BASE / "daily_pdca" / "db" / "history_target"
@@ -106,6 +107,20 @@ def age_of_row(r):
     return sa[1:] if len(sa) > 1 else "?"
 
 
+def _load_seg_stats():
+    """pattern_backtest.py の最新結果（区分ごとの avoid）。無ければ None＝優先順位だけで選ぶ"""
+    f = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "pattern_segment_results.json"
+    try:
+        h = json.loads(f.read_text(encoding="utf-8"))
+        return h[-1].get("select") if h else None
+    except Exception:
+        return None
+
+
+SEG_STATS = _load_seg_stats()
+DAY_COUNTS = collections.Counter()      # その日に使った買い目の型の回数（同じ型が続くとき次点を使う）。build_cards / quick_update の頭で空にする
+
+
 def marks_and_bets(horses, ro, venue):
     """印・注意馬・公開の買い目（標準形V1＋妙味の馬連）。朝の通常実行と、オッズだけ入れ替える軽い更新の両方で使う"""
     # 印（2026-10-07 価値順に変更・mark_scheme_test.py）: 人気どおりの確率順より、モデル÷市場（＝人気に対する割安さ）の順が
@@ -128,39 +143,73 @@ def marks_and_bets(horses, ro, venue):
     if ana:
         marks[ana[0]["uma"]] = "🔥"
     caution = [hh["uma"] for hh in horses if hh["pop"] <= 3 and hh["ratio"] <= 0.85 and hh["uma"] not in marks]
-    # 買い目: 公開用は標準形 V1.1（2026-10-10〜。下に説明）。台帳のE2.1は別に記録（bets）
-    #   単勝◎2,000 ／ 馬連◎-○3,000 ／ ワイド◎-🔥3,000 ／ 3連複◎○🔥1,000 ／ 3連複◎○▲1,000（🔥がいなければ ワイド◎-▲・3連複◎○▲2,000）
+    # 買い目（2026-10-30〜）: 固定形V1.1をやめ、レースの型に合わせて kaime_compose のパターン集から選ぶ。
+    #   型の判定はレース前の情報だけ（◎の勝つ確率・○との差・堅いか荒れか・頭数・🔥の有無）。回収率は買い方では変わらない（24,927Rで90〜93%）ので、
+    #   目的は「型に合った形で印が当たったときに馬券も当たり、当たったら元が取れる」こと。標準形（ワイド◎流し）は K2 として残してある。
+    #   台帳のE2.1は別に記録（bets）
     bets = ro["bets"]
-    # 2026-10-10 標準形 V1.1（bet_structure_test.py・2019〜2026/9 の24,927R・実際の払戻）: 3連複2点をやめ、ワイド◎流し（相手5頭×1,000）に。
-    #   回収率は同じ（V1 93.0% → 92.9%・区間の幅は狭く）で、何か当たる 31.9→48.1%、「印は当たったのに馬券は外れ」62.5→41.7%。
-    #   ユーザー指摘「印は当たっているのに馬券が当たらない」「中穴に印が集まったレースで3連複1点1,000円は重い」への対応。旧V1は下の V1_PLAN に残す
     um = {}
     for k, v in marks.items():
         um.setdefault(v, []).append(int(k))
-    h_ = (um.get("◎") or [None])[0]
-    o_ = (um.get("○") or [None])[0]
-    aite = [x for lab in ("○", "▲", "🔥", "△") for x in um.get(lab, [])]   # 上限超えで削るのは後ろ（△）から
-    plan = [("単勝", [h_], 2000), ("馬連", [h_, o_], 3000)] + [("ワイド", [h_, x], 1000) for x in aite]
-    # V1_PLAN（〜2026-10-10）: 単勝◎2,000 ／ 馬連◎-○3,000 ／ ワイド◎-🔥3,000 ／ 3連複◎○🔥1,000 ／ 3連複◎○▲1,000（🔥なし: ワイド◎-▲3,000・3連複◎○▲2,000）
+    M = {"◎": (um.get("◎") or [None])[0], "○": (um.get("○") or [None])[0], "▲": (um.get("▲") or [None])[0],
+         "△1": (um.get("△") or [None, None])[0], "△2": (um.get("△") or [None, None])[1] if len(um.get("△") or []) > 1 else None,
+         "🔥": (um.get("🔥") or [None])[0]}
+    M = {k: v for k, v in M.items() if v is not None}
     psort = sorted(horses, key=lambda x: x["uma"])
     pv = np.array([hh["p_model"] for hh in psort]); qv = np.array([hh["p_market"] for hh in psort])
     pv, qv = pv / pv.sum(), qv / qv.sum()
     ub = [hh["uma"] for hh in psort]
     tm, tq = B.tables(pv, ub), B.tables(qv, ub)
     snap = SNAP.get((venue, ro["R"]))
+    popd = {hh["uma"]: hh["pop"] for hh in horses}
+    ctx = KC.make_ctx(pv, qv, ub, M, popd)
+    keyed = {t_: dict(zip(ks, pq_)) for t_, (ks, pq_) in tq.items()}
+
+    def odds_fn(t_, combo):
+        k_ = (combo[0],) if t_ in ("単勝", "複勝") else (tuple(combo) if t_ in ("馬単", "3連単") else tuple(sorted(combo)))
+        pq_ = keyed.get(t_, {}).get(k_)
+        return B.TAKE.get(t_, 0.8) / pq_ if pq_ and pq_ > 1e-9 else None
+    pmap = {t_: dict(zip(ks, pr_)) for t_, (ks, pr_) in tm.items()}
+    p_win = {hh["uma"]: hh["p_model"] for hh in horses}
+
+    def p_fn(t_, combo):
+        if t_ == "単勝":
+            return p_win.get(combo[0])
+        k_ = tuple(combo) if t_ in ("馬単", "3連単") else tuple(sorted(combo))
+        v_ = pmap.get(t_, {}).get(k_)
+        return float(v_) if v_ is not None else None
+    def ev_odds_fn(t_, combo):                    # 旨味の判定は、取れている実オッズ（スナップショット）を優先し、無ければ推定オッズ
+        k_ = tuple(combo) if t_ in ("馬単", "3連単") else tuple(sorted(combo))
+        v_ = ((snap[2]["odds"].get(t_) or {}) if snap else {}).get("".join(f"{x:02d}" for x in k_))
+        try:
+            o_ = float(str(v_[0]).replace(",", "")) if v_ and v_[0] not in (None, "") else None
+        except (TypeError, ValueError):
+            o_ = None
+        return o_ if o_ and o_ > 1.0 else odds_fn(t_, combo)
+    # 紐（3着の相手）の追加候補: 印の付いていない馬を勝つ確率の高い順に。足すかは compose が計算で決める（2026-10-31）
+    extra = [hh["uma"] for hh in sorted(horses, key=lambda x: -x["p_model"]) if hh["uma"] not in marks][:3]
+    comp = KC.compose(M, ctx, odds_fn, DAY_COUNTS, SEG_STATS, p_fn=p_fn, extra=extra, ev_odds_fn=ev_odds_fn)
+    DAY_COUNTS[comp["pattern"]["id"]] += 1
+    plan = comp["plan"]
+    meta = comp.get("meta") or {}
+    for u_ in meta.get("widened", []):              # 紐として足した馬には△を付ける（印と買い目を一致させる・2026-10-31）
+        marks[u_] = "△"
     ref = []
     for t, combo, amt in plan:
         if None in combo:
             continue
-        k = tuple(combo) if t in ("単勝",) else tuple(sorted(combo))
+        k = tuple(combo) if t in ("単勝", "複勝", "馬単", "3連単") else tuple(sorted(combo))
         if t == "単勝":
             pm_ = next(hh["p_model"] for hh in horses if hh["uma"] == combo[0]); pq_ = next(hh["p_market"] for hh in horses if hh["uma"] == combo[0])
         else:
             keys, prob = tm[t]; pq_ = tq[t][1][keys.index(k)]; pm_ = prob[keys.index(k)]
-        b = dict(type=t, combo=list(k), stake=amt, odds_est=round(B.TAKE.get(t, 0.8) / pq_, 1), p_model=round(float(pm_), 4))
+        b = dict(type=t, combo=list(k), stake=amt, odds_est=round(B.TAKE.get(t, 0.8) / pq_, 1), p_model=round(float(pm_), 4),
+                 pattern=comp["pattern"]["id"], pattern_name=comp["pattern"]["name"], pattern_why=comp["pattern"]["why"])
+        if meta:
+            b.update(plan_e=meta["e"], plan_note=meta.get("note", ""), himo_added=meta.get("widened", []))
         v = ((snap[2]["odds"].get(t) or {}) if snap else {}).get("".join(f"{x:02d}" for x in k))
         try:
-            b["odds_now"] = float(v[0]) if v and v[0] not in (None, "") else None
+            b["odds_now"] = float(str(v[0]).replace(",", "")) if v and v[0] not in (None, "") else None
         except (TypeError, ValueError):
             b["odds_now"] = None
         ref.append(b)
@@ -172,12 +221,12 @@ def marks_and_bets(horses, ro, venue):
         b = dict(type="馬連", combo=list(k), stake=1000, odds_est=round(B.TAKE["馬連"] / prq[km.index(k)], 1), p_model=round(float(prm[km.index(k)]), 4), value=True, ratio=round(r_, 2))
         v = ((snap[2]["odds"].get("馬連") or {}) if snap else {}).get("".join(f"{x:02d}" for x in k))
         try:
-            b["odds_now"] = float(v[0]) if v and v[0] not in (None, "") else None
+            b["odds_now"] = float(str(v[0]).replace(",", "")) if v and v[0] not in (None, "") else None
         except (TypeError, ValueError):
             b["odds_now"] = None
         ref.append(b)
-    over = sum(b["stake"] for b in ref) - 10000         # 1レース上限1万円: 妙味の馬連の分は ワイド（印の軽い相手から）を減らして空ける
-    for b in [x for x in ref if x["type"] in ("3連複", "ワイド") and not x.get("value")][::-1]:
+    over = sum(b["stake"] for b in ref) - KC.BUDGET_MAX  # 1レース上限15,000円（2026-10-31〜）: 妙味の馬連の分は ワイド（印の軽い相手から）を減らして空ける
+    for b in [x for x in ref if x["type"] in ("3連複", "ワイド", "複勝", "馬単", "馬連") and not x.get("value")][::-1]:
         if over <= 0:
             break
         cut = min(over, b["stake"])
@@ -271,6 +320,7 @@ def save_cards(date, cards):
 def quick_update(date):
     """オッズだけ入れ替える軽い更新: 朝の予想カードを読み、ev_live（--quick）の新しい確率・オッズで印と買い目を作り直す"""
     global SNAP
+    DAY_COUNTS.clear()
     cf = BASE / date / "research" / f"cards_{date}.json"
     ef = BASE / date / "research" / f"ev_live_{date}.json"
     if not cf.exists() or not ef.exists():
@@ -303,6 +353,7 @@ def quick_update(date):
 
 
 def build_cards(date: str):
+    DAY_COUNTS.clear()
     ev = json.loads((BASE / date / "research" / f"ev_live_{date}.json").read_text(encoding="utf-8"))
     rows = load_rows()
     T = Tends(rows)
@@ -478,12 +529,12 @@ def bet_lines(c):
     src = c["bets"] or c["ref_bets"]
     if not src:
         return ["見送り（期待値に見合う組み合わせがありません）"], False
-    L_ = [f"💰 買い目 合計{len(src)}点・{sum(b['stake'] for b in src):,}円" + ("" if c["bets"] else "（参考）")]
+    L_ = [f"💰 買い目 合計{len(src)}点・{sum(b['stake'] for b in src):,}円" + ("" if c["bets"] else "（参考）") + (f"｜型: {src[0]['pattern_name']}" if src[0].get("pattern_name") else "")]
     for b in src:
         od = b.get('odds_now') or b.get('odds_est')
         pm = b['p_model']
         ev = f"／的中{pm*100:.1f}%×{od:.1f}倍＝期待値{pm*od:.2f}" if od else ""
-        L_.append(f"【{b['type']}】{'-'.join(circ(x) for x in b['combo'])} {b['stake']:,}円{ev}")
+        L_.append(f"【{b['type']}】{('→' if b['type'] in ('馬単', '3連単') else '-').join(circ(x) for x in b['combo'])} {b['stake']:,}円{ev}")
     tot = sum(b['stake'] * b['p_model'] * (b.get('odds_now') or b.get('odds_est') or 0) for b in src) / sum(b['stake'] for b in src)
     L_.append(f"全体の期待回収率（モデル確率×オッズ）: {tot*100:.0f}%（1.0＝100%を割ると買う根拠なし）")
     return L_, bool(c["bets"])

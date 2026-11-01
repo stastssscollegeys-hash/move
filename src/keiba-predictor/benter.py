@@ -399,6 +399,142 @@ def load_live():
     return pickle.loads(LIVE.read_bytes()) if LIVE.exists() else None
 
 
+# ── 前日予想の精度（2026-10-21・ユーザー「当日はこのままで、前日予想の精度を上げる方法を探して」） ─────────────
+# 前日に分からない列（馬体重・当日の馬場の偏り・今回の道悪）を消した「前日専用の木」を年ごとに前向きで学習し、
+# 前日の最終オッズ（時系列オッズ 0B41 の前日分・2023〜）を市場として、①どれだけ当てられるか ②前日に選んだ馬が確定オッズで回収できるか を測る
+DAYOF = ["馬体重 増減（10kg単位）", "馬体重 10kg以上減", "馬体重 10kg以上増", "馬体重（470kgとの差・40kg単位）", "馬体重 439kg以下",
+         "休み明け×体重の減り（10kg単位）", "中5週以内×12kg以上増", "牝馬×増減の大きさ（10kg単位）", "レースで一番軽い",
+         "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）",
+         "当日の内枠有利度×内枠", "当日の内枠有利度×外枠", "当日の前残り度×前で運ぶ割合", "今回道悪×道悪で3着内の経験", "今回道悪×道悪の経験なし"]
+GROUPS = [("調教", ("調教",)), ("時計の指数", ("時計", "指数")), ("騎手", ("騎手",)), ("厩舎", ("厩舎",)), ("血統", ("種牡馬", "母父")),
+          ("コース・条件の傾向", ("傾向", "このレース")), ("前走の内容", ("前走",)), ("近走・経験", ("直近", "キャリア", "経験", "馬自身")),
+          ("条件の変化（距離・間隔・クラス）", ("距離", "間隔", "芝ダ", "クラス", "乗り替わり")), ("馬場の偏り（前日・先週）", ("前日の", "先週", "柵")),
+          ("展開（先行争い）", ("先行争い", "単騎")), ("斤量・性齢・枠", ("斤量", "牝馬", "歳", "馬番"))]
+
+
+def group_of(name):
+    for g, keys in GROUPS:
+        if any(k in name for k in keys):
+            return g
+    return "その他"
+
+
+def prevday_odds():
+    """{(日付, 場, R): {馬番: 前日の最終オッズ}}（発走日の前日までの最後の発表）"""
+    import glob
+    from target_import import VENUE
+    out = {}
+    for f in sorted(glob.glob(str(Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "ts_odds_20*.pkl"))):
+        for k, v in pickle.loads(Path(f).read_bytes()).items():
+            if v["snaps"] and v["snaps"][0][0][:4] < k[4:8]:
+                out[(k[:8], VENUE.get(k[8:10], "?"), int(k[14:16]))] = v["snaps"][0][1]
+    return out
+
+
+def eve(first_test=2016):
+    import lightgbm as lgb
+    from benter import LiveModel as LM
+    names, races = load_feats()
+    ix = {n: i for i, n in enumerate(names)}
+    cols = [ix[n] for n in DAYOF if n in ix]
+    for r in races:
+        r["X"][:, cols] = 0.0                         # 前日には分からない（学習でも使わない）
+    years = sorted({r["key"][0][:4] for r in races})
+    by_y = {y: [r for r in races if r["key"][0][:4] == y] for y in years}
+    pv = prevday_odds()
+    imp = None
+    ck_f = HERE / "_cache" / "benter_eve_s.pkl"           # 途中で止まっても続きから（年ごとの点数を保存）
+    ck = pickle.loads(ck_f.read_bytes()) if ck_f.exists() else {}
+    for y in years:
+        if int(y) < first_test:
+            continue
+        if y in ck and y != years[-1]:
+            for r, sv in zip(by_y[y], ck[y]):
+                r["s_eve"] = sv
+            print(f"  前日の木 {y}: 保存済み", flush=True)
+            continue
+        t0 = time.time()
+        m = LM(names, [r for yy in years if yy < y for r in by_y[yy]], (1.0, 1.0))
+        for r in by_y[y]:
+            r["s_eve"] = m.score_res(r["X"]).astype(np.float32)
+        ck[y] = [r["s_eve"] for r in by_y[y]]
+        ck_f.write_bytes(pickle.dumps(ck))
+        imp = (m, m.gr.booster_.feature_importance("gain"))
+        print(f"  前日の木 {y}: 学習〜{int(y)-1} → {len(by_y[y]):,}R（{(time.time()-t0)/60:.1f}分）", flush=True)
+        del m
+    # 混ぜ方: その年より前の前向きの点数で学習（確定オッズの市場）
+    test = [y for y in years if int(y) > first_test]
+    lq = lambda r: np.log(r["q"] / r["q"].sum())[:, None]
+    for y in test:
+        tr = [r for yy in years if first_test <= int(yy) < int(y) for r in by_y[yy]]
+        w = fit_clogit(*pack(tr, lambda r: np.hstack([lq(r), r["s_eve"][:, None]])), l2=0.0)
+        for r in by_y[y]:
+            r["w_eve"] = w
+    # 採点（前日オッズのある 2023〜）
+    def soft(u):
+        u = u - u.max(); e = np.exp(u); return e / e.sum()
+    rows = []
+    for y in test:
+        for r in by_y[y]:
+            od = pv.get(r["key"])
+            if not od:
+                continue
+            o_pv = np.array([od.get(int(u)) or np.nan for u in r["uma"]], float)
+            if np.isnan(o_pv).any() or (o_pv <= 0).any():
+                continue
+            q_pv = (1 / o_pv) / (1 / o_pv).sum()
+            q_fn = r["q"] / r["q"].sum()
+            w = r["w_eve"]
+            rows.append(dict(key=r["key"], win=r["win"], o_pv=o_pv, o_fn=np.asarray(r["odds"], float), q_pv=q_pv, q_fn=q_fn,
+                             p_pv=soft(w[0] * np.log(q_pv) + w[1] * r["s_eve"]), p_fn=soft(w[0] * np.log(q_fn) + w[1] * r["s_eve"]),
+                             fins=r["fins"], uma=r["uma"], s_eve=r["s_eve"]))
+    ll = lambda k: np.array([math.log(max(x[k][x["win"]], 1e-300)) for x in rows])
+    L = ["\n## 6. 前日予想の精度（前日に分からない馬体重・当日の馬場の偏り・今回の道悪を消した前日専用の木）\n",
+         f"前日の最終オッズ（時系列オッズの前日分）があるレース {len(rows):,}（{rows[0]['key'][0]}〜{rows[-1]['key'][0]}）。木はその年より前だけで学習。\n",
+         "| 比べるもの | 1レースの対数尤度（前日の市場との差） | 1着馬に付けた確率の平均 |", "|---|---:|---:|"]
+    base = ll("q_pv")
+    for lab, k in (("前日の市場（前日オッズ）", "q_pv"), ("前日の市場＋前日専用の木", "p_pv"), ("確定オッズの市場（参考: 前日から締切までに市場が覚えること）", "q_fn"), ("確定オッズ＋前日専用の木", "p_fn")):
+        g = ll(k) - base
+        lo, hi = boot(g)
+        L.append(f"| {lab} | {g.mean():+.5f}［{lo:+.5f}, {hi:+.5f}］ | {np.mean([x[k][x['win']] for x in rows])*100:.2f}% |")
+    # 3着内
+    def top3(k):
+        h = []
+        for x in rows:
+            i = int(np.argmax(x[k]))
+            h.append(bool(x["fins"][i] and x["fins"][i] <= 3))
+        return np.mean(h) * 100
+    L += ["\n| 本命（確率1位）の3着内率 | 前日の市場 | 前日の市場＋木 |", "|---|---:|---:|",
+          f"| 全レース | {top3('q_pv'):.1f}% | {top3('p_pv'):.1f}% |"]
+    # 前日に選んで確定オッズで払う
+    L += ["\n| 前日に選ぶ条件（確率は前日オッズ＋木） | 点数 | 回収率（確定オッズで払う） | 95%区間 | 年別 |", "|---|---:|---:|---|---|"]
+    for lab, f in (("確率×前日オッズ≧1.0", lambda x: x["p_pv"] * x["o_pv"] >= 1.0), ("確率×前日オッズ≧1.1", lambda x: x["p_pv"] * x["o_pv"] >= 1.1),
+                   ("確率×前日オッズ≧1.2", lambda x: x["p_pv"] * x["o_pv"] >= 1.2), ("確率÷前日の市場≧1.3・前日20倍以下", lambda x: (x["p_pv"] / x["q_pv"] >= 1.3) & (x["o_pv"] <= 20)),
+                   ("（参考）前日の1番人気", lambda x: np.arange(len(x["q_pv"])) == np.argmax(x["q_pv"]))):
+        st, rt, yr = [], [], {}
+        for x in rows:
+            sel = np.where(f(x))[0]
+            a, b = 100.0 * len(sel), (100.0 * x["o_fn"][x["win"]] if x["win"] in sel else 0.0)
+            st.append(a); rt.append(b)
+            yy = x["key"][0][:4]; yr.setdefault(yy, [0.0, 0.0]); yr[yy][0] += a; yr[yy][1] += b
+        roi, lo, hi = roi_ci(np.array(st), np.array(rt))
+        L.append(f"| {lab} | {int(sum(st)/100):,} | {roi*100:.1f}% | {lo*100:.1f}〜{hi*100:.1f}% | " + "・".join(f"{k}:{b/a*100:.0f}" for k, (a, b) in sorted(yr.items()) if a) + " |")
+    # 何が効いているか（最新年の木・分岐で減らした誤差の合計をグループ別に）
+    m, gain = imp
+    labs = [names[i] for i in m.keep] * 2
+    gg = {}
+    for v, n in zip(gain, labs):
+        gg[group_of(n)] = gg.get(group_of(n), 0.0) + v
+    tot = sum(gg.values())
+    L += ["\n| 前日の木がよく使う要素（グループ） | 割合 |", "|---|---:|"] + [f"| {g} | {v/tot*100:.1f}% |" for g, v in sorted(gg.items(), key=lambda t: -t[1])]
+    text = "\n".join(L)
+    print(text)
+    with open(DOC, "a", encoding="utf-8") as fo:
+        fo.write("\n" + text + "\n")
+    (HERE / "_cache" / "benter_eve.pkl").write_bytes(pickle.dumps(rows))
+    print(f"追記: {DOC}")
+
+
 # ── 発走前のオッズで買ったら（2023〜・JV の時系列オッズ 0B41） ─────────────────────
 def late():
     """確定オッズで選ぶと「締切後にしか分からない情報」で選んだことになる。実際に買えるのは発走の数分前。
@@ -437,9 +573,12 @@ def late():
     L = ["\n## 5. 発走前のオッズで選んで買ったら（2023年〜・払い戻しは確定オッズ）\n",
          "確定オッズで選ぶのは本当は不可能（締切後に決まる）。発走 m 分前の単勝オッズで確率を計算し直し、そのときの オッズ×確率 で買う馬を選ぶ。\n",
          "| モデル | 選ぶ時点 | しきい値 | レース | 点数 | 回収率 | 95%区間 | 年別 |", "|---|---|---:|---:|---:|---:|---|---|"]
-    for name in ("市場＋木（ずれ）", "いまのエンジン", "市場＋木（ずれ）＋いまのエンジン"):
+    import os
+    names_ = ("市場＋木（ずれ）",) if os.environ.get("LATE_RATIO") == "1" else ("市場＋木（ずれ）", "いまのエンジン", "市場＋木（ずれ）＋いまのエンジン")
+    rules = ((1.3, 20.0, "比"), (1.5, 20.0, "比"), (1.2, 20.0, "比")) if os.environ.get("LATE_RATIO") == "1" else ((1.0, None, "EV"), (1.1, None, "EV"), (1.1, 20.0, "EV"))
+    for name in names_:
         for mins in (None, 5, 10, 30):
-            for thr, cap in ((1.0, None), (1.1, None), (1.1, 20.0)):
+            for thr, cap, kind in rules:
                 st, rt, yrs = [], [], {}
                 n = 0
                 for key, v in ts.items():
@@ -461,7 +600,8 @@ def late():
                     else:
                         pc = soft(r["wc0"] * lq + r["u_cur"])
                         p = pc if name == "いまのエンジン" else soft(r["w_both"][0] * np.log(pc) + r["w_both"][1] * r["s_res"])
-                    sel = np.where((p * o >= thr) & ((o <= cap) if cap else True))[0]
+                    crit = p / q if kind == "比" else p * o           # 比＝モデルの確率÷そのときの市場の確率（2026-10-21 戦略トーナメントで確認期間も下限>100%）
+                    sel = np.where((crit >= thr) & ((o <= cap) if cap else True))[0]
                     n += 1
                     s_ = 100.0 * len(sel)
                     r_ = 100.0 * o_fin[r["win"]] if r["win"] in sel else 0.0
@@ -472,7 +612,7 @@ def late():
                 roi, lo, hi = roi_ci(st, rt)
                 if roi is None:
                     continue
-                L.append(f"| {name} | {'確定オッズ' if mins is None else f'{mins}分前'} | {thr:.1f}{'（20倍以下）' if cap else ''} | {n:,} | {int(st.sum()/100):,} | {roi*100:.1f}% | {lo*100:.1f}〜{hi*100:.1f}% | "
+                L.append(f"| {name} | {'確定オッズ' if mins is None else f'{mins}分前'} | {'比' if kind == '比' else ''}{thr:.1f}{'（20倍以下）' if cap else ''} | {n:,} | {int(st.sum()/100):,} | {roi*100:.1f}% | {lo*100:.1f}〜{hi*100:.1f}% | "
                          + "・".join(f"{y}:{b/a*100:.0f}" for y, (a, b) in sorted(yrs.items()) if a) + " |")
     text = "\n".join(L)
     print(text)
@@ -486,5 +626,6 @@ if __name__ == "__main__":
     ap.add_argument("--build", action="store_true")
     ap.add_argument("--late", action="store_true", help="発走前のオッズで選んだときの回収率（walk の後）")
     ap.add_argument("--fit-live", action="store_true", help="本番用の木のモデルを全年で学習して _cache/benter_live.pkl に保存")
+    ap.add_argument("--eve", action="store_true", help="前日予想の精度（前日に分からない列を消した木・前日オッズで採点）")
     a = ap.parse_args()
-    build() if a.build else late() if a.late else fit_live() if a.fit_live else walk()
+    build() if a.build else late() if a.late else fit_live() if a.fit_live else eve() if a.eve else walk()

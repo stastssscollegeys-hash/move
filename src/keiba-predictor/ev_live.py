@@ -295,7 +295,7 @@ def _score(date, register, only, liv, beta, w, snap, train):
                     continue
                 k = "".join(f"{x:02d}" for x in c)
                 v = tab.get(k)
-                odds = float(v[0]) if v and v[0] not in (None, "") else None
+                odds = float(str(v[0]).replace(",", "")) if v and v[0] not in (None, "") else None
                 cands.append(dict(race_id=d["race_id"], venue=key[0], R=key[1], title=(d.get("title") or "")[:24], type=t, combo=list(c),
                                   names=[names[x] for x in c], p_model=round(cm[t][c], 5), p_market=round(cq[t][c], 5), ratio=round(ratio, 3),
                                   odds_now=odds, ev_now=round(cm[t][c] * odds, 3) if odds else None, snap_at=d.get("fetched_at")))

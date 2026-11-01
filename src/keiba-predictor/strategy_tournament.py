@@ -27,6 +27,7 @@ CACHE = HERE / "_cache" / "walk_probs.pkl"
 REGISTRY = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db" / "strategy_registry.json"   # 事前登録（条件を固定し、登録日より後のレースだけで判定）
 DISCOVER = ("2019", "2023")
 CONFIRM_FROM = "2024"
+PKEY = None                 # --pkey: キャッシュの別の確率の列を p として使う（例: benter_probs.pkl の p_res＝市場＋木・2026-10-21）
 
 
 # ── 1) 年ごとの前向き確率を作る ───────────────────────────────────
@@ -538,6 +539,9 @@ def bh(pvals, q=0.10):
 
 def run(report_path=None):
     races = pickle.loads(CACHE.read_bytes())
+    if PKEY:
+        for r in races:
+            r["p"] = np.asarray(r[PKEY], float)
     meta, pay = load_meta()
     rows = []
     for r in races:
@@ -686,7 +690,9 @@ if __name__ == "__main__":
     ap.add_argument("--discover", nargs=2)
     ap.add_argument("--confirm-from")
     ap.add_argument("--cache", help="別のモデルの前向き確率で採点する（例: _cache/benter_probs.pkl・2026-10-21）")
+    ap.add_argument("--pkey", help="p の代わりに使う確率の列（例: p_res）")
     a = ap.parse_args()
+    PKEY = a.pkey
     if a.cache:
         CACHE = HERE / a.cache if not Path(a.cache).is_absolute() else Path(a.cache)
     if a.discover:                                   # 例: --discover 2010 2019 --confirm-from 2020（20年分の検証用）
