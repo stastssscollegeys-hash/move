@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-hypo_audit_20261101.py — ネットの予想家・解説記事で語られる考え方を、自前DB（race_results.json 33,849頭）で検定する（2026-11-01新規）
+hypo_audit_20261101.py — ネットの予想家・解説記事で語られる考え方を、自前DB（history_target 2016〜2026・約45万頭）で検定する（2026-11-01新規）
 ==============================================================================================================
 出典はいずれも第三者検証のない解説（根拠は弱い）。検証は distance_change_audit.py と同じ両関門:
   ① 同じ人気帯の中で、3着内率が期待より |z|>=2 ずれる  ② 前半・後半で同じ向き、後半 |z|>=1.5
@@ -18,7 +18,11 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 DB = Path.home() / "Desktop" / "競馬予想レポート" / "daily_pdca" / "db"
-rows = json.loads((DB / "race_results.json").read_text(encoding="utf-8"))
+KEEP = ("date", "競馬場", "R", "距離", "馬名", "馬番", "人気", "単勝オッズ", "着順int", "コーナー通過", "前3F_レース", "後3F順位")
+rows = []
+for f in sorted((DB / "history_target").glob("results_*.json")):     # 2016〜2026の10年分（race_results.json は2026年だけ）
+    for r in json.loads(f.read_text(encoding="utf-8")):
+        rows.append({k: r.get(k) for k in KEEP})
 
 
 def num(x):
@@ -65,7 +69,7 @@ for v in by.values():
 # 前半3Fの距離帯別中央値（ペースの速い・遅いの基準）
 pace = collections.defaultdict(list)
 for r in rows:
-    f3 = num(r.get("前半3F"))
+    f3 = num(r.get("前3F_レース"))
     if f3 and surf(r.get("距離")):
         pace[(surf(r["距離"]), meters(r["距離"]))].append(f3)
 PMED = {k: statistics.median(v) for k, v in pace.items() if len(v) >= 30}
@@ -79,7 +83,7 @@ for hs in by.values():
         c = dict(cur)
         cs = corners(prev)
         pf = fin(prev)
-        f3 = num(prev.get("前半3F"))
+        f3 = num(prev.get("前3F_レース"))
         med = PMED.get((surf(prev["距離"]), meters(prev["距離"])))
         c["H1"] = bool(cs and cs[0] <= 2 and f3 and med and f3 <= med - 0.5 and pf and pf >= 6)
         c["H2"] = bool(num(prev.get("後3F順位")) and num(prev.get("後3F順位")) <= 3 and pf and pf >= 6)
@@ -130,3 +134,8 @@ print("\n■ H4 単勝オッズ帯ごとの単勝回収率（全出走）")
 for lo, hi in ((1, 2), (2, 3), (3, 5), (5, 8), (8, 15), (15, 30), (30, 60), (60, 9999)):
     sub = [r for r in use if lo <= num(r["単勝オッズ"]) < hi]
     print(f"  {lo}〜{hi}倍 n={len(sub):>6} 単勝回収 {roi(sub):5.1f}% 勝率 {sum(fin(r) == 1 for r in sub) / len(sub) * 100:4.1f}%")
+
+# 該当フラグを保存（モデルの確率との比較 hypo_vs_model.py が読む）
+import pickle
+flags = {(r["date"], r["競馬場"], int(num(r["R"]) or 0), int(num(r.get("馬番")) or 0)): (r["H1"], r["H2"], r["H3"], r["H3b"]) for r in use}
+(DB / "hypo_flags.pkl").write_bytes(pickle.dumps(flags))
