@@ -177,10 +177,10 @@ def _b_axis_free(M, c):         # 軸自由＋保険（2026-11-01 ユーザー�
 
 
 # prio が小さいほど先に当てはめる（より限定的な型を先に）。K2 は最後の受け皿
-# live=False の型は試験中: 検証（axis_free_test.py）に通るまで本番の候補に入れない
+# live=False の型は試験中: 検証（axis_free_test.py）に通るまで本番の候補に入れない（K13 は 2026-11-01 に本番入り。荒れは検証で−14.5ptなので除外）
 PATTERNS = [
-    dict(id="K13", prio=0.5, live=False, name="軸自由＋保険（穴の○▲を軸に・外れ用の保険つき）", alloc_exp=1.0, build=_b_axis_free,
-         applies=lambda c: ana_axis_ctx(c) is not None,
+    dict(id="K13", prio=0.5, name="軸自由＋保険（穴の○▲を軸に・外れ用の保険つき）", alloc_exp=1.0, build=_b_axis_free,
+         applies=lambda c: ana_axis_ctx(c) is not None and c["kind"] != "荒れ",
          why="上位印に6番人気以下で割安な馬がいる。その馬から◎へ流し、◎・○▲の保険と🔥の保険も入れる"),
     dict(id="K4", prio=1, name="馬単◎1着流し（勝ち切る型）", alloc_exp=0.7, build=_b_umatan,
          applies=lambda c: c["hon_p"] >= 0.30 and c["hon_pop"] <= 2 and c["gap"] >= 0.12,
