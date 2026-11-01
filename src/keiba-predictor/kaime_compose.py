@@ -65,6 +65,9 @@ def make_ctx(p, q, uma, M, pop):
         two=bool(h + o >= 0.45 and o >= 0.15 and h - o < 0.06),   # ◎○の2頭で勝つ確率の大半を占める
         ana=("🔥" in M), ana_pop=pop.get(M.get("🔥"), 0),
         top_unmarked=top_unmarked,
+        # 印ごとの割安さ（モデル÷市場）と人気。K13（軸自由＋保険）が「穴の○▲を軸にするか」を決めるのに使う
+        ratio={m: float(p[idx[M[m]]] / max(q[idx[M[m]]], 1e-9)) for m in M},
+        mpop={m: pop.get(M[m], 99) for m in M},
     )
 
 
@@ -148,8 +151,37 @@ def _b_tan_multi(M, c):         # ◎○のマルチ: 3連単◎→○→相手�
     return [("単勝", [a], 1.5), ("ワイド", [a, b], 3), ("馬単", [a, b], 2), ("馬単", [b, a], 2)] +         [("3連単", [a, b, x], 1) for x in rest] + [("3連単", [b, a, x], 1) for x in rest]
 
 
+def ana_axis_ctx(c):
+    """上位印（○・▲）の中に「6番人気以下で割安（モデル÷市場≧1.15）」の馬がいれば、その印（割安さが最大）を返す。いなければ None"""
+    best = None
+    for m in ("○", "▲"):
+        if c["mpop"].get(m, 0) >= 6 and c["ratio"].get(m, 0) >= 1.15:
+            if best is None or c["ratio"][m] > c["ratio"][best]:
+                best = m
+    return best
+
+
+def _b_axis_free(M, c):         # 軸自由＋保険（2026-11-01 ユーザー指示）: 軸は◎に限らない。穴の○▲が割安ならそこから◎へ流す。外れ用の保険も入れる
+    h, o, t = M["◎"], M["○"], M["▲"]
+    ax = ana_axis_ctx(c)
+    ana = M.get("🔥") or M.get("△1")
+    if ax:                                          # 穴軸: 穴の○▲を頭に、◎・もう一方へ流す
+        a, other = M[ax], (t if ax == "○" else o)
+        main = [("単勝", [a], 2), ("ワイド", [a, h], 3), ("馬連", [a, h], 2), ("ワイド", [a, other], 2)]
+        ins = [("ワイド", [h, other], 2)]           # 保険: 穴軸が飛んでも◎と人気側の2頭で決まる形
+    else:                                           # 通常: ◎軸
+        main = [("単勝", [h], 2), ("ワイド", [h, o], 3), ("馬連", [h, o], 2), ("ワイド", [h, t], 2)]
+        ins = [("ワイド", [o, t], 2)]               # 保険: ◎が飛んでも○▲で決まる形
+    big = [("単勝", [ana], 1), ("ワイド", [ana, h], 1.5)] if ana and ana not in (h, o, t) else []     # 大穴の保険: 🔥の激走
+    return main + ins + big
+
+
 # prio が小さいほど先に当てはめる（より限定的な型を先に）。K2 は最後の受け皿
+# live=False の型は試験中: 検証（axis_free_test.py）に通るまで本番の候補に入れない
 PATTERNS = [
+    dict(id="K13", prio=0.5, live=False, name="軸自由＋保険（穴の○▲を軸に・外れ用の保険つき）", alloc_exp=1.0, build=_b_axis_free,
+         applies=lambda c: ana_axis_ctx(c) is not None,
+         why="上位印に6番人気以下で割安な馬がいる。その馬から◎へ流し、◎・○▲の保険と🔥の保険も入れる"),
     dict(id="K4", prio=1, name="馬単◎1着流し（勝ち切る型）", alloc_exp=0.7, build=_b_umatan,
          applies=lambda c: c["hon_p"] >= 0.30 and c["hon_pop"] <= 2 and c["gap"] >= 0.12,
          why="◎の勝つ確率が3割を超え、○を大きく引き離している。頭で買う価値があるので馬単で配当を上乗せ"),
@@ -234,7 +266,7 @@ def gami_stats(plan, odds_fn):
 def candidates(c, seg_stats=None):
     """当てはまるパターンを優先順位（prio）で返す。データ（pattern_segment_results.json の select）があれば、
     その区分で標準形K2より回収率が5ポイント以上悪かった型（avoid）は外す。K2は必ず最後に残る"""
-    ok = sorted((p for p in PATTERNS if p["applies"](c)), key=lambda p: p["prio"])
+    ok = sorted((p for p in PATTERNS if p.get("live", True) and p["applies"](c)), key=lambda p: p["prio"])
     if seg_stats:
         st = seg_stats.get("|".join(seg_of(c)), {})
         ok = [p for p in ok if p["id"] == "K2" or not st.get(p["id"], {}).get("avoid")]
