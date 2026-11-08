@@ -87,6 +87,8 @@
 | 漫画 + 一括 + 生成 / 漫画を作って / マンガ一括 | manga-creator-ss |
 | メルマガ / メールマガジン / 配信メール | merumaga-ss |
 | スライド / プレゼン / PPTX / パワポ / 発表資料 | slide-creator-ss |
+| 改善指示 / DOCXを改善 / 書籍を修正 / fix_final_book | docx-improve-ss |
+| 注目レース / 期待値の高い狙えるレース / 下書きに画像 / 注目レースのnote記事 | keiba-predictor-ss（SKILL §3f：当日朝の注目レース→SNS投稿・画像・画像付き下書き→note記事・ヘッダー→note下書き） |
 
 設定ファイル: `.claude/hooks/config/skill-mapping.json`
 
@@ -579,8 +581,11 @@ taisun_v2/.claude/
 
 | メタプロンプト（原本） | 対応スキル | 備考 |
 |----------------------|-----------|------|
-| `hokan/表紙リサーチ/最強メタプロンプト_v2.md` | `.claude/skills/cover-master-ss/SKILL.md` | Kindle表紙 |
+| `hokan/表紙リサーチ/最強メタプロンプト_v2.md` | `.claude/skills/cover-master-ss/SKILL.md` | Kindle表紙（旧版・必要な場合のみ） |
+| `Downloads/COVER_MASTER_Image2_v4.md` | `.claude/skills/cover-master-image2-ss/SKILL.md` | **★Kindle表紙デフォルト（Image 2.0・v4.1・style_family・品質BM3枚登録）** |
+| ~~`cover-chatgpt-ss`~~（廃止） | ~~`cover-chatgpt-ss/SKILL.md`~~ | ❌ Version H緑カバー → cover-master-image2-ssに統合・使用禁止 |
 | `output/line-banner/line_banner_meta_prompt_v2.md` | `.claude/skills/line-banner-ss/SKILL.md` | LINE登録バナー |
+| `Downloads/無料構築オファー_HP版_DM戦略と文面.md`（原本・2026-08-27） | `.claude/skills/hp-eigyo-ss/SKILL.md` | HP無料構築オファー営業。原本は`01_戦略とDM文面.md`としてスキル内に複製保持。**現行の正は`02_ターゲット業態の優先順位.md`**（2026-08-28改訂・B区分主戦場/商品2本立て/「見比べさせる」切り口に変更済み）。01の「作り直させる」表現・A区分主戦場は使わない |
 | `hokan/YouTubeサムネ/youtube_thumbnail_meta_prompt_v1.1.md` | `.claude/skills/youtube-thumbnail-ss/SKILL.md` | YouTubeサムネイル |
 | `output/ebook-listings/ebook_listings_meta_prompt.md` | `.claude/skills/ebook-listings-ss/SKILL.md` | Kindle紹介文・メタデータ |
 

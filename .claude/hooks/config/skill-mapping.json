@@ -5,6 +5,63 @@
 
   "mappings": [
     {
+      "name": "ランサーズ 単純データ収集作業",
+      "description": "ランサーズ(Lancers.jp)のGAS製タスクポータルで行う検索・データ抽出・報告欄入力クラウドワークを自動処理",
+      "when_contains_all": [],
+      "when_contains_any": ["ランサーズ", "lancers", "単純なデータ収集作業", "データ収集作業", "報告欄", "campaignId=EXN"],
+      "required_skills": ["lancers-data-collection-ss"],
+      "priority": 85,
+      "strict": false
+    },
+    {
+      "name": "競馬予想（フルパイプライン）",
+      "description": "JRA競馬予想。SKILL.mdの『完全網羅チェックリスト』に従い、20因子v3.3採点・外部7サイト照合・インフルエンサー合算・馬場実測・v5.4ガードまで全工程を必須実行",
+      "when_contains_all": [],
+      "when_contains_any": ["競馬の予想", "競馬予想", "レース予想", "馬券", "重賞の予想", "予想を更新", "最終予想", "期待値レース", "keiba-predictor"],
+      "required_skills": ["keiba-predictor-ss"],
+      "mandatory_phases": ["data_collection", "factor20_scoring", "external_7sites_check", "influencer_ensemble", "track_bias_measured", "v54_guards", "sns_full_format", "word_output"],
+      "priority": 95,
+      "strict": true
+    },
+    {
+      "name": "競馬 当日朝の注目レース（SNS投稿＋画像＋下書き＋note）",
+      "description": "keiba-predictor-ss SKILL.md §3f の定型（2026-11-08確立）。web_live を朝に再実行→web_picks.py（割安さ順に選び、印と一致する買い目で的中35%以上・ガミなし・期待回収率最大・1〜3番人気は△）→build_picks2（X長文1本・Threads4本）→画像（1レース1枚）→X・Threadsの画像付き下書き（Xは実キー入力・Threadsはpaste）→note記事＋ヘッダー画像→note.com下書き。雛形 src/keiba-predictor/templates/raceday_picks/",
+      "when_contains_all": [],
+      "when_contains_any": ["注目レース", "狙えるレース", "期待値の高いレース", "期待値の高い狙える", "期待値が取れるレース", "下書きに画像", "注目レース5選", "今日の注目"],
+      "required_skills": ["keiba-predictor-ss"],
+      "skill_path": ".claude/skills/keiba-predictor-ss/SKILL.md §3f",
+      "priority": 96,
+      "strict": true
+    },
+    {
+      "name": "競馬レース終了後ワークフロー",
+      "description": "結果収集→PDCA→累積DB→結果報告SNS→来週狙い目＋20因子遡及検証の6点セットを必須実行",
+      "when_contains_all": [],
+      "when_contains_any": ["レース結果を収集", "結果が確定した", "終了後の流れ", "PDCAをまわして", "レースの振り返り", "結果報告"],
+      "required_skills": ["keiba-predictor-ss"],
+      "mandatory_phases": ["run_pdca", "accumulate_db", "result_sns", "next_targets", "factor_retrospective", "skill_md_update"],
+      "priority": 94,
+      "strict": true
+    },
+    {
+      "name": "競馬 枠順確定後フルパッケージ",
+      "description": "枠順確定後の予想再評価→SNS投稿案→インフォグラフィック→Noteサムネ→動画→概要欄",
+      "when_contains_all": ["枠順"],
+      "when_contains_any": ["確定後の予想", "フルパッケージ", "枠順確定"],
+      "required_skills": ["keiba-draw-complete-ss"],
+      "priority": 93,
+      "strict": true
+    },
+    {
+      "name": "HP無料構築オファー営業",
+      "description": "株式会社スターストリーム・スタジオのHP無料構築オファー営業。業態選定→名簿→HTTP判定でB区分抽出→1人ずつ文面→ログまで一気通貫。書籍営業(eigyo-package-ss)とは別物",
+      "when_contains_all": [],
+      "when_contains_any": ["HP営業", "ホームページの営業", "無料構築", "HP無料", "工務店の営業", "サロンの営業", "LINE予約", "B区分", "HP判定", "建設業許可名簿", "hp-eigyo"],
+      "required_skills": ["hp-eigyo-ss"],
+      "priority": 90,
+      "strict": true
+    },
+    {
       "name": "PDF処理・読み取り",
       "description": "PDF文書の読み取り、テキスト抽出、分析を自動実行",
       "when_contains_all": [],
