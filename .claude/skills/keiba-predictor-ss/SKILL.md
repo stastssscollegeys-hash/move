@@ -6,7 +6,7 @@ type: skill
 
 # 競馬予想スキル (keiba-predictor-ss) v5.2（2026-10-07 書き直し・2026-10-10 買い方V1.1／人気と印のずれの投稿／前日の重賞最終版の手順・2026-10-26 レース終了後の流れ §3d・2026-11-06 JRA-VAN契約終了→Web版の前日予想 §3e／人気馬を3着内要員に入れる買い方）
 
-> ⭐ **当日朝「期待値の高い狙えるレースの印・買い目・短評をSNS投稿と画像で」→ §3f**（web_live 再実行 → web_picks.py → build_picks2 → 画像 → 下書き。正本 Desktop/競馬予想レポート/20261108/）
+> ⭐ **当日朝「期待値の高い狙えるレースの印・買い目・短評をSNS投稿と画像で」→ §3f**（web_live 再実行 → web_picks.py → build_picks2 → 画像 → 下書き → note記事＋ヘッダー → note下書き。正本 Desktop/競馬予想レポート/20261108/）
 
 > 🔴 **2026-11-06〜 JRA-VAN（JV-Link）の契約が終了。** JV前提の手順（§3 の jv_rt／jv_extract／ev_live の自動運転／台帳の自動登録）は使えない。出走表・オッズ・馬場・取消はWebから取り、**§3e の手順**で回す。蓄積DB（〜11/1）と学習済み係数はそのまま使える。
 
@@ -307,6 +307,21 @@ Git管理下の写し（別のPCでも使える）: `src/keiba-predictor/templat
    🔴🔴 X は paste も insertText もダメ（paste は入らない・insertText は改行が全部消えて1段落＝ユーザー指摘「改行されてなくて見にくい」11/8）。X は実キー入力だけ。
       Threads は insertText だと改行が消える → paste。入れ違えない。保存後は下書き一覧で改行が残っているかも見る（'【福島7R' の後ろ120字に改行があるか）
    最後に下書き一覧で日付固有の文字列（'【東京9R 百日草' など）で数えて重複がないか確認。前日の下書きは消さない（ユーザーが消す）
+⑦ note記事＋ヘッダー画像（ユーザーの言い方「今日の注目レースをまとめたnote記事を作って。ヘッダー画像も」）
+   記事: research/build_note_picks_{日付}.py（20261108版をコピー。build_picks2 の R を import するので数字は投稿・画像と同じ。ORDER＝発走順、SUM＝冒頭一覧を書き換える）
+     構成: 冒頭フック（こんにちは、アスメシ競馬予想です🍱／明日の飯代／結論を先に＝5レースの発走・◎・買い目・的中・期待回収率）→ ■1 選び方（外したレースも書く）→ ■2 印と買い目のルール
+          → ■3 前日の馬場と騎手（web_bias.md）→ ■4〜8 各レース → ■9 今日の買い方の考え方 → ■10 まとめ＋ハッシュタグ。マークダウン記号・サイト名・内部用語は自動検査で止まる
+     → {日付}_注目レース5選_note記事.txt（BOM付き）
+   ヘッダー: chatgpt-image-devtools-ss の cdp_chatgpt.mjs batch（thumb_prompts/picks_v1.txt と batch_picks.json が雛形）。添付は 1枚目＝スタイル参照 Desktop/競馬予想レポート/20260830/note_header_niigatakinen2026.png、
+     2枚目＝Downloads/アスメシキャラクターシート文字なし.png。16:9・文字は「{M/D} 注目レース5選」「AI予想 期待値で厳選」／白い筆文字帯「アスメシ競馬予想」／下の黒帯。配色は日ごとに変える
+     生成後は Read で文字を目視し、ファイルサイズが添付画像と違うこと（キャラシートがそのまま保存される不具合）を確かめる → note_header_picks{日付}.png
+⑧ note.com の下書き保存（投稿はしない・Claude in Chrome）
+   note.com/notes/new → editor.note.com が開く。タイトル: textarea に React の value setter＋input イベント
+   本文: 記事を window 変数に分けて読み込み（1回 4,000字程度ずつ）→ 1行＝<p>、空行＝<p><br></p> の HTML にして ProseMirror へ paste イベント（text/html と text/plain の両方）。段落数＝行数で確認
+   ヘッダー: 「画像を追加」→ 🔴「画像をアップロード」を押す前に HTMLInputElement.prototype.click を差し替えて file input を DOM に残す（OSのファイル選択が開くと操作不能）
+     → find で file-input → file_upload（scratchpad の画像）→ 切り抜き画面で全体が入っているのを見て「保存」→ 差し替えた click を元に戻す
+   保存: 🔴 JS の click では保存されない → computer で「下書き保存」ボタンをクリック → 「下書きを保存しました」の表示を確認
+     確認は別タブで note.com/notes（編集画面は保存後も離脱確認を出すので閉じない・force で閉じない）。記事一覧に「下書き」とサムネイルが出ていればOK
 ```
 
 ## 3b. 重賞1週間前プレビュー（日曜/月曜・登録段階）

@@ -1,0 +1,7 @@
+画像を1枚生成してください。Web検索は不要です。横長16:9（1792x1024）のnoteサムネイル。
+Use the FIRST attached image as the style and layout reference (anime-style horse racing illustration, ornate gold corner frame, big gold-outlined Japanese title text on the upper left, a white brush-stroke banner with 「アスメシ競馬予想」, a black caption bar at the bottom). Use the SECOND attached image as the character reference for the cute horse mascot "Asumeshi-kun" (pink cap with a star, blue and yellow striped jockey shirt) and place him at the lower left. Do not copy the reference composition exactly; change the scene as described.
+テーマ: 11月8日（日）の中央競馬、期待値の取れる注目レース5選（東京・福島）。
+テーマカラー: 深い緑×金×秋の夕焼けオレンジ。
+構図: 秋の競馬場で、5頭の競走馬が横一線に並んで直線を駆け抜ける迫力のシーン（斜め前からのアングル）。右上に小さく5枚のレースカードが扇状に並び、それぞれに金色の◎マーク。背景は芝コースとスタンド、空は夕焼け、紅葉が舞う。
+テキスト（日本語を正確に、これ以外の文字は入れない）: 左上に大きく2行「11/8 注目レース5選」「AI予想 期待値で厳選」、その下の白い筆文字帯に「アスメシ競馬予想」、下部の黒帯に「【印・買い目・短評】東京9R 百日草特別ほか 割安な穴馬を狙う」。
+アスメシくんは目をキラキラさせて、手に「◎」の札を持っている表情。
