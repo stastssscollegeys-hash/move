@@ -302,9 +302,10 @@ Git管理下の写し（別のPCでも使える）: `src/keiba-predictor/templat
 ⑤ 画像: images/build_race_images_{日付}.py（20261108版をコピーして RACES を書き換え）→ race_{key}.png（1080x1350・1レース1枚）
    印6頭は△を1行に詰める・買い目7点以上は買い目の枠を小さくする（20261108版に実装済み）。書き出したら全枚を Read で目視（重なり・はみ出し）
 ⑥ 下書き保存（画像つき・投稿はしない）: preview_week/drafts_browser.js の「2026-11-08 版」の関数を Claude in Chrome で使う
-   画像を scratchpad\img{日付}\ にコピー → X: __newX → __fillX(本文) → find で compose の file-input → file_upload → __saveCloseX（5本）
+   画像を scratchpad\img{日付}\ にコピー → X: __newX → __focusX → **computer の type（実キー入力）で本文** → __stateX（blocks/empty が本文の行数・空行数と一致）→ find で compose の file-input → file_upload → __saveCloseX（5本）
    Threads: 1本目 __openPaste(本文) → file-input → file_upload → __saveTh、2〜4本目 __oneTh(本文)（4本×5レース＝20本）
-   🔴 X は paste が効かない（insertText）・Threads は insertText だと改行が消える（paste）。入れ違えない
+   🔴🔴 X は paste も insertText もダメ（paste は入らない・insertText は改行が全部消えて1段落＝ユーザー指摘「改行されてなくて見にくい」11/8）。X は実キー入力だけ。
+      Threads は insertText だと改行が消える → paste。入れ違えない。保存後は下書き一覧で改行が残っているかも見る（'【福島7R' の後ろ120字に改行があるか）
    最後に下書き一覧で日付固有の文字列（'【東京9R 百日草' など）で数えて重複がないか確認。前日の下書きは消さない（ユーザーが消す）
 ```
 

@@ -14,9 +14,13 @@
 //   ・🔴 ウィンドウが最小化/非表示のタブは innerWidth=0 になり Threads の画面が出ない（X は動く）。tabs_create_mcp で新しいタブを作ると 1280x585 で動く。
 //   ・🔴 javascript_tool の出力に『=』や URL が混じると BLOCKED になる。結果は区切りを ' | ' にして返す。
 // 【2026-11-08 更新・実績あり（当日朝の注目レース X5本・Threads20本を画像付きで保存）】
-//   ・🔴 X: 合成の paste イベントでは文章が入らなくなった（__saveX は len 0 のまま空で保存される）。→ 下の __fillX（execCommand('insertText')）を使う。
+//   ・🔴 X: 合成の paste イベントでは文章が入らなくなった（__saveX は len 0 のまま空で保存される）。
+//   ・🔴🔴 X: execCommand('insertText') だと文字は入るが **改行が全部消えて1段落** になる（ユーザー指摘「改行されてなくて見にくい」。insertParagraph/insertLineBreak/insertHTML も壊れる）。
+//     → **本文は Claude in Chrome の computer の type（実際のキー入力）で入れる**。改行は Enter として入り、行数・空行の数が元の文章と一致する。
+//       1,500字だと type が「timed out」を返すことがあるが、入力は最後まで入っている（__stateX で行数を確かめる）。
 //     入力欄は必ず '[role="dialog"] [data-testid="tweetTextarea_0"]'（ホームの入力欄にも同じ testid があり、そちらに入ってしまう）。
-//     手順: __newX() → __fillX(本文) → find「hidden file input inside compose dialog」で file-input の ref → file_upload（画像）→ __saveCloseX()（"len N | imgs 1 | 保存 | /home"）
+//     手順: __newX() → __focusX() → computer type(本文) → __stateX()（blocks＝本文の行数・empty＝空行の数）→ find「hidden file input inside compose dialog」→ file_upload（画像）→ __saveCloseX()
+//     既存の下書きを直すとき: 下書き一覧で find「draft list item containing …」→ クリック → __focusX() → computer で ctrl+a → BackSpace → type → __saveCloseX()（下書きが置き換わる・画像は残る・重複しない）
 //   ・🔴 Threads: insertText だと改行が全部消えて1段落になる。→ 従来どおり paste イベント（__pasteTh）。改行は残る。
 //     「新しいスレッド」はボタンが見つからないことがある → 左の「＋」の位置 elementFromPoint(30,132) をクリック（__openPaste / __oneTh）。
 //     画像は1本目だけ: __openPaste(本文) → find「file input inside new thread dialog」の file-input → file_upload → __saveTh()。2〜4本目は __oneTh(本文)。
@@ -74,7 +78,8 @@ window.__saveThreads = async (T) => {
 };
 
 // =====================================================================
-// 2026-11-08 版（現行）: X は insertText・Threads は paste。画像は file_upload（Claude in Chrome のツール）で入れる
+// 2026-11-08 版（現行）: X は computer の type（実キー入力）・Threads は paste。画像は file_upload（Claude in Chrome のツール）で入れる
+// 🔴 __fillX（insertText）は改行が消えるので使わない（残しているのは比較用）。X は __focusX → computer type → __stateX
 // =====================================================================
 window.__sl = (ms) => new Promise((r) => setTimeout(r, ms));
 window.__leaf = (root, s) => [...root.querySelectorAll("*")].filter((e) => e.children.length === 0 && e.innerText && e.innerText.trim() === s);
@@ -87,6 +92,12 @@ window.__fillX = async (t) => {
   ed.focus(); await __sl(300); document.execCommand("selectAll"); document.execCommand("delete"); await __sl(300);
   document.execCommand("insertText", false, t); await __sl(1200);
   return "len " + ed.innerText.length + " | " + ed.innerText.slice(0, 10) + " | " + ed.innerText.slice(-8);
+};
+window.__focusX = () => { const ed = document.querySelector('[role="dialog"] [data-testid="tweetTextarea_0"]'); if (!ed) return "noeditor"; ed.focus(); return "focused | len " + ed.innerText.trim().length; };
+window.__stateX = () => {
+  const ed = document.querySelector('[role="dialog"] [data-testid="tweetTextarea_0"]'); if (!ed) return "noeditor";
+  const b = [...ed.querySelectorAll('[data-block="true"]')];
+  return "len " + ed.innerText.trim().length + " | blocks " + b.length + " | empty " + b.filter((x) => !x.innerText.trim()).length + " | imgs " + document.querySelectorAll('[role="dialog"] [data-testid="attachments"] img').length;
 };
 window.__saveCloseX = async () => {
   const d = document.querySelector('[role="dialog"]'); const ed = d && d.querySelector('[data-testid="tweetTextarea_0"]');
