@@ -66,6 +66,28 @@ def registrations(d0, d1, grades):
     return sorted(best.values(), key=lambda x: (x["date"], x["venue"]))
 
 
+def registrations_web(path):
+    """2026-11-08〜 JRA-VAN終了後: Webで集めた登録馬（registrants.json）を TK と同じ形にする。horse_id は蓄積DBの馬名から引く"""
+    j = json.loads(Path(path).read_text(encoding="utf-8"))
+    rc = j["race"]
+    names = {h["name"] for h in j["horses"] if h.get("status") not in ("回避",)}
+    hid = {}
+    for f in sorted(H.glob("results_*.json")) + sorted((H.parent / "history_web").glob("results_web_*.json")):
+        for r in json.loads(f.read_text(encoding="utf-8")):
+            if r.get("馬名") in names and r.get("horse_id"):
+                hid[r["馬名"]] = r["horse_id"]
+    horses = []
+    for h in j["horses"]:
+        if h.get("status") == "回避":
+            continue
+        if h["name"] not in hid:
+            print("DBに無い馬（初出走・海外馬など）:", h["name"])
+        horses.append(dict(hid=hid.get(h["name"], "none:" + h["name"]), name=h["name"], sex=h.get("sex") or "?", trainer=h.get("trainer") or "",
+                           kin=float(h.get("kin") or 0), jockey=h.get("jockey_expected"), status=h.get("status")))
+    return [dict(date=rc["date"], venue=rc["venue"], R=int(rc.get("R") or 11), name=rc["name"], grade=rc.get("grade", "G1"),
+                 dist=int(rc["dist"]), surf=rc["surf"], horses=horses)]
+
+
 def dnum(s):
     try:
         return int(str(s).replace("m", "")[1:])
@@ -87,13 +109,12 @@ def style_guess(runs):
 
 
 def main(A):
-    races = registrations(A.frm, A.to, set(A.grade))
+    races = registrations_web(A.web) if A.web else registrations(A.frm, A.to, set(A.grade))
     if not races:
         print("登録データなし（TOKU を取り直す）"); return
     need = {h["hid"] for x in races for h in x["horses"]}
     runs = collections.defaultdict(list)
-    for y in range(2019, int(A.to[:4]) + 1):
-        f = H / f"results_{y}.json"
+    for f in [H / f"results_{y}.json" for y in range(2019, int(A.to[:4]) + 1)] + sorted((H.parent / "history_web").glob("results_web_*.json")):
         if f.exists():
             for r in json.loads(f.read_text(encoding="utf-8")):
                 if r.get("horse_id") in need:
@@ -102,7 +123,7 @@ def main(A):
     for x in races:
         d0 = datetime.date(int(x["date"][:4]), int(x["date"][4:6]), int(x["date"][6:]))
         md = [f"# {x['name']}（{x['grade']}）{x['date'][4:6]}/{x['date'][6:]} {x['venue']} {x['surf']}{x['dist']}m {'出走' if x.get('fixed') else '登録'}{len(x['horses'])}頭\n",
-              "数字は JRA-VAN の成績・調教データ。印・買い目は枠順とオッズが出てから。\n"]
+              "数字は蓄積DB（JRA-VAN〜11/1・以降はWebの成績）と調教（〜11/6）。印・買い目は枠順とオッズが出てから。\n"]
         rows = []
         for h in x["horses"]:
             rs = sorted((r for r in runs[h["hid"]] if r["date"] < x["date"]), key=lambda r: (r["date"], r["R"]))
@@ -183,4 +204,5 @@ if __name__ == "__main__":
     ap.add_argument("--from", dest="frm", required=True)
     ap.add_argument("--to", required=True)
     ap.add_argument("--grade", default="ABC")
+    ap.add_argument("--web", default="", help="Webで集めた登録馬のJSON（JRA-VAN終了後）。--from/--to は DB を読む年の範囲にだけ使う")
     main(ap.parse_args())
