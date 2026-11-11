@@ -113,6 +113,19 @@ SKILL.md §3b の旧手順（`gen_watch_sns.py`・1レース3画像）はこの�
      6 確認は open で新しいタブ（…/videos/upload と …/videos/short）を開き、一覧のタイトル・概要欄の書き出し・「ドラフト」を見る
    🔴 アップロード中・チェック中にページ内で location.href を変えるとタブが固まる → 遷移は新しいタブで。固まったタブは閉じてよい（アップロード済みなら消えない）
    ショートのサムネは指定できない（公開時に動画の1コマを選ぶ）
+⑤e YouTube動画の告知投稿（ユーザーが動画を公開したあと・2026-11-12 確立）
+   URL: Studio の一覧（…/videos/upload と …/videos/short）の行のリンク video/<ID>/edit から ID を取る → 本編 https://youtu.be/<ID> ／ ショート https://youtube.com/shorts/<ID>
+     （一覧の公開設定が「公開」になっているのを確かめる。ドラフトのままならリンクは開けない＝ユーザーに公開を確認）
+   文章: 雛形 preview_week/youtube_promo_template.txt。🔴**本編とショートは投稿を分ける＝1投稿に動画1本のリンクだけ**（2026-11-12 ユーザー指示）
+     X3本: ①本編の告知（結論＋本編の中身）②ショートの告知（短く）③本編のランキング推し（指数TOP3）／ Threads2本: ①本編の告知 ②ショートの告知（500字以内）
+     先頭はいつもの定型見出し、最後に「印と買い目は枠順のあと」＋ハッシュタグ。🔴画像は付けない（リンクカードに任せる＝note告知と同じ）。保存先 {日付}/youtube/YouTube告知_SNS投稿案_{日付}.txt
+   下書き保存（ユーザーOKのあと・Claude in Chrome・新しいタブ1枚で X→Threads の順）:
+     X: __newX → __focusX → computer の type で本文（実キー入力。改行が残る）→ __stateX（行数・空行が元と一致）→ __saveCloseX（「保存」）
+     Threads: __oneTh(本文)（paste。改行が残る）
+     確認: X は x.com/compose/post/unsent/drafts、Threads は新規ダイアログの [aria-label="下書き"] で、各投稿に固有の一文（例「YouTubeで1週前プレビューを公開しました」）を数えて1件ずつか
+     既存の下書きを直すとき: X は下書き一覧のボタンを開く→computer で ctrl+a BackSpace→type→「保存」（置き換わる）。Threads は下書きを開く→ctrl+a BackSpace→paste→キャンセル→「この下書きを更新しますか？」で「更新」
+     （Threads の下書きにリンクカードの画像が出るのは YouTube のサムネイル＝添付画像ではない）
+     関数は preview_week/drafts_browser.js（2026-11-08 版）。ページを移った直後に関数を入れると「別ドメインに移った」で失敗する → 画面が出てから入れる
 ⑥ 投稿前チェック（投稿の日）: 各レースの穴の型が想定6番人気以下か → 上位人気なら穴の表示・画像・ナレーションを差し替え
 ⑦ note（頼まれたら）: 記事は {日付}/research/build_note_preview_*.py（posts.py のデータを読む）→ ヘッダー画像 → note.com 下書き（SKILL §3f ⑦⑧）
    公開後の告知投稿（X・Threads 各1本）は {日付}/research/build_note_promo_*.py。🔴 告知投稿には画像を添付しない（2026-11-09 ユーザー指示。リンクカードだけ）＝SKILL §3f ⑨
