@@ -378,6 +378,8 @@ Git管理下の写し（別のPCでも使える）: `src/keiba-predictor/templat
 - 「〇〇組」の頭数は**前走**で数える。毛色は `fetch_coat_color.py` で実物を調べる
 - スクリプト: `src/keiba-predictor/preview_week/posts.py`（文章）／`images.py`（画像プロンプト・動画の台本JSON）／`drafts_browser.js`（X・Threadsの下書き保存）。週ごとにデータ部分だけ書き換える
 - 動画: `gen_short_tts.js` → `shorts/_tmp/{レース}_voice.mp4` を消す → `build_short.py` → `add_bgm_se.py`
+- **G1は横の長尺動画（約10〜11分）も作る**（2026-11-11 ユーザー「流れものすごくいい・次回も同じレベルで」）。手順・雛形は playbook §4 ⑤b。雛形 `preview_week/long_script.py`（台本）・`long_prompts.py`（画像17枚）。
+  🔴 指数ランキングの場面は寄り・引きなし（zoom="none"）／画像は**上が上位・下が下位**＋各行に短い説明／**1頭1場面**（字幕と読み上げを一致）／順位は文頭に置かず「続いて、十八位は、〇〇。指数は、…」／「三十一」「七十一」の一はかなで書く／作った音声は faster-whisper で文字起こしして順位・点数・馬名を照合してから組み立てる。BGMは `--vol 0.16`
 
 ## 4. 試して採用しなかったもの（同じことを繰り返さないため）
 

@@ -65,6 +65,24 @@ SKILL.md §3b の旧手順（`gen_watch_sns.py`・1レース3画像）はこの�
    rm shorts/_tmp/{レース}_voice.mp4   … 🔴 add_bgm_se.py は _tmp の声だけ版があれば再利用する。作り直すときは必ず消す
    python build_short.py shorts/script_x.json → python add_bgm_se.py shorts/script_x.json "<BGM名>.mp3"
    BGMの例: 京王杯=Rise and Conquer／みやこS=Skyline Circuit／アルゼンチン共和国杯=Electric Pulse（output/shared-bgm）
+⑤b 横の長尺動画（G1・約10〜11分・1920x1080）※2026-11-11 エリザベス女王杯で確立。ユーザー評価「流れものすごくいい」＝この構成を雛形にする
+   構成（約70場面）: 冒頭の結論（指数TOP3・軸・穴・狙わない馬）→ レースの特徴 → 過去10年（人気と配当／脚質・枠・年齢／一番大事な型と間隔）
+     → 最新情報（回避・1週前追い切り・予想オッズ）→ 独自指数のつくり方（近走30・型25・適性25・脚質10・状態10＝100点）→ 横比較
+     → 軸候補 → 注目馬 → 狙わない馬 → 穴候補 → 指数ランキング（18位→4位は1頭1場面、TOP3）→ まとめ（印・買い目は枠順のあと）
+   雛形: src/keiba-predictor/preview_week/long_script.py（台本→script_{レース}_long.json）・long_prompts.py（画像の指示文17枚とbatch）。
+     指数は research/score_{レース}_*.py → score_{レース}.json（⑤状態＝手で3〜10点）。{日付}/long/ に置いて週ごとにデータ部分を書き換える
+   画像: 1枚ずつ cdp_chatgpt.mjs batch（キャラシートがそのまま保存されたら同じbatchを単独で再実行。サイズ一致・目視で検出）
+   音声: gen_short_tts.js <script_long.json> --resume（キーは自動で切替）→ 全部 atempo=1.15（素の声は scratchpad に残す）
+   🔴 ランキング（2026-11-11 ユーザー指摘）:
+     ・画像は上が上位・下が下位（10位→18位、4位→9位の順に上から）。各行に「順位／馬名／指数＋棒／短い説明」
+     ・寄り・引きを使わない（zoom="none"・focusなし。寄ると見たい行が切れる）。TOP3の表彰台も同じ
+     ・1頭1場面にする（字幕は場面の時間を等分して出す＝複数頭を1場面に入れると字幕と声がずれる）
+     ・読み上げ: 順位を文頭に置かない（飲み込まれる）→「続いて、十八位は、〇〇。指数は、四十八点九。」。「三十一」「七十一」等の「一」は落ちる → 「さんじゅういち点六」とかなで書く（long_script.py の pt_say）
+     ・🔴音声は必ず文字起こしで照合: preview_week/asr_check.py（faster-whisper small・cpu int8・馬名を initial_prompt に入れる）で全ランキング場面を起こし、順位・点数・馬名を台本と突き合わせる。違えば言い回しを変えて作り直す（「前奏」「感覚」等の同音の誤変換は無視してよい）
+   組み立て: BV_RESUME=1 python build_video.py <script_long.json>（メモリ不足で止まっても続きから。場面の番号がずれたら _tmp の該当クリップを消す）
+     → python add_bgm_se.py <script_long.json> "<BGM>.mp3" --vol 0.16（2026-11-11 ユーザー「BGMをもう少し強調」。0.10→0.16）
+     → 映像を数か所切り出して目視（字幕・数字・絵の一致）
+   🔴 PCのメモリが少ない（空き1GB前後）: build_video.py の最後の合成は省メモリ設定済み（-threads 1／2・rc-lookahead=10）。ブラウザを閉じてから回すと安全
 ⑥ 投稿前チェック（投稿の日）: 各レースの穴の型が想定6番人気以下か → 上位人気なら穴の表示・画像・ナレーションを差し替え
 ⑦ note（頼まれたら）: 記事は {日付}/research/build_note_preview_*.py（posts.py のデータを読む）→ ヘッダー画像 → note.com 下書き（SKILL §3f ⑦⑧）
    公開後の告知投稿（X・Threads 各1本）は {日付}/research/build_note_promo_*.py。🔴 告知投稿には画像を添付しない（2026-11-09 ユーザー指示。リンクカードだけ）＝SKILL §3f ⑨
