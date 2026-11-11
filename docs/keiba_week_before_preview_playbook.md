@@ -97,6 +97,22 @@ SKILL.md §3b の旧手順（`gen_watch_sns.py`・1レース3画像）はこの�
      16:9にする: 出てくる画像は3:2（1536x1024）。上下を切ると文字が欠ける → 全体を残して左右をぼかしで埋める
        ffmpeg -i raw.png -filter_complex "[0:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,boxblur=30:3,eq=brightness=-0.12[bg];[0:v]scale=-1:720[fg];[bg][fg]overlay=(W-w)/2:0" -frames:v 1 thumb_long.png
      文字は目視で全部確認（数字・馬名）。YouTubeへのアップロードはユーザーが行う（Claudeは投稿しない）
+⑤d YouTube に下書き保存（ユーザーが頼んだとき・2026-11-11 確立）。🔴公開はしない（最後の「公開設定」は押さない＝一覧で「ドラフト」）
+   チャンネル: @アスメシ競馬予想（Googleアカウント stast.sss.college.gyt@gmail.com・チャンネルID UCgNvrQOqNGFh50To1mPTU4w）
+     普段使いのChrome の Studio は別アカウント（SSS漫画）が出ることがある。🔴アップロード前に Studio 左上のチャンネル名が「アスメシ競馬予想」か必ず確認
+   道具: 画像生成用のデバッグChrome（9222）＋ preview_week/yt_studio_cdp.mjs（Claude in Chrome の file_upload は10MBまで＝動画は入らない）
+     デバッグChrome が gyt でログインしていなければ、ユーザーに「アカウントを追加」でログインしてもらう（パスワードはClaudeは入れない）
+   手順（1本ずつ）:
+     1 Studio の「作成」→「動画をアップロード」。🔴ファイル選択の画面（ytcp-uploads-file-picker が表示・#title-textarea が無い）を確かめてから
+       files <tab> "ytcp-uploads-file-picker input[type=file]" <mp4>
+       （前の動画の画面が残っているのに入力すると、前の動画のタイトル・概要欄を上書きする＝2026-11-11 に一度起きた）
+     2 タイトル欄が「ファイル名」になったのを確かめてから type "#title-textarea #textbox" ／ type "#description-textarea #textbox"（youtube_post_template の文面）
+     3 長尺はサムネ files "input#file-loader" thumb_long.png ／ [name=VIDEO_MADE_FOR_KIDS_NOT_MFK] をクリック（子ども向けではない）／ #toggle-button →「さらに表示」→ tags
+     4 「非公開として保存済み」を確かめて ytcp-uploads-dialog #close-button で閉じる
+     5 次の動画は「作成」メニューから開き直す（ダッシュボードの↑ボタンはアップロード中の前の画面を開き直すことがある）
+     6 確認は open で新しいタブ（…/videos/upload と …/videos/short）を開き、一覧のタイトル・概要欄の書き出し・「ドラフト」を見る
+   🔴 アップロード中・チェック中にページ内で location.href を変えるとタブが固まる → 遷移は新しいタブで。固まったタブは閉じてよい（アップロード済みなら消えない）
+   ショートのサムネは指定できない（公開時に動画の1コマを選ぶ）
 ⑥ 投稿前チェック（投稿の日）: 各レースの穴の型が想定6番人気以下か → 上位人気なら穴の表示・画像・ナレーションを差し替え
 ⑦ note（頼まれたら）: 記事は {日付}/research/build_note_preview_*.py（posts.py のデータを読む）→ ヘッダー画像 → note.com 下書き（SKILL §3f ⑦⑧）
    公開後の告知投稿（X・Threads 各1本）は {日付}/research/build_note_promo_*.py。🔴 告知投稿には画像を添付しない（2026-11-09 ユーザー指示。リンクカードだけ）＝SKILL §3f ⑨
