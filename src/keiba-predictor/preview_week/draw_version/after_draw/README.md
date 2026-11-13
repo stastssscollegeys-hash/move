@@ -18,3 +18,4 @@
 | `yt_draft.sh` | YouTube Studio に1本下書き保存（公開しない） |
 | `make_promo_posts.py` | 公開後の告知投稿案（X3本・Threads2本／レース） |
 | `make_note_articles.py` | note記事（見出し h2/h3・太字・目次ブロック用の目印・YouTube埋め込み）の HTML と txt |
+| `make_note_promo.py` | note記事を公開したあとの告知投稿案（X1本・Threads1本／レース・URLは公開ページで確認） |

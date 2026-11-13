@@ -397,6 +397,9 @@ Git管理下の写し（別のPCでも使える）: `src/keiba-predictor/templat
    見出し画像: YouTube長尺サムネ。「画像を追加」→ HTMLInputElement.prototype.click を差し替えて「画像をアップロード」→ find で file-input → file_upload → 切り抜き画面で「保存」→ 差し替えを戻す。保存は computer で「下書き保存」（JS click は保存されない）
    確認: note.com/notes の一覧に「下書き」とサムネイルが出る。日付をまたいで公開するときは冒頭の「明日」を直す
 ```
+⑨ note記事の告知投稿（ユーザーの言い方「ノート記事をそれぞれ投稿したので各SNSでノートの告知の下書きを」）: make_note_promo.py（X1本・Threads1本・同文・各500字以内・画像なし）
+   公開URL＝note.com/keiba_asumeshi_t/n/{記事キー}（編集画面URL editor.note.com/notes/{キー}/edit の キー。🔴 新しいタブで開いて本文があるのを確かめてから使う）
+   文面: 定型見出し2行→「note記事を公開しました。枠順確定版を、全N頭の独自指数つきで解説しています」→先に結論3行→記事の中身3行→▼全文はこちら＋URL→「印と買い目は…」→タグ。下書き保存は X＝実キー入力＋__stateX で行数確認、Threads＝paste（既存の下書きには触らない）
 - 時間の目安: 画像（本編17枚×3＋ショート2×3）約2時間・音声と照合 約1時間・組み立て 約1.5時間・サムネ／素材／下書き／告知／note 約1.5時間
 - 🔴 ローカルサーバーを立ててページから fetch する方法は、noteのページから localhost への fetch がブロックされ固まった（使わない）。HTMLは javascript_tool の文字列として貼る
 
