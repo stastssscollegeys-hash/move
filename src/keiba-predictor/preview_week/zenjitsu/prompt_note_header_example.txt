@@ -1,0 +1,7 @@
+画像を1枚生成してください。Web検索は不要です。横長16:9（1792x1024）のnoteサムネイル。
+Use the FIRST attached image as the style and layout reference (anime-style horse racing illustration, ornate gold corner frame, big gold-outlined Japanese title text on the upper left, a white brush-stroke banner with 「アスメシ競馬予想」, a black caption bar at the bottom). Use the SECOND attached image as the character reference for the cute horse mascot "Asumeshi-kun" (pink cap with a star, blue and yellow striped jockey shirt) and place him at the lower left. Do not copy the reference composition or colors exactly; change the scene as described.
+テーマ: 11月15日（日）京都競馬場、牝馬のGI エリザベス女王杯の前日予想。日曜は雨の予報。
+テーマカラー: ロイヤルパープル（深い紫）×金×白に、雨上がりの銀色の光を加える。白いバラと紫の花びら、金の王冠・ティアラのモチーフで気品のある華やかさ。和柄・朱色・漆黒は使わない。
+構図: 小雨の降る京都競馬場の緑の芝コースを、気品ある牝馬たち（架空のデザイン・ゼッケンの数字や実在の勝負服は描かない）が水しぶきを上げて直線を駆け抜ける場面（やや低い位置から見上げるアングル）。雲の切れ間から光が差し、右上に大きな金色のティアラが輝く。白いバラと紫の花びら、雨粒がきらめく。背景はスタンド。
+テキスト（日本語を正確に、これ以外の文字は入れない）: 左上に大きく2行「エリザベス女王杯」「前日予想」、その下の白い筆文字帯に「アスメシ競馬予想」、下部の黒帯に「11/15 京都芝2200m｜◎は4番人気クイーンズウォーク」。
+アスメシくんは小さな傘をさして、自信ありげに指をさしている表情。

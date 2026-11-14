@@ -3,7 +3,8 @@
 入力: draw_input_{race}.json（枠・馬番・想定オッズ〔発売前〕・想定脚質・独自指数）
 確率:
   市場 q = 1/想定オッズ を正規化
-  見立て p = softmax( log q + K × z(独自指数) )   … K=0.4（指数1標準偏差ぶんで約1.5倍。単一指数を信用しきらない）
+  見立て p = softmax( log q + K × z(独自指数) )   … K=0.1（2026-11-14 に 0.4 から下げた。index_weight_test.py --graded: 重賞/オープン930Rで、データが選ぶ K は −0.08〜−0.06＝ほぼ0。
+      K=0.4 は市場だけより1レースあたり対数尤度が 0.081 悪い。指数は市場がすでに織り込んでいる。0.1 は「想定オッズが実オッズより粗いぶん」の最小限）
   🔴 想定オッズは発売前の目安。土曜朝の実オッズで作り直す（印・買い目の確定はそのあと）
 シナリオ（mc_tomorrow.py と同じ。100万回×3）:
   A 見立てそのまま／B 確率の不確かさ込み（市場との混ぜ具合 a〜U(0,1)・ディリクレ κ=100）／C Bに加えて半分の回で前に行く馬・外枠を強める
@@ -14,7 +15,7 @@ import numpy as np
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 HERE = Path(__file__).resolve().parent
-K = 0.4
+K = 0.1
 STYLE_POS = {"逃げ": 1.0, "先行": 3.0, "好位": 5.0, "中団": 8.0, "後方": 12.0}
 
 def run(p, q, front, outer, N, mode, seed=7, chunk=100_000, kappa=100.0, beta=0.3, gamma=0.2):

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """score_20261114.py — 11/14（土）武蔵野S・デイリー杯2歳S の「アスメシ独自指数」（100点満点・枠順確定後 11/13）
-エリザベス女王杯（score_eri_20261115.py）と同じ考え方。配点は各レースの過去10年の3着内の傾向（race_profile）と
-コースの型（course_profile）に合わせて手で決めた目安。前向き検証はしていない＝勝つ確率ではない。
-  ①格と近走 30 ／ ②レースの型 25（前走のレース・間隔・年齢 or キャリア） ／ ③適性 25（同コース・同距離帯・上がり） ／ ④脚質 10 ／ ⑤状態 10（最終追い切りの評価と陣営の話＝収集メモ）
+エリザベス女王杯（score_eri_20261115.py）と同じ考え方。配点は 2026-11-14 に蓄積DBで測り直した（index_weight_test.py --graded・重賞/オープン1,866R。市場を入れずにデータが決めた重み＝近走50・間隔14・上がり13・脚質12・距離帯8・同コース3）。
+  ①格と近走 40 ／ ②レースの型 20（間隔10・前走のレース6・年齢 or キャリア4） ／ ③適性 20（上がり9・同距離帯8・同コース3） ／ ④脚質 10 ／ ⑤状態 10（最終追い切りの評価と陣営の話＝収集メモ）
+  旧配点（〜11/14）は ①30 ②25 ③25 ④10 ⑤10。変えた理由: 近走が一番効く／同コース成績はほとんど効かない／前走レース名の型は過去10年で数頭の話＝重くしすぎない。
+  ②の前走レース・⑤の状態は手入力で、過去データでは確かめられない。🔴 指数は順位の目安で、勝つ確率ではない。市場（オッズ）に足しても当たり方は良くならなかった（mc_draw.py の K を参照）。
 出力: score_{レース}.json ・ draw_input_{レース}.json（100万回シミュレーション用。想定オッズは発売前の目安）
 """
 import json, sys
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 H = Path(__file__).resolve().parent
-CLS = {"G1": 1.0, "Jpn1": 1.0, "G2": .85, "Jpn2": .85, "G3": .75, "Jpn3": .75, "(L": .6, "OP": .6, "オープン": .6, "3勝": .5, "特別": .45, "2勝": .4, "1勝": .35, "新馬": .5, "未勝利": .5}
+CLS = {"G1": 1.0, "Jpn1": 1.0, "G2": .85, "Jpn2": .85, "G3": .75, "Jpn3": .75, "(L": .6, "OP": .6, "オープン": .6, "3勝": .5, "2勝": .4, "1勝": .35, "新馬": .5, "未勝利": .5, "特別": .45}   # 「特別 2勝クラス」が .45 になっていたので「特別」を最後に
 def cls(c): return next((v for k, v in CLS.items() if k in c), .5)
 def finp(f):
     f = int(f) if str(f).isdigit() else 99
@@ -34,7 +35,7 @@ COND = {
 
 def score_musashino(h):
     L = h["last5"]; r3 = L[::-1][:3]; age = int(h["sexage"][-1])
-    s1 = 30 * sum(wi * cls(r["cond"]) * finp(r["fin"]) for wi, r in zip([.5, .3, .2], r3))
+    s1 = 40 * sum(wi * cls(r["cond"]) * finp(r["fin"]) for wi, r in zip([.5, .3, .2], r3))
     last = L[-1]; rn = last["race"]
     if "グリーンチャンネル" in rn: pv = (10, "グリーンチャンネルC組（過去10年の3着内7頭・一番の型）")
     elif "ペルセウス" in rn: pv = (6, "ペルセウスS組（3着内2頭）")
@@ -43,18 +44,18 @@ def score_musashino(h):
     elif last["cond"].startswith("Jpn") or last["venue"] not in ("東京", "中山", "京都", "阪神", "中京", "新潟", "福島", "小倉", "札幌", "函館"): pv = (6, "地方交流組（勝ち馬はOP特別組か地方組）")
     elif "ステークス" in rn and "勝クラス" not in last["cond"]: pv = (4, "その他のOP特別組")
     else: pv = (2, "条件戦からの参戦（過去10年の3着内に例が少ない）")
-    g = h["gap"]; gi = 8 if 33 <= g <= 146 else 5 if g < 33 else 2
+    g = h["gap"]; gi = 10 if 33 <= g <= 146 else 6 if g < 33 else 2
     ag = {4: 7, 6: 5, 3: 4, 5: 4}.get(age, 3)
-    s2 = pv[0] + gi + ag
-    n, cr = rec(h["course"]); same = 10 * cr if n else 4
+    s2 = pv[0] * .6 + gi + ag * 4 / 7           # 前走レースの型は最大6・間隔は最大10・年齢は最大4
+    n, cr = rec(h["course"]); same = 3 * cr if n else 1.2
     mid = [r for r in L if r["dist"].startswith("ダ") and 1400 <= int(r["dist"][1:-1]) <= 1800]
-    md = 10 * sum(1 for r in mid if int(r["fin"]) <= 3) / len(mid) if mid else 3
+    md = 8 * sum(1 for r in mid if int(r["fin"]) <= 3) / len(mid) if mid else 2.4
     f3 = [r["f3rank"] for r in r3 if r.get("f3rank")]; f3a = sum(f3) / len(f3) if f3 else None
-    up = 2 if f3a is None else 5 if f3a <= 3 else 3 if f3a <= 5 else 1
+    up = 4 if f3a is None else 9 if f3a <= 3 else 5 if f3a <= 5 else 2
     s3 = same + md + up
     s4, stxt = {"先行": (10, "先行（このコースの3着内30%）"), "逃げ": (9, "逃げ（3着内33%・過去10年2頭）"), "中団": (7, "差し（3着内19%）"), "後方": (5, "後方（追込は3着内9%。過去10年は11頭と多い）")}.get(h["style"], (6, "脚質は未集計（地方）"))
     s5, ctxt = COND["武蔵野S"][h["name"]]
-    why = [f"近走: {r3[0]['race']} {r3[0]['fin']}着（{r3[0]['cond']}）", pv[1], f"前走から{g}日" + ("（3着内馬の範囲33〜146日）" if gi == 8 else "（中2週）" if g < 33 else "（3着内馬は最長146日）"),
+    why = [f"近走: {r3[0]['race']} {r3[0]['fin']}着（{r3[0]['cond']}）", pv[1], f"前走から{g}日" + ("（3着内馬の範囲33〜146日）" if gi == 10 else "（中2週）" if g < 33 else "（3着内馬は最長146日）"),
            f"{age}歳", f"東京ダ1600m {h['course']}" if n else "東京ダ1600mは初めて", f"近5走のダ1400〜1800m {len(mid)}戦で3着内{sum(1 for r in mid if int(r['fin']) <= 3)}回" if mid else "近5走にダ1400〜1800mなし",
            f"直近3走の上がり順位 平均{f3a:.1f}位" if f3a else "上がり順位は未取得（地方）", stxt, ctxt]
     return s1, s2, s3, s4, s5, why
@@ -62,7 +63,7 @@ def score_musashino(h):
 def score_daily(h):
     L = h["last5"]; R = L[::-1]
     w = [.6, .3, .1][:len(R)]; ws = sum(w)
-    s1 = 30 * sum(wi * cls(r["cond"]) * finp(r["fin"]) for wi, r in zip(w, R)) / ws
+    s1 = 40 * sum(wi * cls(r["cond"]) * finp(r["fin"]) for wi, r in zip(w, R)) / ws
     last = L[-1]; c = last["cond"]; f = int(last["fin"])
     if any(k in c for k in ("新馬", "未勝利")) and f == 1: pv = (10, "前走は新馬・未勝利勝ち（過去10年7勝の型）")
     elif "G" in c: pv = (3, "前走は重賞（過去10年の重賞組は1-1-1-17）")
@@ -72,8 +73,8 @@ def score_daily(h):
     d = int(last["dist"][1:-1]); dv = 5 if d == 1600 else 3 if d == 1400 else 2
     tr = 5 if h["trainer"].startswith("栗東") else 1
     car = 5 if h["starts"] <= 3 else 1
-    s2 = pv[0] + dv + tr + car
-    n, kr = rec(h["venue_surf"]); kyo = 8 * kr if n else 4
+    s2 = (pv[0] + dv + tr + car) * .8              # 2歳戦は間隔の代わりに前走の型・距離・東西・キャリア。合計20に縮める
+    n, kr = rec(h["venue_surf"]); kyo = 3 * kr if n else 1.5
     m16 = [r for r in L if r["dist"] == "芝1600m"]
     mi = 8 if any(int(r["fin"]) <= 3 for r in m16) else 2 if m16 else 3
     fr = last.get("f3rank"); up = 4 if fr is None else 9 if fr <= 2 else 5 if fr <= 5 else 2

@@ -9,6 +9,9 @@
 印の付け方（SKILL §2）: ◎=勝つ確率8%以上で最も割安／○▲=5%以上で割安な順／1〜3番人気で印のない馬は必ず△（印なしで切らない）。
 買い目の採用: 印の馬だけで組んだ候補（ワイド◎流し・◎流し+相手同士・印BOX・馬連◎流し・3連複など）と web_frontier の自動候補から、
   的中率35%以上・最小戻り1倍以上（ガミなし）の中で期待回収率（モデル）が最大。無ければ下限を30%に下げる。採用は印と買い目の馬が一致するものだけ。
+検査（2026-11-14）: 採用が全点◎がらみなら警告と次点（印同士の組を含む形）を出す。入れ替えるかは人が決める。
+  △同士のワイドを含む形は採用しない（他に形が無いときだけ）。保険は「◎流し＋○-▲」の1点が基本（mark_pair_test.py・SKILL §2「印と組の成績」）。
+  印の付け方は変えない（mark_rule_test.py で10通り比べて現行が回収率最良。休み明けを◎から外しても良くならない）。
 注意: 朝のオッズは薄い。期待回収率が1を大きく超える組は歪みの可能性。投稿には「朝のオッズで計算・発走までに変わる」と書く。
 """
 import argparse
@@ -68,6 +71,8 @@ def evaluate(k, r):
         ex["3連複印BOX"] = [("3連複", c) for c in itertools.combinations(M, 3)]
     if len(o) >= 2:
         ex["馬連◎流し+ワイド◎流し"] = ex["馬連◎流し"] + ex["ワイド◎流し"]
+    if len(o) >= 3:                                            # 2026-11-14: 保険は○-▲の1点（mark_pair_test: ◎流し88.7%→＋○-▲で87.3%・何か当たる44→54%）
+        ex["ワイド◎流し+○▲"] = ex["ワイド◎流し"] + [("ワイド", (o[0], o[1]))]
     for a in itertools.combinations(o, 3):                    # ◎流し＋相手3頭どうしのワイド（11/8 福島7・8・11で採用）
         ex["ワイド◎流し+相手(" + ",".join(map(str, a)) + ")"] = ex["ワイド◎流し"] + [("ワイド", c) for c in itertools.combinations(a, 2)]
     for ax in o:                                               # 軸を本命と決めない（K13）: 3着内の見込みが高い印の馬を軸に印へ馬連
@@ -77,8 +82,10 @@ def evaluate(k, r):
     Ms = set(M)
     ok = lambda x: {u for _, c, _ in x["pts"] for u in c} == Ms
     pick = None
-    for lo in (0.35, 0.30):
-        good = [x for x in rows if ok(x) and x["hit"] >= lo and x["minret"] >= 1.0]
+    D = {h["uma"] for m, h in marks if m == "△"}               # △＝1〜3番人気で割安でない馬
+    dd = lambda x: any(t == "ワイド" and set(c) <= D for t, c, _ in x["pts"])   # △同士のワイド（10年で回収71.6%・前後半とも最下位）
+    for lo, nodd in ((0.35, True), (0.30, True), (0.35, False), (0.30, False)):
+        good = [x for x in rows if ok(x) and x["hit"] >= lo and x["minret"] >= 1.0 and not (nodd and dd(x))]
         if good:
             pick = max(good, key=lambda x: x["evp"]); break
     print("■", k, r["title"], r["start"], r["dist"], r["baba"], f"{r['n']}頭")
@@ -90,6 +97,11 @@ def evaluate(k, r):
     if pick:
         print("  → 採用:", pick["name"], " / ".join(f"{t}{'-'.join(map(str, c))} {s}円" for t, c, s in pick["pts"]),
               f"| 的中{pick['hit']*100:.0f}% 期待{pick['evp']:.2f} 最小{pick['minret']:.1f}倍")
+        if all(H in c for _, c, _ in pick["pts"]):             # 2026-11-14: 全点が◎がらみ＝◎が飛ぶと全滅（福島6R ○1着▲3着で0円）
+            alt = [x for x in rows if ok(x) and x["minret"] >= 1.0 and any(H not in c for _, c, _ in x["pts"])]
+            print("  ⚠ 全点が◎がらみ（◎が3着を外すと全滅）。印同士の組を含む次点:")
+            for x in sorted(alt, key=lambda x: -x["evp"])[:3]:
+                print("     %-24s %2d点 的中%5.1f%% 期待(モデル)%.2f 最小戻り%.2f" % (x["name"], len(x["pts"]), x["hit"] * 100, x["evp"], x["minret"]))
     else:
         print("  → 採用なし（的中30%以上・ガミなしの形が無い）＝注目レースから外す候補")
     return dict(race={kk: r[kk] for kk in r if kk != "horses"},
