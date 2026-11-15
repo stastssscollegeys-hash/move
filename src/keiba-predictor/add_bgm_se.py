@@ -8,6 +8,10 @@ add_bgm_se.py — 完成したショート動画（ナレーション＋字幕�
 BGM: output/shared-bgm の曲を指定（声の邪魔にならないよう小さく、頭と終わりにフェード）。
 
 使い方: python add_bgm_se.py <shorts/script_xxx.json> "<BGM名>.mp3" [--vol 0.10]
+        [--bgm-lufs -26]   BGMの大きさを曲ごとの音量を測ってそろえる（声は約-17LUFS。--vol より優先）
+        [--sevol 1.6]      効果音の大きさの倍率
+        [--se-ding "file.mp3:開始秒:長さ秒"] [--se-pop "..."] [--se-whoosh "..."]  合成音の代わりに素材の一部を使う
+        BGM名は絶対パスでもよい（例: Desktop/効果音素材（動画用）/youtube audio の曲）。2026-11-15 追加
 """
 from __future__ import annotations
 import json, shutil, subprocess, sys, wave
@@ -57,6 +61,22 @@ def main():
         t += wav_sec(base / "audio" / f"{tag}_{sc['id']:02d}.wav") + 0.45
     total = t
     whoosh, ding, pop = make_se(tmp)
+    opt = lambda k: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else None
+    sevol = float(opt("--sevol") or 1.0)
+    def ext_se(spec, name):                     # "path:開始:長さ" → 切り出して-16LUFS前後にそろえた wav
+        f, st, du = spec.rsplit(":", 2); o = tmp / f"se_ext_{name}.wav"
+        run(["ffmpeg", "-y", "-loglevel", "error", "-ss", st, "-t", du, "-i", f, "-af",
+             f"loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=0.01,afade=t=out:st={max(float(du) - 0.15, 0):.2f}:d=0.15", "-ar", "48000", "-ac", "2", str(o)])
+        return o
+    if opt("--se-whoosh"): whoosh = ext_se(opt("--se-whoosh"), "whoosh")
+    if opt("--se-ding"): ding = ext_se(opt("--se-ding"), "ding")
+    if opt("--se-pop"): pop = ext_se(opt("--se-pop"), "pop")
+    if opt("--bgm-lufs"):                        # 曲の音量を測って、ねらいの大きさになる倍率を決める
+        r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-t", "90", "-i", str(bgm), "-af", "ebur128=framelog=quiet", "-f", "null", "-"], capture_output=True)
+        import re as _re
+        L = float(_re.findall(r"I:\s+(-?[\d.]+) LUFS", r.stderr.decode("utf-8", "replace"))[-1])
+        vol = round(10 ** ((float(opt("--bgm-lufs")) - L) / 20), 3)
+        print(f"   BGM {L} LUFS → {opt('--bgm-lufs')} LUFS（倍率 {vol}）")
 
     # SE配置: 場面切り替え(2場面目以降)=シュッ ／ データ場面(tagに「データ」)=開始0.25秒後にチャイム ／ 最終場面=ポン
     ev = []
@@ -75,7 +95,7 @@ def main():
           f"afade=t=in:d=1.2,afade=t=out:st={max(total - 2.5, 0):.2f}:d=2.4[bgm]"]
     labels = ["[0:a]", "[bgm]"]
     for n, (f, at, v) in enumerate(ev):
-        fc.append(f"[{idx[f]}:a]adelay={int(at * 1000)}|{int(at * 1000)},volume={v}[se{n}]")
+        fc.append(f"[{idx[f]}:a]adelay={int(at * 1000)}|{int(at * 1000)},volume={v * sevol:.2f}[se{n}]")
         labels.append(f"[se{n}]")
     fc.append("".join(labels) + f"amix=inputs={len(labels)}:duration=first:normalize=0,alimiter=limit=0.95[a]")
     out = tmp / f"{tag}_mix.mp4"

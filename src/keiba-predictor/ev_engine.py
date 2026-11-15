@@ -201,6 +201,12 @@ def load_rows():
             except (json.JSONDecodeError, OSError):
                 import time
                 time.sleep(3)
+    if src.is_dir():                              # 2026-11-07〜 JRA-VAN終了後の成績（web_to_db.py が Web の結果から作る）。history_target は触らない
+        for f in sorted((src.parent / "history_web").glob("results_web_*.json")):
+            try:
+                rows += [r for r in json.loads(f.read_text(encoding="utf-8")) if not str(r.get("距離") or "").startswith("障")]
+            except (json.JSONDecodeError, OSError):
+                pass
     return rows
 
 

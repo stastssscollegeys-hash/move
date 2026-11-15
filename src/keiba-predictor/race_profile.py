@@ -135,7 +135,10 @@ def main():
         return (datetime.date(int(a_[:4]), int(a_[4:6]), int(a_[6:])) - datetime.date(int(b_[:4]), int(b_[4:6]), int(b_[6:]))).days
     if gaps:
         ds = sorted(dd(x, y) for x, y in gaps)
-        md.append(f"\n3着内馬の前走からの間隔: 中央値 {ds[len(ds)//2]}日（短い {ds[len(ds)//4]}日〜長い {ds[len(ds)*3//4]}日）")
+        # 2026-11-15 表示を直した: 以前の「短い〜長い」は四分位（下から25%〜75%）で、最短・最長ではない。
+        # エリザベス女王杯の週に「最長でも70日」と読み違えて公開した（実際は75%点）。最短・最長と、休み明け（71日以上）の頭数も並べて出す
+        md.append(f"\n3着内馬の前走からの間隔: 中央値 {ds[len(ds)//2]}日／真ん中の半分は {ds[len(ds)//4]}〜{ds[len(ds)*3//4]}日（下から25%〜75%）"
+                  f"／最短 {ds[0]}日・最長 {ds[-1]}日／71日以上は {sum(1 for x in ds if x >= 71)}頭・150日以上は {sum(1 for x in ds if x >= 150)}頭（{len(ds)}頭中）")
     wt = [int(re.search(r"\(([+-]?\d+)\)", h["馬体重"]).group(1)) for h in allrows if h["着順int"] <= 3 and re.search(r"\(([+-]?\d+)\)", str(h.get("馬体重") or ""))]
     if wt:
         md.append(f"3着内馬の馬体重増減: 平均 {statistics.mean(wt):+.1f}kg（-10kg以下 {sum(1 for x in wt if x <= -10)}頭／+10kg以上 {sum(1 for x in wt if x >= 10)}頭／{len(wt)}頭中）")

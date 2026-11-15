@@ -262,6 +262,32 @@ def gami_stats(plan, odds_fn):
     return dict(min_ret=round(min(rets), 2) if rets else 0.0, gami_pts=sum(1 for r in rets if r < 1.0), n=len(rets))
 
 
+GAMI_TARGET = 0.90               # Σ(1/オッズ) の上限。これ以下なら「戻りを揃えて配分」したとき、どの1点が当たっても投資の 1/0.90 ≒ 1.11倍以上
+
+
+def enforce_no_gami(plan, odds_fn, marks, target=GAMI_TARGET):
+    """2026-11-03 ユーザー指示「ガミる買い方は基本しない。意味がない」。
+    戻りを揃えて配分すると、どの1点が当たっても戻り＝投資総額÷Σ(1/オッズ)。Σ(1/オッズ)≦target になるまで低オッズの点から落とし、
+    同じ総額で配り直す。印の馬が買い目から消える点は落とさない（印と買い目の一致）。落とし切れなければ残りは返す（plan, 達成したか）"""
+    pts = [(t, list(cb), s) for t, cb, s in plan if odds_fn(t, cb)]
+    if not pts:
+        return plan, False
+    total = sum(s for *_, s in plan)
+
+    def inv(p):
+        return sum(1.0 / odds_fn(t, cb) for t, cb, _ in p)
+    keep = list(pts)
+    for pt in sorted(pts, key=lambda x: odds_fn(x[0], x[1])):                 # 低オッズ（＝戻りの小さい点）から
+        if inv(keep) <= target:
+            break
+        rest = [x for x in keep if x is not pt]
+        if not rest or any(not any(h in cb for _, cb, _ in rest) for h in marks if any(h in cb for _, cb, _ in keep)):
+            continue
+        keep = rest
+    new = allocate([(t, cb, 1.0) for t, cb, _ in keep], odds_fn, 1.0, total)
+    return (new, inv(keep) <= target) if new else (plan, False)
+
+
 # ── 選び方 ──────────────────────────────────────────────────────────────
 def candidates(c, seg_stats=None):
     """当てはまるパターンを優先順位（prio）で返す。データ（pattern_segment_results.json の select）があれば、
@@ -304,7 +330,7 @@ def _pt_ev(pt, odds_fn, p_fn):
     return p * o if o and p is not None else None
 
 
-def compose(M, c, odds_fn, day_counts=None, seg_stats=None, budget=BUDGET, force=None, p_fn=None, extra=None, ev_odds_fn=None):
+def compose(M, c, odds_fn, day_counts=None, seg_stats=None, budget=BUDGET, force=None, p_fn=None, extra=None, ev_odds_fn=None, no_gami=True):
     """レースの特徴 c に合うパターンを選び、買い目（plan）を返す。
     day_counts: {パターンID: 今日そのパターンを使った回数}。同じ日に同じ形が続くときは、次点の中で差が小さければそちらを使う
     p_fn(券種, 馬番リスト) -> モデルの的中確率、extra: 紐の追加候補の馬番（勝つ確率が高い順の印なし馬）。
@@ -368,6 +394,12 @@ def compose(M, c, odds_fn, day_counts=None, seg_stats=None, budget=BUDGET, force
         meta = dict(e=round(e, 3), total=sum(s for _, _, s in plan), widened=added, note=note)
     else:
         plan = allocate(pts, odds_fn, pick["alloc_exp"], budget)
+    if p_fn is not None and no_gami and plan:                                    # 2026-11-03: 当たってもガミる点は買わない（実オッズが取れている本番経路のみ）
+        plan2, ok = enforce_no_gami(plan, odds_fn, set(M.values()))
+        meta["no_gami"] = bool(ok)
+        if plan2 and plan2 != plan:
+            plan = plan2
+            meta["note"] = (meta.get("note", "") + " ／ ガミる点（低オッズ）を落として、どの1点が当たっても投資額を上回る形に").strip(" ／")
     if not plan:
         pick = BY_ID["K2"]
         plan = allocate(pick["build"](M, c), odds_fn, pick["alloc_exp"], budget)
