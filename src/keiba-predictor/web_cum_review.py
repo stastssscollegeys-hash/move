@@ -57,6 +57,10 @@ def main():
                      "ワイド印BOX": list(itertools.combinations(M, 2)),
                      "◎流し＋○▲の1点": [(H, x) for x in o] + ([tuple(o[:2])] if len(o) >= 2 else []),
                      "◎抜きの印BOX": list(itertools.combinations(o, 2))}
+            # 2026-11-16 追加: P＝モデル確率1位（一番来そうな馬）。二軸＝◎流し＋P流し（重複は1点）。10年では 何か当たる44.5%→64.1%・回収88.7%→85.7%（axis_structure_test.py）
+            P = max(hs, key=lambda h: h.get("p_model") or 0)["uma"]
+            forms["ワイドP流し"] = [(P, x) for x in M if x != P]
+            forms["ワイド二軸（◎＋P）"] = list({tuple(sorted(c)) for c in [(H, x) for x in o] + [(P, x) for x in M if x != P]})
             for n, pts in forms.items():
                 pts = [tuple(sorted(c)) for c in pts]
                 if not pts:
