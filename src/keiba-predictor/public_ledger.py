@@ -9,6 +9,8 @@
   python public_ledger.py add --date 20261121 --race 福島11 --name 福島記念 --grade G3 --kind 公開 \
          --marks "◎8,○3,▲5,△1,△2" --top3 "5,8,3" --pops "2,1,6" --stake 10000 --ret 4200 --hits "ワイド 5-8 1000 420" --tier 通常 --ratio 1.21 --s3 14 --s4 10
          （--tier 強さ・--ratio ◎の割安さ・--s3 候補S3の穴・--s4 候補S4の5頭目。どれも web_compose の出力から）
+  python public_ledger.py from-compose --date 20261121 [--race 福島11 東京11] [--kind 公開]   # web_compose の買い目＋結果から自動で足す（手で打たない）
+  python public_ledger.py day --date 20261121      # その日の公開ぶんの結果（結果報告の投稿の材料・当たりも外れも）
   python public_ledger.py report [--year 2026]   # 出資・回収・回収率・的中率／印ごとの1着・2着内・3着内／月ごと
 決まり: 実際には買っていない（買ったとした場合の計算）。レース後に必ず足す（当たりも外れも）。後から印や買い目を書き換えない。
 """
@@ -55,6 +57,53 @@ def add(a):
     L.append(dict(date=a.date, kind=a.kind, src="add", venue=venue, R=R, name=a.name or "", grade=a.grade or "", marks=marks, fin=fin, top3=top3, top3_pop=pops, stake=a.stake, ret=a.ret, hits=hits, note=a.note or "", tier=a.tier or "", ratio=a.ratio, s3=a.s3, s4=a.s4,
                   s3_fin=fin.get(str(a.s3), 99) if a.s3 else None, s4_fin=fin.get(str(a.s4), 99) if a.s4 else None))
     save(L); print("追加", a.date, a.race, a.name, f"{a.stake:,}円→{a.ret:,}円")
+
+
+def from_compose(date, races, kind):
+    """web_compose の出力（{日付}_web_compose.json）＋ web_probs（印）＋ web_results（着順・払戻）から、台帳に足す。
+    web_compose.json は実行のたびに上書きされる＝公開した版を作った直後（または結果のあと同じ引数で作り直してから）に使う。手で直した買い目は add で入れる"""
+    import web_live as WL, web_picks as WP
+    comp = json.load(open(WL.OUT / f"{date}_web_compose.json", encoding="utf-8"))
+    probs = json.load(open(WL.OUT / f"{date}_web_probs.json", encoding="utf-8"))["races"]
+    res = json.load(open(WL.OUT / f"{date}_web_results.json", encoding="utf-8"))
+    L = load(); n = 0
+    for k in (races or list(comp)):
+        if k not in comp or k not in res or k not in probs:
+            print("  飛ばす（compose・結果・出走表のどれかが無い）:", k); continue
+        c, r, x = comp[k], res[k], probs[k]
+        pay = r.get("pay") or {}; ret = 0; hits = []
+        for typ, cb, yen, _ in c["tickets"]:
+            key = "-".join(map(str, sorted(cb)))
+            for pz in pay.get(typ, []):
+                if "-".join(map(str, sorted(map(int, str(pz["comb"]).split("-"))))) == key:
+                    ret += yen // 100 * pz["yen"]; hits.append([typ, key, yen, pz["yen"]])
+        rows = sorted([w for w in r["rows"] if isinstance(w.get("rank"), int)], key=lambda w: w["rank"])
+        top3 = [w["uma"] for w in rows[:3]]; pops = [w.get("pop") for w in rows[:3]]
+        fin = {str(w["uma"]): w["rank"] for w in rows}
+        _, mk = WP.marks_of(x); marks = {str(h["uma"]): m for m, h in mk}
+        if c.get("ana"): marks.setdefault(str(c["ana"]), "穴")
+        L = [q for q in L if not (q["date"] == date and q.get("venue") == x["venue"] and q.get("R") == x["R"] and q.get("kind") == kind)]
+        L.append(dict(date=date, kind=kind, src="web_compose", venue=x["venue"], R=x["R"], name=x.get("title", ""), grade=x.get("cond", ""), n=x.get("n"),
+                      marks=marks, fin=fin, top3=top3, top3_pop=pops, stake=c["total"], ret=ret, hits=hits, tier=c.get("tier", ""), ratio=c.get("ratio"),
+                      s3=c.get("s3"), s4=c.get("s4"), s3_fin=fin.get(str(c.get("s3")), 99) if c.get("s3") else None, s4_fin=fin.get(str(c.get("s4")), 99) if c.get("s4") else None))
+        n += 1; print(f"  {k} {x.get('title','')[:14]} {c.get('tier','')} {c['total']:,}円→{ret:,}円" + (" 的中 " + "・".join(h[0] + h[1] for h in hits) if hits else ""))
+    save(L); print("台帳に足した", n, "レース")
+
+
+def day(date, kind="公開"):
+    """その日の公開ぶんを、結果報告の投稿に使える形で出す（当たりも外れも）"""
+    L = [r for r in load() if r["date"] == date and r["stake"] > 0 and (not kind or r.get("kind") in (kind, "日合計"))]
+    if not L: print("記録なし"); return
+    st = sum(r["stake"] for r in L); rt = sum(r["ret"] for r in L); nr = sum(r.get("races", 1) for r in L); nh = sum(r.get("hit_races", 1 if r["ret"] > 0 else 0) for r in L)
+    print(f"■ {date[4:6]}/{date[6:]} の結果（公開した買い目・買ったとした場合）")
+    for r in L:
+        if r.get("kind") == "日合計": print(f"・{r.get('name','')}: {r['stake']:,}円→{r['ret']:,.0f}円"); continue
+        hon = next((u for u, m in (r.get("marks") or {}).items() if m == "◎"), None); f = (r.get("fin") or {}).get(str(hon)) if hon else None
+        hit = "・".join(str(h[0]) + str(h[1]) for h in r.get("hits") or []) if r["ret"] > 0 else "外れ"
+        print(f"・{r.get('venue','')}{r.get('R','')}R {str(r.get('name',''))[:14]}（{r.get('tier') or '—'}）: ◎{hon or '—'}番 {str(f)+'着' if f and f < 99 else '着外' if hon else ''} ／ {r['stake']:,}円→{r['ret']:,.0f}円 {hit}")
+    print(f"合計 {nr}レース・的中 {nh} ／ {st:,}円→{rt:,.0f}円（回収率 {rt/st*100:.1f}%）")
+    Y = [r for r in load() if r["date"][:4] == date[:4] and r["date"] <= date]; ys = sum(r["stake"] for r in Y); yr = sum(r["ret"] for r in Y)
+    print(f"今年の累計 {ys:,}円→{yr:,.0f}円（回収率 {yr/ys*100:.1f}%）")
 
 
 def report(year):
@@ -110,8 +159,10 @@ def main():
     p.add_argument("--ratio", type=float, help="◎の割安さ"); p.add_argument("--s3", type=int, help="候補S3の穴の馬番"); p.add_argument("--s4", type=int, help="候補S4の5頭目の馬番")
     p.add_argument("--kind", default="公開"); p.add_argument("--stake", type=int, required=True); p.add_argument("--ret", type=int, required=True)
     p = sp.add_parser("report"); p.add_argument("--year", type=int, default=2026)
+    p = sp.add_parser("from-compose"); p.add_argument("--date", required=True); p.add_argument("--race", nargs="*"); p.add_argument("--kind", default="公開")
+    p = sp.add_parser("day"); p.add_argument("--date", required=True); p.add_argument("--kind", default="公開")
     a = ap.parse_args()
-    {"rebuild": rebuild, "add": lambda: add(a), "report": lambda: report(a.year)}[a.cmd]()
+    {"rebuild": rebuild, "add": lambda: add(a), "report": lambda: report(a.year), "from-compose": lambda: from_compose(a.date, a.race, a.kind), "day": lambda: day(a.date, a.kind)}[a.cmd]()
 
 
 if __name__ == "__main__":
