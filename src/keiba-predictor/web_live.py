@@ -230,6 +230,24 @@ def main():
     liv = [r for r in races if r["part"] == "live"]
     print(f"履歴 {n_hist:,}レース（〜{last}） ／ 当日 {len(liv)}レース")
     info = {(r["競馬場"], r["R"], r["馬番"]): r for r in rows}
+    # 単勝ルール B1（市場＋木のずれ・benter_live.py）の確率も付ける（2026-11-18 追加。JV 終了後も台帳を続けるため）。
+    # 馬体重は発表済みなら入る。当日のトラックバイアスは入れない（終わったレースの成績を渡していない）。失敗しても本体は止めない
+    b1 = {}
+    try:
+        import benter_live as BL
+        wh, snap = {}, {}
+        for r in liv:
+            v, R = r["key"][1], r["key"][2]
+            snap[(v, R)] = ({u: float(o) for u, o in zip(r["uma"], r["odds"])}, {}, dict(race_id=meta[(v, R)]["rid"], title=meta[(v, R)]["title"], fetched_at=""))
+            for u in r["uma"]:
+                wt = info[(v, R, u)].get("体重表示")
+                if wt:
+                    wh[(v, R, int(u))] = wt
+        for x in BL.score(liv, snap, wh, [], a.date, cache.get("exp3") or {}):
+            b1[(x["key"][1], x["key"][2])] = dict(zip(x["uma"], x["p"]))
+        print(f"B1（市場＋木）: {len(b1)}レース")
+    except Exception as e:
+        print("B1 は計算できませんでした:", repr(e)[:200])
     out = {}
     for r in liv:
         v, R = r["key"][1], r["key"][2]
@@ -240,7 +258,8 @@ def main():
         for u, pi, qi, oi in zip(uma, p, q, r["odds"]):
             x = info[(v, R, u)]
             hs.append(dict(uma=int(u), name=x["馬名"], odds=float(oi), p_model=round(float(pi), 4), p_market=round(float(qi), 4),
-                           jockey=x["騎手"], trainer=x["厩舎"], new=x["horse_id"].startswith("web:"), weight=x.get("体重表示", "")))   # weight=馬体重の表示（例 476(+4)・発表前は空）2026-11-15
+                           jockey=x["騎手"], trainer=x["厩舎"], new=x["horse_id"].startswith("web:"), weight=x.get("体重表示", ""),
+                           p_b1=(b1.get((v, R)) or {}).get(int(u))))   # weight=馬体重の表示（例 476(+4)・発表前は空）2026-11-15
         out[f"{v}{R}"] = dict(venue=v, R=R, n=len(uma), **{k: meta[(v, R)][k] for k in ("title", "start", "dist", "baba", "cond", "rid")}, horses=hs)
     OUT.mkdir(parents=True, exist_ok=True)
     f = OUT / f"{a.date}_web_probs.json"
