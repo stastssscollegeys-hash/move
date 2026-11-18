@@ -146,6 +146,8 @@ F = [
     "好走時の体重との離れ（10kg単位）", "ダート×馬体重（470kgとの差）",
     # 重賞実績のある馬の休み明け（2026-10-21 秋華賞: 桜花賞2着から189日ぶりのギャラボーグが7番人気2着・印なし）。LAYOFFG=1 で試す
     "休み明け×前走重賞3着内", "重賞で連対の経験", "G1で連対の経験",
+    # 勝ち馬とのタイム差（2026-11-19 外部の考え方メモ「着順は悪くても僅差だった馬を人気が見落とす」から）。WINMARGIN=1 で試す
+    "勝ち馬との差（直近3走の最小・秒）", "直近3走で4着以下かつ0.5秒差以内の回数", "勝ち馬との差データなし",
 ]
 F_ALL = list(F)
 IX = {name: i for i, name in enumerate(F_ALL)}
@@ -176,6 +178,9 @@ if os.environ.get("LAYOFFG") != "1":                    # 検証が済むまで�
     EXTRA = EXTRA + LAYOFFG
 if os.environ.get("NEWBIE") != "1":
     EXTRA = EXTRA + NEWBIE
+WINMARGIN = ["勝ち馬との差（直近3走の最小・秒）", "直近3走で4着以下かつ0.5秒差以内の回数", "勝ち馬との差データなし"]
+if os.environ.get("WINMARGIN") != "1":                  # 検証が済むまでは学習に使わない（WINMARGIN=1 で試す・2026-11-19）
+    EXTRA = EXTRA + WINMARGIN
 if os.environ.get("CHOKYO") == "0":                       # 2026-10-05 採用（年ごとの前向き検証 +0.00606→+0.00657、8年中7年で改善）。CHOKYO=0 で外せる
     EXTRA = EXTRA + CHOKYO
 KEEP = [i for i, n in enumerate(F_ALL) if n not in EXTRA]
@@ -393,6 +398,12 @@ def build(extra_rows=None):
                         x[IX["乗り替わり"]] = 1.0
                     if gap >= 91 and (p["cls"] or 0) >= 6 and p["fin"] and p["fin"] <= 3:
                         x[IX["休み明け×前走重賞3着内"]] = 1.0
+                _td = [pp.get("tdiff") for pp in past[-3:] if pp.get("tdiff") is not None]
+                if _td:
+                    x[IX["勝ち馬との差（直近3走の最小・秒）"]] = min(3.0, min(_td)) - 0.6
+                    x[IX["直近3走で4着以下かつ0.5秒差以内の回数"]] = float(sum(1 for pp in past[-3:] if pp.get("tdiff") is not None and pp["fin"] and pp["fin"] >= 4 and pp["tdiff"] <= 0.5))
+                else:
+                    x[IX["勝ち馬との差データなし"]] = 1.0
                 x[IX["重賞で連対の経験"]] = float(any((pp["cls"] or 0) >= 6 and pp["fin"] and pp["fin"] <= 2 for pp in past))
                 x[IX["G1で連対の経験"]] = float(any((pp["cls"] or 0) >= 7 and pp["fin"] and pp["fin"] <= 2 for pp in past))
                 m = re.search(r"\(([+-]?\d+)\)", str(h.get("馬体重") or ""))
@@ -631,10 +642,16 @@ def build(extra_rows=None):
             sf, mt = surf(h.get("距離")), meters(h.get("距離"))
             t, b = sec(h.get("タイム")), std.get((sf, mt))
             raw = (b - t) / b * 100.0 if (t and b and f) else None
+            tdiff = None                                   # 勝ち馬とのタイム差（秒）。その日が終わってから記録＝次走以降の特徴量にだけ使う
+            if t and f and not h.get("_live"):
+                _rk = (h["date"], h["競馬場"], int(float(h["R"])))
+                _wt = [sec(y.get("タイム")) for y in races.get(_rk, []) if y.get("_f") == 1]
+                if _wt and _wt[0]:
+                    tdiff = max(0.0, t - _wt[0])
             c = [int(v) for v in re.findall(r"\d+", str(h.get("コーナー通過") or ""))]
             ent_h = dict(date=d, fin=f, n=n, pop=num(h.get("人気")), odds=h["_o"], m=mt, surf=sf, jockey=h.get("騎手"),
                          style=h.get("脚質"), l3rank=num(h.get("後3F順位")), c4=c[-1] if c else None, cls=cls_now, raw=raw, adj=None, live=bool(h.get("_live")),
-                         baba=h.get("馬場状態"), q=qi, bw=_bw(h.get("馬体重")),
+                         baba=h.get("馬場状態"), q=qi, bw=_bw(h.get("馬体重")), tdiff=tdiff,
                          pace=((h.get("前3F_レース") - h.get("後3F_レース")) if (h.get("前3F_レース") and h.get("後3F_レース")) else None))
             if raw is not None:
                 raws[(h.get("競馬場"), sf)].append(raw)
