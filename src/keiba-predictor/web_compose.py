@@ -13,6 +13,7 @@
   ・◎抜きの保険（馬連○-▲）は --hoken を付けたときだけ1点・予算の1割
 印: web_picks.marks_of ＋ 穴（6番人気以下・勝つ確率2%以上・印なしで最も割安な1頭。--ana 馬番 で指定／--keep 馬番… で△として残す馬を足す）
   python web_compose.py --date 20261115 --race 京都11 [--budget 10000] [--keep 6] [--ana 10] [--hoken] [--no-odds]
+強さ（2026-11-18〜）: ◎の割安さ 1.15未満＝見送り（予算の3割の少額で試算だけ）／1.15〜1.30＝通常／1.30以上＝単勝を本線（45%）。--no-tier で無効
 出力: 買い目（100円単位）、◎が1着／2着／3着／着外のとき何%を拾えるか、どれかが当たる確率、券ごとの的中確率と（オッズが取れれば）期待値、当たっても損になる割合。
 """
 import argparse
@@ -29,19 +30,39 @@ import web_live as WL
 import web_picks as WP
 
 SHARE = {"単勝◎": .25, "馬連◎-○": .20, "馬連◎-▲": .15, "馬連◎-穴": .05, "ワイド◎-○": .10, "ワイド◎-▲": .08, "ワイド◎-穴": .05, "3連複": .12}
+# 2026-11-18 採用（ユーザー承認・docs/keiba_2026_summary_20261118.md §7）: ◎の割安さ（モデル÷市場）で買う強さを変える
+#   S1 割安さ1.15未満 ＝ 見送り（公開しない。出すなら予算の3割の少額）… 10年25,440Rで、この帯は何を買っても回収率83〜90%
+#   S2 割安さ1.30以上 ＝ 単勝を本線（予算の45%）… 単勝108%（前半111/後半104）。割安なレースはワイドより単勝
+#   S5 △（人気で印なし）は押さえだけ ＝ もともと3連複の3列目だけ（単勝71%・◎とのワイド84.5%）
+TIER_LO, TIER_HI, LOW_BUDGET = 1.15, 1.30, .30
+SHARE_TAN = {"単勝◎": .45, "馬連◎-○": .15, "馬連◎-▲": .10, "馬連◎-穴": .05, "ワイド◎-○": .07, "ワイド◎-▲": .05, "ワイド◎-穴": .03, "3連複": .10}
+
+
+def tier_of(ratio):
+    return "見送り" if ratio < TIER_LO else "単勝本線" if ratio >= TIER_HI else "通常"
 
 
 def r100(x):
     return int(round(x / 100.0)) * 100
 
 
-def compose(race, budget=10000, keep=(), ana=None, hoken=False, use_odds=True):
+def compose(race, budget=10000, keep=(), ana=None, hoken=False, use_odds=True, tier=True):
     hs, marks = WP.marks_of(race)
     by = {h["uma"]: h for h in hs}
     M = {m: [h["uma"] for mm, h in marks if mm == m] for m in "◎○▲△"}
     H = M["◎"][0]; o = (M["○"] or [None])[0]; t = (M["▲"] or [None])[0]
     D = M["△"] + [u for u in keep if u not in [H, o, t] + M["△"]]
     used = {H, o, t} | set(D)
+    ratio = by[H]["p_model"] / by[H]["p_market"]; tr = tier_of(ratio) if tier else "通常"
+    SH = SHARE_TAN if tr == "単勝本線" else SHARE
+    if tr == "見送り":
+        budget = max(r100(budget * LOW_BUDGET), 1000)
+    # 前向きに確かめる候補（まだ買い目には使わない）: S3 穴の基準（6番人気以下・割安さ1.3以上・確率2%以上）／S4 5頭目の印（印なしで割安さ1位・確率3%以上）
+    rt = lambda h: h["p_model"] / h["p_market"]
+    c3 = [h for h in hs if h["uma"] not in used and h["pop"] >= 6 and h["p_model"] >= .02 and rt(h) >= 1.3]
+    s3 = max(c3, key=rt)["uma"] if c3 else None
+    c4 = [h for h in hs if h["uma"] not in used and h["p_model"] >= .03]
+    s4 = max(c4, key=rt)["uma"] if c4 else None
     if ana is None:
         c = [h for h in hs if h["uma"] not in used and h["pop"] >= 6 and h["p_model"] >= .02]
         ana = max(c, key=lambda h: h["p_model"] / h["p_market"])["uma"] if c else None
@@ -51,11 +72,11 @@ def compose(race, budget=10000, keep=(), ana=None, hoken=False, use_odds=True):
     def put(typ, comb, yen, role):
         if yen >= 100 and all(c is not None for c in comb):
             T.append([typ, tuple(comb) if typ == "単勝" else tuple(sorted(comb)), r100(yen), role])
-    put("単勝", (H,), budget * SHARE["単勝◎"], "◎1着")
-    put("馬連", (H, o), budget * SHARE["馬連◎-○"], "◎2着まで"); put("馬連", (H, t), budget * SHARE["馬連◎-▲"], "◎2着まで")
-    put("ワイド", (H, o), budget * SHARE["ワイド◎-○"], "◎3着まで"); put("ワイド", (H, t), budget * SHARE["ワイド◎-▲"], "◎3着まで")
+    put("単勝", (H,), budget * SH["単勝◎"], "◎1着")
+    put("馬連", (H, o), budget * SH["馬連◎-○"], "◎2着まで"); put("馬連", (H, t), budget * SH["馬連◎-▲"], "◎2着まで")
+    put("ワイド", (H, o), budget * SH["ワイド◎-○"], "◎3着まで"); put("ワイド", (H, t), budget * SH["ワイド◎-▲"], "◎3着まで")
     if ana:
-        put("馬連", (H, ana), budget * SHARE["馬連◎-穴"], "穴の押さえ"); put("ワイド", (H, ana), budget * SHARE["ワイド◎-穴"], "穴の押さえ")
+        put("馬連", (H, ana), budget * SH["馬連◎-穴"], "穴の押さえ"); put("ワイド", (H, ana), budget * SH["ワイド◎-穴"], "穴の押さえ")
     tri = list(dict.fromkeys(tuple(sorted((H, x, y))) for x in core for y in aite if y != x))
     for c in tri:
         put("3連複", c, 100, "◎3着まで（高配当）")
@@ -66,7 +87,7 @@ def compose(race, budget=10000, keep=(), ana=None, hoken=False, use_odds=True):
     main_tri = tuple(sorted((H, o, t))) if len(core) == 2 else None
     for x in T:
         if rest > 0 and x[0] == "3連複" and x[1] == main_tri:
-            add = min(rest, r100(budget * SHARE["3連複"]) - 100 * len(tri) + 0) if r100(budget * SHARE["3連複"]) > 100 * len(tri) else 0
+            add = min(rest, r100(budget * SH["3連複"]) - 100 * len(tri) + 0) if r100(budget * SH["3連複"]) > 100 * len(tri) else 0
             x[2] += max(add, 0); rest -= max(add, 0)
     T[0][2] += rest
     # ── 確率（モデル・全頭 Harville）──
@@ -122,7 +143,7 @@ def compose(race, budget=10000, keep=(), ana=None, hoken=False, use_odds=True):
                     if any(hs_) and ret < tot:
                         gami += pr
     return dict(H=H, o=o, t=t, D=D, ana=ana, tickets=T, total=tot, pos=pos, cov=cov, anyhit=anyhit, pt=pt, odds=odds, ev=ev_ret / tot if odds else None,
-                gami=gami / anyhit if odds and anyhit else None, by=by)
+                gami=gami / anyhit if odds and anyhit else None, by=by, ratio=ratio, tier=tr, s3=s3, s4=s4)
 
 
 CIRC = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱"
@@ -174,6 +195,8 @@ def fmt_post(r):
 def show(k, race, r):
     by = r["by"]; nm = lambda u: f"{u}{by[u]['name'][:8]}"
     print(f"■ {k} {race['title']} {race['dist']} {race['n']}頭")
+    note = {"見送り": "＝見送り（公開しない。出すなら少額）", "単勝本線": "＝単勝を本線", "通常": "＝通常"}[r["tier"]]
+    print(f"  ◎の割安さ {r['ratio']:.2f} {note}" + (f" ／ 候補S3の穴 {nm(r['s3'])}" if r["s3"] else "") + (f" ／ 候補S4の5頭目 {nm(r['s4'])}" if r["s4"] else ""))
     print("  印: ◎" + nm(r["H"]) + (" ○" + nm(r["o"]) if r["o"] else "") + (" ▲" + nm(r["t"]) if r["t"] else "") + "".join(" △" + nm(d) for d in r["D"]) + (" 穴" + nm(r["ana"]) if r["ana"] else ""))
     for (typ, cb, yen, role), p_ in zip(r["tickets"], r["pt"]):
         o_ = r["odds"].get((typ, cb)) if r["odds"] else None
@@ -189,17 +212,18 @@ def main():
     ap.add_argument("--budget", type=int, default=10000); ap.add_argument("--keep", nargs="*", type=int, default=[])
     ap.add_argument("--ana", type=int); ap.add_argument("--hoken", action="store_true"); ap.add_argument("--no-odds", action="store_true")
     ap.add_argument("--post", action="store_true", help="投稿用の買い目の表記（v3）も出す")
+    ap.add_argument("--no-tier", action="store_true", help="◎の割安さで強さを変えない（2026-11-18より前の組み方）")
     a = ap.parse_args()
     d = json.load(open(WL.OUT / f"{a.date}_web_probs.json", encoding="utf-8"))
     print("オッズ取得:", d.get("made_at"))
     out = {}
     for k in a.race:
-        r = compose(d["races"][k], a.budget, a.keep, a.ana, a.hoken, not a.no_odds)
+        r = compose(d["races"][k], a.budget, a.keep, a.ana, a.hoken, not a.no_odds, not a.no_tier)
         show(k, d["races"][k], r)
         if a.post:
             print(chr(10) + fmt_post(r) + chr(10))
         out[k] = dict(tickets=[[t, list(c), y, ro] for t, c, y, ro in r["tickets"]], total=r["total"], anyhit=round(r["anyhit"], 4),
-                      pos=[round(float(x), 4) for x in r["pos"]], cov=[round(float(x), 4) for x in r["cov"]], ev=r["ev"], ana=r["ana"])
+                      pos=[round(float(x), 4) for x in r["pos"]], cov=[round(float(x), 4) for x in r["cov"]], ev=r["ev"], ana=r["ana"], ratio=round(float(r["ratio"]), 3), tier=r["tier"], s3=r["s3"], s4=r["s4"])
     json.dump(out, open(WL.OUT / f"{a.date}_web_compose.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=float)
 
 

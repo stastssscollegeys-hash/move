@@ -55,7 +55,7 @@ def rank(d, after):
     rows.sort(key=lambda x: -x[0])
     for ra, k, r, h, nn in rows:
         print(f"{k:5} {r['start']:>5} {r['title'][:14]:14} {r['dist']:7} {r['n']:2}頭 新馬{nn:2} ◎{h['uma']}{h['name'][:8]} {h['pop']}人 {h['odds']}倍 "
-              f"勝{h['p_model']*100:.1f}%/市{h['p_market']*100:.1f}% 比{ra:.2f}")
+              f"勝{h['p_model']*100:.1f}%/市{h['p_market']*100:.1f}% 比{ra:.2f} " + ("★単勝本線" if ra >= 1.30 else "通常" if ra >= 1.15 else "×見送り"))
 
 
 def evaluate(k, r):
