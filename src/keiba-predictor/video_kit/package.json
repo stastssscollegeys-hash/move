@@ -1,0 +1,11 @@
+{
+  "name": "keiba-video-creator-ss",
+  "version": "1.0.0",
+  "private": true,
+  "description": "競馬の本編動画・ショート動画づくりの道具（TTS・画像生成・YouTube下書き）",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "dotenv": "^16.4.5"
+  }
+}

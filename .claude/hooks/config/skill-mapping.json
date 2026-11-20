@@ -5,6 +5,24 @@
 
   "mappings": [
     {
+      "name": "競馬動画（合いの手あり）",
+      "description": "2026-11-20 ユーザー指示。合いの手ありと指定された競馬の本編・ショート動画は keiba-video-aiai-ss（video_kit の対話モード：アスメシ解説＋競馬ファンの合いの手）",
+      "when_contains_all": [],
+      "when_contains_any": ["合いの手あり", "合いの手を入れ", "合いの手付き", "合いの手つき", "合いの手がある", "掛け合いで", "対話モード"],
+      "required_skills": ["keiba-video-aiai-ss"],
+      "priority": 97,
+      "strict": false
+    },
+    {
+      "name": "競馬動画（合いの手なし）",
+      "description": "2026-11-20 ユーザー指示。合いの手なしと指定された競馬の本編・ショート動画は keiba-video-solo-ss（これまでの1人の語りの流れ）",
+      "when_contains_all": [],
+      "when_contains_any": ["合いの手なし", "合いの手は入れない", "合いの手を入れない", "合いの手がない", "合いの手は無し", "合いの手無し"],
+      "required_skills": ["keiba-video-solo-ss"],
+      "priority": 97,
+      "strict": false
+    },
+    {
       "name": "ランサーズ 単純データ収集作業",
       "description": "ランサーズ(Lancers.jp)のGAS製タスクポータルで行う検索・データ抽出・報告欄入力クラウドワークを自動処理",
       "when_contains_all": [],

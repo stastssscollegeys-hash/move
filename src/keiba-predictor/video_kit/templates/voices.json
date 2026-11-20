@@ -1,0 +1,29 @@
+{
+  "_説明": "話し手ごとの声（Gemini TTS の声の名前）と読み方。台本の各場面の \"speaker\" でどれを使うか選ぶ（無ければ narrator）。台本の \"speakers\" で上書きできる。2026-11-19。role＝kaisetsu（解説役：中身・数字・結論を話す・字幕は白と黄色）／kikite（聞き役：見ている人の代弁・字幕は subtitle_color の色）。対話モードで speaker の無い場面は、解説役が話す。対話モードの丸アイコン＝\"icon\"（assets の _on.png／_off.png＋口パク用の _on_open.png の頭の名前・scripts/image/make_icons.py で作る）と \"side\"（下の左右の角のどちらに置くか。説明する側＝right・反応する側＝left）と \"name\"（アイコンの下の名前）",
+  "speakers": {
+    "narrator": {
+      "label": "",
+      "voice": "Zephyr",
+      "style": "落ち着いて、はっきり、親しみやすく。競馬の予想を分かりやすく説明するように"
+    },
+    "asumeshi": {
+      "role": "kaisetsu",
+      "label": "アスメシ",
+      "voice": "Leda",
+      "style": "かわいい子馬のマスコットキャラクターが、自分で調べたデータを、自信をもって分かりやすく説明するように。明るく、はっきり、テンポよく",
+      "icon": "assets/icon_asumeshi",
+      "side": "right",
+      "name": "アスメシ"
+    },
+    "fan": {
+      "role": "kikite",
+      "label": "",
+      "voice": "Puck",
+      "style": "親しみやすい20代の競馬好きの男性が、話を聞きながら反応する。気持ちを大きく声に乗せる。驚くところは本気でびっくりして声が跳ね上がり、聞き返すところは不思議そうに、納得するところはうれしそうに声がはずむ。明るく、自然に",
+      "subtitle_color": "#4FC3F7",
+      "icon": "assets/icon_fan",
+      "side": "left",
+      "name": "ファン"
+    }
+  }
+}

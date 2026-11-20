@@ -207,6 +207,16 @@ Gemini TTS の有料キーが月の上限・無料枠が1日で尽きるとき�
 - 数場面まとめて作り直した音声は fx_split.py（長い無音の上位 n-1 か所で切る）で場面に戻す
 - 🔴 文字起こし・検証・長尺の合成はどれも、バックグラウンドだとメモリ不足で止められる＝PowerShell の Start-Process で切り離し、Monitor で終わりを待つ。.cmd 経由は日本語のパスで失敗する（python を直接起動する）
 
+## 4b-5. 2026-11-20 動画の道具一式 video_kit（対話モード入り）を取り込み
+- 置き場所: **`src/keiba-predictor/video_kit/`**（受け取った keiba-video-creator-ss.zip・2026-11-19版。説明は同じフォルダの `SKILL.md`・`docs/workflow.md`）
+- 前の道具（preview_week・after_draw・long_tools にばらばらにあった build_video／gen_short_tts／tts_chunks／split_chunks など）との違い:
+  - **対話モード**: 台本の場面に `"speaker": "asumeshi"`（解説役・声 Leda）／`"fan"`（聞き役の競馬ファン・声 Puck・字幕は水色）。画面の下の角に丸アイコン（説明する側＝右・反応する側＝左）、話している方が光って口パク。話し手の設定は `templates/voices.json`、アイコンは `assets/icon_*`（`scripts/image/make_icons.py`・`merge_mouth.py` で作る）
+  - 対話の型の検査 `scripts/check/dialog_check.py`（聞き役が「見ている人が頭の中で思うこと」を口に出しているか）
+  - 音声の既定が **gemini-3.8-flash-tts**（共通部品 `scripts/tts/gemini38.js`・1日の上限で次の鍵へ・声に渡す文だけ tts_yomi でひらがなに）
+  - まとめ読みの切り分けに `scripts/audio/align_cuts.py`（文字起こしで境目を合わせる）
+- 使う前に PowerShell で `. .\src\keiba-predictor\video_kit\set_env.ps1`（作業場所・キャラシート・BGM・効果音のパス。APIキーはリポジトリ直下の .env を読む）
+- 🔴 使い分け（2026-11-20 ユーザー指示・有無は必ずユーザーが指定する）: **合いの手あり → スキル `keiba-video-aiai-ss`（video_kit の対話モード）／合いの手なし → スキル `keiba-video-solo-ss`（これまでの道具・手順のまま）**。指定が無ければ聞く。前の道具は solo で使うので消さない
+
 ## 4c. 枠順確定版のあと（動画・ショート・サムネ・YouTube下書き・告知・note）※2026-11-13 確立
 手順の正本は SKILL.md §3h。雛形は `src/keiba-predictor/preview_week/draw_version/after_draw/`（README に表）。
 - 流れ: 画像（ショート2＋本編17／レース）→ ショート（8場面）→ 本編（まとめ読み音声→切り分け→照合→組み立て→区間ごとに字幕焼き込み）→ サムネ（レース名最大＋軸候補・穴候補の名札）→ YouTube素材 → YouTube下書き → （公開後）告知投稿 → note記事（見出し・太字・目次・YouTube埋め込み）
