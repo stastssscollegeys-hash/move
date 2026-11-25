@@ -119,6 +119,18 @@ def main(A):
             for r in json.loads(f.read_text(encoding="utf-8")):
                 if r.get("horse_id") in need:
                     runs[r["horse_id"]].append(r)
+    # 2026-11-23 追加: history_target は 10/18 まで・history_web は 11/7 から。あいだの 10/24〜11/1 は JV速報（RT/RA・SE）にしか無い
+    # （web_live は ev_live.train_all 経由で読んでいたが、ここは読んでおらず、天皇賞（秋）・菊花賞の日の走りが近走から抜けていた）
+    try:
+        import ev_live as L
+        have = {(r["date"], r["競馬場"], r["R"], r["horse_id"]) for v in runs.values() for r in v}
+        n_rt = 0
+        for r in L.jv_results_and_entries("00000000")[0]:
+            if r.get("horse_id") in need and (r["date"], r["競馬場"], r["R"], r["horse_id"]) not in have:
+                runs[r["horse_id"]].append(r); n_rt += 1
+        print(f"JV速報の成績から {n_rt} 走を足した")
+    except Exception as e:
+        print("JV速報の成績は足せませんでした:", repr(e)[:160])
     CK = chokyo.load()
     for x in races:
         d0 = datetime.date(int(x["date"][:4]), int(x["date"][4:6]), int(x["date"][6:]))

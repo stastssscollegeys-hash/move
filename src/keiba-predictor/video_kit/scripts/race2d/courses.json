@@ -1,0 +1,281 @@
+{
+ "_説明": "コースの形（簡略化した楕円＝直線2本と半円2つ）。左回り＝反時計回り。数字はメートル。lap＝1周、home＝最後の直線（4コーナーの出口からゴールまで）、straight＝図で描く直線の長さ（ゴールの先も少し描く）。長い距離でスタートが向こう正面の直線より手前のときは、向こう正面をまっすぐ延ばした引き込み線から出る形で描く（本物の引き込み線の角度は簡略化）。2026-11-19 まず東京だけ。2026-11-20 shape＝courses/<競馬場>.json（make_course_osm.py で地図から取った実物の形）があればそれで描く。loop＝その中の輪（ダート／芝）。chute＝引き込み線から出る距離。home_side＝ゴール前の直線のある向き。2026-11-20 全10場（公式＝JRA の各競馬場のコース紹介）。turn＝回り（left／right）。芝外＝外回り（新潟・中山・京都・阪神）。home_side＝auto はスタンド（地図のいちばん大きい建物）に近い直線。新潟_直線＝外回りのゴール前の直線を後ろへまっすぐ延ばした1000m（straight_only）。引き込み線（chute）は東京ダ1600 だけ入れてある＝ほかの場は輪の上から出る形（簡略化）",
+ "東京_ダート": {
+  "lap": 1899,
+  "home": 501.6,
+  "straight": 560,
+  "track_w": 25,
+  "shape": "東京",
+  "loop": "ダート",
+  "chute": [
+   1600
+  ],
+  "home_side": "north",
+  "turn": "left"
+ },
+ "東京_芝": {
+  "lap": 2083.1,
+  "home": 525.9,
+  "straight": 590,
+  "track_w": 31,
+  "shape": "東京",
+  "loop": "芝",
+  "chute": [],
+  "home_side": "north",
+  "turn": "left"
+ },
+ "札幌_ダート": {
+  "lap": 1487,
+  "home": 264.3,
+  "straight": 324,
+  "track_w": 20,
+  "shape": "札幌",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "札幌_芝": {
+  "lap": 1640.9,
+  "home": 266.1,
+  "straight": 326,
+  "track_w": 25,
+  "shape": "札幌",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "函館_ダート": {
+  "lap": 1475.8,
+  "home": 260.3,
+  "straight": 320,
+  "track_w": 20,
+  "shape": "函館",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "函館_芝": {
+  "lap": 1626.6,
+  "home": 262.1,
+  "straight": 322,
+  "track_w": 29,
+  "shape": "函館",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "福島_ダート": {
+  "lap": 1444.6,
+  "home": 295.7,
+  "straight": 356,
+  "track_w": 20,
+  "shape": "福島",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "福島_芝": {
+  "lap": 1600,
+  "home": 292.0,
+  "straight": 352,
+  "track_w": 25,
+  "shape": "福島",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "新潟_ダート": {
+  "lap": 1472.5,
+  "home": 353.9,
+  "straight": 414,
+  "track_w": 20,
+  "shape": "新潟",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto"
+ },
+ "新潟_芝": {
+  "lap": 1623,
+  "home": 358.7,
+  "straight": 419,
+  "track_w": 25,
+  "shape": "新潟",
+  "loop": "芝",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto"
+ },
+ "新潟_芝外": {
+  "lap": 2223,
+  "home": 658.7,
+  "straight": 719,
+  "track_w": 25,
+  "shape": "新潟",
+  "loop": "芝外",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto"
+ },
+ "中山_ダート": {
+  "lap": 1493,
+  "home": 308,
+  "straight": 368,
+  "track_w": 20,
+  "shape": "中山",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "中山_芝": {
+  "lap": 1667.1,
+  "home": 310,
+  "straight": 370,
+  "track_w": 20,
+  "shape": "中山",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "中山_芝外": {
+  "lap": 1839.7,
+  "home": 310,
+  "straight": 370,
+  "track_w": 24,
+  "shape": "中山",
+  "loop": "芝外",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "中京_ダート": {
+  "lap": 1530,
+  "home": 410.7,
+  "straight": 471,
+  "track_w": 25,
+  "shape": "中京",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto"
+ },
+ "中京_芝": {
+  "lap": 1705.9,
+  "home": 412.5,
+  "straight": 472,
+  "track_w": 28,
+  "shape": "中京",
+  "loop": "芝",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto"
+ },
+ "京都_ダート": {
+  "lap": 1607.6,
+  "home": 329.1,
+  "straight": 389,
+  "track_w": 25,
+  "shape": "京都",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "京都_芝": {
+  "lap": 1782.8,
+  "home": 328.4,
+  "straight": 388,
+  "track_w": 27,
+  "shape": "京都",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "京都_芝外": {
+  "lap": 1894.3,
+  "home": 403.7,
+  "straight": 464,
+  "track_w": 24,
+  "shape": "京都",
+  "loop": "芝外",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "阪神_ダート": {
+  "lap": 1517.6,
+  "home": 352.7,
+  "straight": 413,
+  "track_w": 22,
+  "shape": "阪神",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "阪神_芝": {
+  "lap": 1689,
+  "home": 356.5,
+  "straight": 416,
+  "track_w": 24,
+  "shape": "阪神",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "阪神_芝外": {
+  "lap": 2089,
+  "home": 473.6,
+  "straight": 534,
+  "track_w": 24,
+  "shape": "阪神",
+  "loop": "芝外",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "小倉_ダート": {
+  "lap": 1445.4,
+  "home": 291.3,
+  "straight": 351,
+  "track_w": 24,
+  "shape": "小倉",
+  "loop": "ダート",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "小倉_芝": {
+  "lap": 1615.1,
+  "home": 293,
+  "straight": 353,
+  "track_w": 30,
+  "shape": "小倉",
+  "loop": "芝",
+  "chute": [],
+  "turn": "right",
+  "home_side": "auto"
+ },
+ "新潟_直線": {
+  "lap": 2223,
+  "home": 658.7,
+  "straight": 1000,
+  "track_w": 25,
+  "shape": "新潟",
+  "loop": "芝外",
+  "chute": [],
+  "turn": "left",
+  "home_side": "auto",
+  "straight_only": true
+ }
+}

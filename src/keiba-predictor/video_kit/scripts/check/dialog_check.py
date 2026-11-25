@@ -6,6 +6,7 @@
   注意 ② 聞き役のセリフが、直前の解説の1.5倍より長い（聞き役が話しすぎ）
   注意 ③ 聞き役のセリフが、受け答えの形（？・！・だね・ってこと）になっていない
   注意 ④ 台本の最後のまとめの場面が聞き役（結論は解説役が言う）
+  NG ⑤ 聞き役のセリフに です・ます がある（聞き役はタメ口・2026-11-20 ユーザー「男性タメ口にしたい」）
 使い方: python scripts/check/dialog_check.py <script.json> [--gap 3]
 終了コード: NG があれば 1
 """
@@ -47,6 +48,8 @@ def main():
             prev = next((p for p in reversed(sc[:i]) if who(p) not in ASKER), None)
             if prev and len(s["narration"]) > len(prev["narration"]) * 1.5:   # 見本（聞き役32字・解説25字）は通す
                 warn.append(f"場面{s['id']}: 聞き役（{len(s['narration'])}字）が直前の解説（場面{prev['id']}・{len(prev['narration'])}字）の1.5倍より長い＝聞き役が話しすぎ")
+            if re.search(r"です|ます|でしょう|ません|ください", s["narration"]):
+                ng.append(f"場面{s['id']}: 聞き役のセリフが です・ます になっている（タメ口にする）「{s['narration'][:30]}」")
             if not re.search(r"[？?！!]|だね|ってこと|なんだ|かな|よね", s["narration"]):
                 warn.append(f"場面{s['id']}: 聞き役のセリフが受け答えの形になっていない「{s['narration'][:30]}」")
         elif heavy(s["narration"]):

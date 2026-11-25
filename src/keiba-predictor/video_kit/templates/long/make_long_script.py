@@ -100,6 +100,6 @@ scenes = [dict(id=i, image=f"{img}.png", sec=8.0, zoom=z, narration=nar, subtitl
           for i, (img, z, fo, nar, subs) in enumerate(S, 1)]
 out = D / "script_tospo_long.json"
 out.write_text(json.dumps(dict(race="東京スポーツ杯2歳S 1週前プレビュー（長尺）", date="2026-11-23", image_dir="images", out_suffix="long",
-    canvas=dict(w=1920, h=1080, fg_w=1620, fg_h=1080, y_off=0, zmax=1.04, font=46, hilite=50, margin_v=40, wrap=28), scenes=scenes),
+    canvas=dict(w=1920, h=1080, fg_w=1620, fg_h=1080, y_off=0, zmax=1.04, font=58, hilite=62, margin_v=40, wrap=22), scenes=scenes),   # 2026-11-20 ユーザー「字幕をもっと大きく」46→58
     ensure_ascii=False, indent=1), encoding="utf-8")
 print(out, len(scenes), "場面", sum(len(s[3]) for s in S), "字")

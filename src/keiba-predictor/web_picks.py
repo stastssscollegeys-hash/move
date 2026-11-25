@@ -24,7 +24,15 @@ import web_frontier as F
 import web_live as WL
 
 
-def marks_of(race):
+# 2026-11-26 試行 v5.4-A1（ユーザー指示「予想の方法まで根本から見直す」・docs/keiba_method_review_20261126.md）
+#   Web版7日・206Rで、◎（割安さ1位）は 勝22%・3着内44%。モデル確率1位（P）は 勝33%・3着内62%。◎とPが別の馬の124Rでは ◎の3着内は32%だけ。
+#   → 割安でも「来る見込みがPの7割に届かない馬」は軸にしない（◎＝P にして、割安な馬は○に下げる）。割安さの順は○▲に残す。
+#   🔴 同日夜に10年で検証: ◎単勝 91.4%→84.9%・ワイド◎流し 88.7%→84.7%（的中 44.5%→53.7%）＝回収率は下がる。既定は以前の付け方（v53）のまま。
+#   KEIBA_AXIS=p70 でこの付け方（当たる頻度を上げたいとき用・二軸と同じ扱い）。前向き台帳は N1・N2・NW で p70 を数え続ける。
+AXIS_MIN = 0.70
+
+
+def marks_of_v53(race):
     hs = sorted([h for h in race["horses"] if h.get("odds")], key=lambda h: h["odds"])
     for i, h in enumerate(hs):
         h["pop"] = i + 1
@@ -42,6 +50,32 @@ def marks_of(race):
     return hs, marks
 
 
+
+def value_ratio(race):
+    """レースの「割安さ」＝以前の◎（確率8%以上で最も割安な馬）のモデル÷市場。買う強さ（見送り／通常／単勝本線）はこの数字で決める"""
+    hs, mk = marks_of_v53(race)
+    return (mk[0][1]["p_model"] / mk[0][1]["p_market"]) if mk else 0.0
+
+
+def marks_of(race, axis=None):
+    import os
+    axis = axis or os.environ.get("KEIBA_AXIS", "v53")     # 2026-11-26 夜: 10年25,440Rで p70 は回収率が約4pt下がる（mark_rule_test.py K）→ 既定は以前の付け方に戻した。KEIBA_AXIS=p70 で「当たる頻度を上げる形」
+    hs, mk = marks_of_v53(race)
+    if not mk or axis == "v53":
+        return hs, mk
+    hon = mk[0][1]; P = max(hs, key=lambda h: h.get("p_model") or 0)
+    if P is hon or hon["p_model"] >= AXIS_MIN * P["p_model"]:
+        return hs, mk
+    ratio = lambda h: h["p_model"] / h["p_market"]
+    rest = [hon] + sorted([h for h in hs if h["p_model"] >= .05 and h is not hon and h is not P], key=lambda h: -ratio(h))
+    marks = [("◎", P)] + list(zip(("○", "▲"), rest[:2]))
+    used = {h["uma"] for _, h in marks}
+    for h in hs[:3]:
+        if h["uma"] not in used:
+            marks.append(("△", h)); used.add(h["uma"])
+    return hs, marks
+
+
 def rank(d, after):
     rows = []
     for k, r in d.items():
@@ -51,7 +85,7 @@ def rank(d, after):
         if not mk:
             continue
         h = mk[0][1]
-        rows.append((h["p_model"] / h["p_market"], k, r, h, sum(x.get("new", False) for x in hs)))
+        rows.append((value_ratio(r), k, r, h, sum(x.get("new", False) for x in hs)))   # 2026-11-26: 強さは「レースの割安さ」（以前の◎の比）で決める
     rows.sort(key=lambda x: -x[0])
     for ra, k, r, h, nn in rows:
         print(f"{k:5} {r['start']:>5} {r['title'][:14]:14} {r['dist']:7} {r['n']:2}頭 新馬{nn:2} ◎{h['uma']}{h['name'][:8]} {h['pop']}人 {h['odds']}倍 "

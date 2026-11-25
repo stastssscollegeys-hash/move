@@ -19,6 +19,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 FPS = 30
 FONT = os.environ.get("KVC_FONT") or ("Hiragino Sans" if sys.platform == "darwin" else "HGSoeiKakugothicUB")   # 2026-11-19 Mac には HG創英角ゴシックUB が無い（字幕の字は KVC_FONT で変えられる）
 PAD = 0.45        # 語尾の余白（add_bgm_se.py と同じ値）
+# 2026-11-20 対話モード：話し手が替わる間が長い（場面の声の頭 約0.2〜0.3秒・お尻 約0.4〜0.7秒の無音＋PAD で最大約1.4秒）
+# → 対話の台本では、場面の声の頭と尻の無音を詰め（頭 0.06秒・尻 0.12秒だけ残す）、余白を DIALOG_PAD にする（ユーザー「話し手の間を短く」）
+DIALOG_PAD = float(os.environ.get("KVC_DIALOG_PAD", "0.15"))
+TRIM = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.06,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse"
 
 
 def wav_sec(p: Path) -> float:
@@ -86,6 +90,60 @@ def wrap_sub(text: str, wrap: int) -> list:
     return [text[:cut].rstrip(), text[cut:].lstrip()]
 
 
+# ---- 2026-11-20 全文字幕（台本の "subtitle_mode": "full"）: 話している文をすべて字幕に出し、大事な所に色を付ける（ユーザー「要点しか字幕で表示されてない・すべての文字を字幕で・重要なところは赤文字とか黄色文字で強調」）
+#   "subtitle" の各要素に、画面に出す文をそのまま書く（読ませる文 narration はかな・漢数字のままでよい）。強調は <y>黄色</y>・<r>赤</r>。
+#   1つの要素は2行ぶん（wrap×2字）まで。出す時間は場面の中で文字数に比例して配る（等分にしない）
+import re as _re
+MARK_COL = {"y": "&H0000E5FF&", "r": "&H004B4BFF&"}   # ASS は BGR。黄色 #FFE500・赤 #FF4B4B
+
+
+def parse_marked(s: str) -> list:
+    """'<y>53%</y>です' → [(文字, 色 or None), …]"""
+    out, col = [], None
+    for tok in _re.split(r"(</?[yr]>)", s):
+        if tok in ("<y>", "<r>"): col = tok[1]
+        elif tok in ("</y>", "</r>"): col = None
+        else: out += [(ch, col) for ch in tok]
+    return out
+
+
+def plain_sub(s: str) -> str:
+    return "".join(ch for ch, _ in parse_marked(s))
+
+
+def render_marked(pairs: list) -> str:
+    """色ごとにまとめて ASS の文字列にする（色の終わりは \\r でその字幕の地の色に戻す）"""
+    out, cur = "", None
+    for ch, col in pairs:
+        if col != cur:
+            out += "{\\r}" if col is None else "{\\c" + MARK_COL[col] + "}"
+            cur = col
+        out += esc(ch)
+    return out + ("{\\r}" if cur else "")
+
+
+def wrap_marked(s: str, wrap: int) -> str:
+    """色の目印を保ったまま、wrap_sub と同じ決まりで2行に分ける"""
+    pairs = parse_marked(s); plain = "".join(ch for ch, _ in pairs)
+    w = lambda t: sum(0.55 if ord(ch) < 0x2E80 else 1.0 for ch in t)   # 半角は約半分の幅
+    if w(plain) <= wrap:
+        return render_marked(pairs)
+    # 2026-11-20 改行の決まり: 切れ目は「、。！？」か助詞のあと。2行とも幅におさまる中で、真ん中にいちばん近い所。
+    #   行の頭に来てはいけない字（小さいかな・長音・句読点など）の前では切らない＝「シミ／ュレーション」「勝ち馬で／す。」を防ぐ
+    NG_HEAD = "ゃゅょっぁぃぅぇぉャュョッァィゥェォー、。！？」）％%す"
+    cands = [k + 1 for k in range(len(plain) - 1) if plain[k] in "、。！？・　 はがをにでのともへて" and plain[k + 1] not in NG_HEAD]
+    cands = [k for k in cands if w(plain[:k]) <= wrap and w(plain[k:]) <= wrap] or cands
+    half = w(plain) / 2
+    k_at = min(cands, key=lambda k: abs(w(plain[:k]) - half) - (1.5 if plain[k - 1] in "、。！？" else 0)) if cands else None
+    if not k_at:
+        k_at = len(plain) // 2
+        while k_at < len(plain) - 1 and plain[k_at] in NG_HEAD: k_at += 1
+    a, b = pairs[:k_at], pairs[k_at:]
+    while a and a[-1][0] in " 　": a.pop()
+    while b and b[0][0] in " 　": b.pop(0)
+    return render_marked(a) + "\\N" + render_marked(b)
+
+
 def text_w(s: str) -> float:
     """字幕1行の幅（文字の大きさを1とした目安）。全角＝1・半角＝0.55"""
     return sum(0.55 if ord(ch) < 0x2E80 else 1.0 for ch in s)
@@ -94,6 +152,11 @@ def text_w(s: str) -> float:
 def build_ass(scenes, path: Path, c):
     W, H = c["w"], c["h"]
     al, ml = (1, c["_beside"]) if c.get("_beside") else (2, 70)   # 2026-11-19 横長の対話＝字幕を左寄せにして、左に話し手のアイコン
+    # 2026-11-20 横長の全文字幕は、絵の中の文字と重なって読みにくい → 字幕の後ろに半透明の黒い帯を敷く（BorderStyle=4・字を少し大きく）
+    box = c.get("_sub_full") and W > H
+    bs = f"4,3,6" if box else f"1,{max(5, c['font'] // 8)},2"
+    back = "&H38000000" if box else "&H00000000"
+    fz = c["font"] + (4 if box else 0)
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {W}
@@ -103,9 +166,9 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Main,{FONT},{c['font']},&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,{max(5, c['font'] // 8)},2,{al},{ml},70,{c['margin_v']},1
+Style: Main,{FONT},{fz},&H00FFFFFF,&H00000000,{back},-1,0,0,0,100,100,0,0,{bs},{al},{ml},70,{c['margin_v']},1
 Style: Hilite,{FONT},{c['hilite']},&H0000E5FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,{max(5, c['font'] // 8)},2,{al},{ml},70,{c['margin_v']},1
-Style: Kikite,{FONT},{c['font']},{c.get('_kikite_color', '&H00C88CFF')},&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,{max(5, c['font'] // 8)},2,{al},{ml},70,{c['margin_v']},1
+Style: Kikite,{FONT},{fz},{c.get('_kikite_color', '&H00C88CFF')},&H00000000,{back},-1,0,0,0,100,100,0,0,{bs},{al},{ml},70,{c['margin_v']},1
 Style: IconName,{FONT},{int(c['font'] * 0.55)},&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,{max(3, c['font'] // 12)},1,8,0,0,0,1
 Style: KikiteName,{FONT},{int(c['font'] * 0.62)},&H00FFFFFF,&H006E3CE6,&H00000000,-1,0,0,0,100,100,0,0,3,{max(4, c['font'] // 10)},0,2,70,70,{c['margin_v'] + int(c['font'] * 1.75)},1
 
@@ -129,6 +192,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         label = c.get("_labels", {}).get(sc.get("speaker") or "narrator", "")
         if kikite and label and not c.get("_icons") and not c.get("_beside") and not c.get("_corner"):
             lines.append(f"Dialogue: 1,{ts(t0)},{ts(t0 + dur)},KikiteName,,0,0,0,,{esc(' ' + label + ' ')}")
+        if c.get("_sub_full"):                   # 全文字幕: 文字数に比例して時間を配り、色の目印を ASS の色にする
+            wts = [max(1, len(plain_sub(t))) for t in subs]; acc = 0.0
+            for text, w in zip(subs, wts):
+                st, en = t0 + dur * acc / sum(wts), t0 + dur * (acc + w) / sum(wts); acc += w
+                lines.append(f"Dialogue: 0,{ts(st)},{ts(en)},{'Kikite' if kikite else 'Main'},,0,0,0,,{wrap_marked(text, c['wrap'])}")
+            t0 += dur
+            continue
         for i, text in enumerate(subs):
             st, en = t0 + each * i, t0 + each * (i + 1)
             text = "<BR>".join(wrap_sub(text, c["wrap"]))
@@ -142,8 +212,9 @@ def main():
     sp = Path(sys.argv[1]).resolve()   # 2026-11-19: 相対パスで呼ぶと、つなぎ（concat）のリストの中の場所がずれて止まった
     script = json.loads(sp.read_text(encoding="utf-8"))
     base = sp.parent
-    c = dict(w=1080, h=1920, fg_w=1080, fg_h=1651, y_off=-86, zmax=1.06, font=68, hilite=72, margin_v=70, wrap=15)
+    c = dict(w=1080, h=1920, fg_w=1080, fg_h=1651, y_off=-86, zmax=1.06, font=78, hilite=82, margin_v=70, wrap=13)   # 2026-11-20 ユーザー「字幕をもっと大きく」68→78
     c.update(script.get("canvas", {}))
+    c["_sub_full"] = script.get("subtitle_mode") == "full"
     # 話し手の名前の札（templates/voices.json の label。台本の "speakers" で上書き可）。名前の札は聞き役だけ（アイコンが無いとき）
     vj = Path(__file__).resolve().parents[2] / "templates" / "voices.json"
     spk = json.loads(vj.read_text(encoding="utf-8"))["speakers"] if vj.exists() else {}
@@ -204,21 +275,44 @@ def main():
     tag = sp.name.replace("script_", "").replace(".json", "")
     suffix = script.get("out_suffix", "short")
 
+    dialog = any(sc.get("speaker") for sc in script["scenes"]) and os.environ.get("KVC_DIALOG_TRIM", "1") != "0"
+    pad_s = DIALOG_PAD if dialog else PAD
     total = 0.0
+    timing = []
     for sc in script["scenes"]:
         a = aud_dir / f"{tag}_{sc['id']:02d}.wav"
-        sc["_sec"] = round(wav_sec(a) + PAD, 2) if a.exists() else float(sc["sec"])
+        if a.exists() and dialog:     # 頭と尻の無音を詰めた声を使う（元の声は audio/ にそのまま残る）
+            t2 = tmp / f"{tag}_t{sc['id']:02d}.wav"
+            subprocess.run(["ffmpeg", "-y", "-i", str(a), "-af", TRIM, "-c:a", "pcm_s16le", str(t2)], check=True, capture_output=True)
+            a = t2 if wav_sec(t2) > 0.2 else a
+        sc["_sec"] = round(wav_sec(a) + pad_s, 2) if a.exists() else float(sc["sec"])
+        # 2026-11-20 場面の長さをコマ（1/30秒）の倍数に切り上げる。映像はコマ単位に切り上がるので、そろえないと
+        #   映像だけ1場面に約0.02秒ずつ遅れ、90場面で約1.5秒ずれた（アイコンの光り・口パクが声に遅れる）
+        sc["_sec"] = __import__("math").ceil(round(sc["_sec"] * FPS, 3)) / FPS
         sc["_audio"] = a if a.exists() else None
+        timing.append({"id": sc["id"], "start": round(total, 2), "sec": sc["_sec"], "speaker": sc.get("speaker"), "image": sc.get("image"), "chapter": sc.get("chapter")})
         total += sc["_sec"]
+    (tmp / f"{tag}_secs.json").write_text(json.dumps({str(sc["id"]): sc["_sec"] for sc in script["scenes"]}), encoding="utf-8")   # 音の仕上げ（mix）が同じ長さを使う
+    # 場面の開始時刻を書き出す（add_bgm_se.py・mix_long.py の効果音と、概要欄のチャプターはこれを読む＝時刻を2か所で数えない）
+    (base / f"{tag}_timing.json").write_text(json.dumps({"total": round(total, 2), "pad": pad_s, "scenes": timing}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"■ {script['race']}  {len(script['scenes'])}シーン / 合計 {total:.1f}秒（{total/60:.1f}分）  {W}x{H}")
 
     clips = []
     zin = f"min(zoom+0.0004,{c['zmax']})"
     zout = f"if(lte(zoom,1.0),{c['zmax']},max(1.0,zoom-0.0004))"
+    vid_pos, prev_img = 0.0, None   # 2026-11-20 同じ動画が続く場面は、前の場面の続きから再生する（レース展開の3D に掛け合いを重ねる）
     for sc in script["scenes"]:
         src = img_dir / sc["image"]
         out = tmp / f"{tag}_{sc['id']:02d}.mp4"
         n = int(sc["_sec"] * FPS)
+        is_vid = src.suffix.lower() in (".mp4", ".mov", ".webm")
+        vid_pos = (vid_pos if is_vid and sc["image"] == prev_img else 0.0) if is_vid else 0.0
+        if is_vid and src.exists():   # 動画より先まで進んだら、最後のコマ（の0.1秒前）で止めたままにする
+            vdur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(src)], capture_output=True, text=True).stdout.strip() or 0)
+            vid_pos = min(vid_pos, max(0.0, vdur - 0.1))
+        sc["_vstart"] = round(sc.get("video_start", vid_pos), 2) if is_vid else 0.0
+        if is_vid: vid_pos = sc["_vstart"] + sc["_sec"]
+        prev_img = sc["image"]
         if os.environ.get("BV_RESUME") and out.exists():     # 2026-11-07: メモリ不足で止まっても続きから（長さが合うクリップは作り直さない）
             d = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(out)], capture_output=True, text=True).stdout.strip()
             if d and abs(float(d) - sc["_sec"]) < 0.2:
@@ -234,6 +328,13 @@ def main():
         z = f"zoompan=z='{zexpr}':d={n}:{xy}:s={c['fg_w']}x{c['fg_h']}:fps={FPS}"
         vf = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=28:2,eq=brightness=-0.16[bg];"
               f"[0:v]scale={c['fg_w']*2}:-1,{z}[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2+({c['y_off']})")
+        if src.suffix.lower() in (".mp4", ".mov", ".webm"):
+            # 2026-11-19 画像の代わりに短い動画（レース展開の2D＝scripts/race2d）を置ける。寄り・引きはしない。場面より短いときは最後のコマで止める
+            vf = (f"[0:v]split[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},boxblur=28:2,eq=brightness=-0.16,"
+                  f"tpad=stop_mode=clone:stop_duration=600[bg];"
+                  f"[b]scale={c['fg_w']}:{c['fg_h']}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
+                  f"pad={(c['fg_w'] + 1) // 2 * 2}:{(c['fg_h'] + 1) // 2 * 2}:(ow-iw)/2:(oh-ih)/2:color=black,"   # 枠の高さが奇数（1651）だと止まる → 偶数に切り上げ"
+                  f"fps={FPS},tpad=stop_mode=clone:stop_duration=600[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2+({c['y_off']})")
         extra = []
         if beside:     # 真ん中の字幕のすぐ左に、話している方のアイコンだけ（字幕の行が変わるたびに、その行の幅に合わせて動かす）
             who = sc.get("speaker") or "narrator"
@@ -279,7 +380,8 @@ def main():
                 vf += f";[{i + 1}:v]scale={isz}:{isz}[ic{i}];[v{i}][ic{i}]overlay={side_x[sd]}:{icon_y}:shortest=1"
                 vf += f"[v{i + 1}]" if i + 1 < len(icons) else ""
         for _try in range(4):          # 長尺（4K経由のzoompan）は不定期に落ちる（2026-11-07）→ 再試行
-            r = subprocess.run(["ffmpeg", "-y", "-filter_threads", "1", "-i", str(src), *extra, "-filter_complex", vf, "-t", str(sc["_sec"]), "-r", str(FPS),
+            seek = ["-ss", str(sc["_vstart"])] if sc.get("_vstart") else []
+            r = subprocess.run(["ffmpeg", "-y", "-filter_threads", "1", *seek, "-i", str(src), *extra, "-filter_complex", vf, "-t", str(sc["_sec"]), "-r", str(FPS),
                                 "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "medium", "-crf", "20", str(out)], capture_output=True)
             if not r.returncode:
                 break
@@ -310,13 +412,19 @@ def main():
     ass = tmp / f"{tag}.ass"
     build_ass(script["scenes"], ass, c)
     out = base / f"{tag}_{suffix}.mp4"
+    # 2026-11-20 クラウド同期のフォルダ（OneDrive など）の中に大きなファイルを書くと、ときどき書き終わりで失敗した
+    #   → 最後の合成は同期フォルダの外の一時フォルダ（KVC_LOCAL_TMP・既定は OS の一時フォルダ）に書き、できてから置き換える
+    import tempfile
+    part = Path(os.environ.get("KVC_LOCAL_TMP") or tempfile.gettempdir()) / f"kvc_{tag}_{suffix}.part.mp4"
     ap = str(ass).replace("\\", "/").replace(":", "\\:")
     # 2026-11-11: 長尺(11分)の最後の合成がメモリ不足で2回止まった（get_buffer() failed）→ デコード1スレッド・エンコード2スレッド・先読み10で省メモリ
     r = subprocess.run(["ffmpeg", "-y", "-threads", "1", "-i", str(silent), "-i", str(combined), "-vf", f"ass='{ap}'", "-c:v", "libx264",
                         "-threads", "2", "-x264-params", "rc-lookahead=10", "-preset", "medium", "-crf", "20",
-                        "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-shortest", str(out)], capture_output=True)
+                        "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-shortest", str(part)], capture_output=True)
     if r.returncode:
         print(r.stderr.decode("utf-8", "replace")[-1200:]); sys.exit("動画合成に失敗しました")
+    if out.exists(): out.unlink()
+    import shutil; shutil.move(str(part), str(out))
     dur = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", str(out)], capture_output=True, text=True).stdout.strip()
     print(f"\n✅ 完成: {out}\n   {float(dur):.1f}秒 / {out.stat().st_size/1024/1024:.1f}MB / {W}x{H} {FPS}fps")
 

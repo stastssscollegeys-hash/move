@@ -55,11 +55,16 @@ def main():
     if not voice.exists():
         shutil.copy2(mp4, voice)               # 声だけの版は常に元の入力にする（二重掛け防止）
     # 場面の開始時刻 = これまでの(音声長+0.45)の合計（build_short.py と同じ式）
-    t, starts = 0.0, []
-    for sc in script["scenes"]:
-        starts.append(t)
-        t += wav_sec(base / "audio" / f"{tag}_{sc['id']:02d}.wav") + 0.45
-    total = t
+    tj = base / f"{tag}_timing.json"     # 2026-11-20 build_video.py が書き出した時刻があれば、それを使う（対話は声の無音を詰めるので式が合わない）
+    if tj.exists():
+        tm = json.loads(tj.read_text(encoding="utf-8"))
+        starts, total = [x["start"] for x in tm["scenes"]], tm["total"]
+    else:
+        t, starts = 0.0, []
+        for sc in script["scenes"]:
+            starts.append(t)
+            t += wav_sec(base / "audio" / f"{tag}_{sc['id']:02d}.wav") + 0.45
+        total = t
     whoosh, ding, pop = make_se(tmp)
     opt = lambda k: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else None
     sevol = float(opt("--sevol") or 1.0)

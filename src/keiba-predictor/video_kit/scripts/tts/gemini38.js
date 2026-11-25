@@ -19,7 +19,20 @@ const fs = require("fs");
 const path = require("path");
 
 const MODEL = process.env.TTS_MODEL || "gemini-3.8-flash-tts";
-const KEYS = ["GEMINI_API_KEY", "GEMINI_API_KEY2", "GEMINI_API_KEY3", "GEMINI_API_KEY4", "GEMINI_API_KEY5"]
+// 2026-11-20 ユーザー指示「主にこっちのAPIを使って」＝.env の GEMINI_API_KEY_MAIN（課金済み）を最初に使う。無ければ今までの順
+// 2026-11-20 ユーザー指示「一番下に追加したキーを使用して」＝.env の最後の行のキーを最初に使う。
+//   名前つき（NAME=値）でも、値だけの行でもよい。キーの文字は画面・記録に出さない（Claude は .env を開かない）
+if (!process.env.GEMINI_API_KEY_MAIN) {
+  try {
+    const lines = require("fs").readFileSync(require("path").resolve(__dirname, "../../../../../.env"), "utf8")
+      .split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+    const last = lines[lines.length - 1] || "";
+    const m = last.match(/^[A-Za-z_][A-Za-z0-9_]*\s*=\s*(.*)$/);
+    const v = (m ? m[1] : last).replace(/^["']|["']$/g, "").trim();
+    if (/^[A-Za-z0-9._-]{30,120}$/.test(v)) process.env.GEMINI_API_KEY_MAIN = v;
+  } catch { /* 読めなければ今までの順 */ }
+}
+const KEYS = ["GEMINI_API_KEY_MAIN", "GEMINI_API_KEY", "GEMINI_API_KEY2", "GEMINI_API_KEY3", "GEMINI_API_KEY4", "GEMINI_API_KEY5"]
   .map((k) => process.env[k]).filter(Boolean);
 let ki = 0;
 let last = 0;

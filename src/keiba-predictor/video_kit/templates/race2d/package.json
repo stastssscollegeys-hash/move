@@ -1,0 +1,26 @@
+{
+  "name": "keiba-race2d",
+  "private": true,
+  "description": "レース展開の2D（上から見たコースで馬番の丸が動く）。scripts/race2d/build_frames.py の frames.json を描く",
+  "scripts": {
+    "render": "remotion render src/index.ts Race3DHQ --gl=angle"
+  },
+  "dependencies": {
+    "@react-three/fiber": "8.18.0",
+    "@react-three/postprocessing": "2.19.1",
+    "@remotion/cli": "4.0.541",
+    "@remotion/three": "4.0.541",
+    "@types/three": "0.186.0",
+    "n8ao": "1.10.3",
+    "postprocessing": "6.39.6",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.541",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "esbuild": "0.28.1",
+    "typescript": "5.9.3"
+  }
+}

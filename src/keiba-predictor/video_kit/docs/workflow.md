@@ -76,6 +76,7 @@ TTS に渡す文章だけひらがなにする（字幕は漢字のまま）。�
 
 - ひな型 `templates/thumbnail/THUMB_long_adopted.txt`（採用された型）:
   レース名を**真ん中〜少し上に横幅70%以上の特大**・上段にバッジと気になるデータの吹き出し・下段に名札3つ（軸候補×2・穴候補）・最下部にデータの帯・余白を作らない
+- 最終予想（枠順のあと）は `templates/thumbnail/THUMB_long_final.txt`: 背景＝展開予想の3Dのゴールのコマ（着順の表は切り落とし、馬と本命の足元の金色の輪だけ）・右にアスメシ（`assets/asumeshi_front.png` を添付）・過去10年のデータの吹き出し＋「それでもアスメシの本命は？」（答えは書かない）・下の帯に穴の人気と「1万円で○点」。`gen --attach <コマ> <アスメシ>` で1回で通った（2026-11-20 福島記念・1672x941 で出る＝そのまま 1280x720 に縮める）
 - 生成は 3:2（1536x1024）で出る → 上下を切らず、左右をぼかしで埋めて16:9に:
   ```
   ffmpeg -i raw.png -filter_complex "[0:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,boxblur=30:3,eq=brightness=-0.12[bg];[0:v]scale=-1:720[fg];[bg][fg]overlay=(W-w)/2:0" -frames:v 1 thumb_long.png

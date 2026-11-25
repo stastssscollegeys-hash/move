@@ -13,6 +13,8 @@
   P1 複勝・モデル確率1位（比較用: いちばん来そうな馬）     … 10年 86%
   B1 単勝・市場＋木（benter_live.py の B1 と同じ基準。2023〜26年の発走30分前オッズで119.5%）。Web版は当日のトラックバイアスが入らない・
      登録の時刻が発走30分前とは限らない＝JV版の B1（ledger_b1.json・22点で止まっている）とは別の台帳として数える
+  N1 単勝・N2 複勝・NW ワイド（新◎-○・新◎-▲）… 2026-11-26 事前登録。新◎＝割安さ1位、ただし確率がPの7割未満ならP（web_picks.marks_of の既定）。
+     T・W・A は以前の付け方（web_picks.marks_of_v53）のまま数える。判定は docs/keiba_method_review_20261126.md §5
   python web_forward.py register --date 20261121            # その時点の web_probs で、まだ発走していないレースを登録（同じレースは上書きしない）
   python web_forward.py settle --date 20261121              # {日付}_web_results.json で精算
   python web_forward.py report                              # ルールごとの点数・的中・回収率（前向き／さかのぼり を分けて表示）
@@ -28,7 +30,9 @@ import web_picks as WP
 LEDGER = WL.L.DB / "ledger_web.json"
 RULES = {"T1": "単勝◎ 割安さ1.30以上", "T2": "単勝◎ 割安さ1.15〜1.30", "T0": "単勝◎ 割安さ1.15未満（見送りの帯）", "W2": "ワイド◎-○・◎-▲（1.15以上）",
          "A3": "単勝 穴（6番人気以下・1.3以上・2%以上）", "A4": "ワイド◎-5頭目（印なしで割安さ1位）", "P1": "複勝 モデル確率1位",
-         "B1": "単勝 B1（市場＋木の確率×オッズ≧1.0の全部）"}
+         "B1": "単勝 B1（市場＋木の確率×オッズ≧1.0の全部）",
+         "R1": "馬連◎-○（割安さ1.30以上）", "R2": "馬単◎→○（割安さ1.30以上）", "R3": "ワイド◎-○（割安さ1.30以上）",
+         "N1": "単勝 新◎（割安さ1位・確率がPの7割未満ならP）", "N2": "複勝 新◎", "NW": "ワイド 新◎-○・新◎-▲（全レース）"}
 
 
 def load(): return json.loads(LEDGER.read_text(encoding="utf-8")) if LEDGER.exists() else []
@@ -36,7 +40,7 @@ def save(L): LEDGER.write_text(json.dumps(L, ensure_ascii=False, indent=1), enco
 
 
 def bets_of(race):
-    hs, marks = WP.marks_of(race)
+    hs, marks = WP.marks_of_v53(race)      # T・W・A のルールは 2026-11-18 に登録した付け方（割安さ1位＝◎）のまま数える
     if not marks:
         return []
     rt = lambda h: h["p_model"] / h["p_market"]
@@ -46,6 +50,11 @@ def bets_of(race):
         for m, h in marks[1:]:
             if m in "○▲":
                 out.append(("W2", "ワイド", tuple(sorted((hon["uma"], h["uma"]))), None, ra))
+    # 2026-11-26 事前登録（bet_type_by_band_test.py・10年で1.30以上の帯は ◎-○ の1点がそろって100%超）: R1 馬連◎-○・R2 馬単◎→○・R3 ワイド◎-○（どれも割安さ1.30以上のレースだけ）
+    maru = [h for m, h in marks[1:] if m == "○"]
+    if ra >= 1.30 and maru:
+        o_ = maru[0]["uma"]
+        out.append(("R1", "馬連", tuple(sorted((hon["uma"], o_))), None, ra)); out.append(("R2", "馬単", (hon["uma"], o_), None, ra)); out.append(("R3", "ワイド", tuple(sorted((hon["uma"], o_))), None, ra))
     c3 = [h for h in hs if h["uma"] not in used and h["pop"] >= 6 and h["p_model"] >= .02 and rt(h) >= 1.3]
     if c3:
         a = max(c3, key=rt); out.append(("A3", "単勝", (a["uma"],), a["odds"], rt(a)))
@@ -53,6 +62,14 @@ def bets_of(race):
     if c4:
         a = max(c4, key=rt); out.append(("A4", "ワイド", tuple(sorted((hon["uma"], a["uma"]))), None, rt(a)))
     p1 = max(hs, key=lambda h: h["p_model"]); out.append(("P1", "複勝", (p1["uma"],), None, rt(p1)))
+    # 2026-11-26 事前登録（v5.4-A1 の軸＝「割安さ1位。ただし確率がPの7割未満ならP」）: N1 単勝・N2 複勝・NW ワイド 新◎-○・新◎-▲（全レース）
+    _, nm = WP.marks_of(race, axis="p70")
+    if nm:
+        nh = nm[0][1]
+        out.append(("N1", "単勝", (nh["uma"],), nh["odds"], rt(nh))); out.append(("N2", "複勝", (nh["uma"],), None, rt(nh)))
+        for m, h in nm[1:]:
+            if m in "○▲":
+                out.append(("NW", "ワイド", tuple(sorted((nh["uma"], h["uma"]))), None, rt(nh)))
     for h in hs:                                           # B1: web_live.py が付けた p_b1（benter_live の確率）。無い日は登録されない
         if h.get("p_b1") and h["p_b1"] * h["odds"] >= 1.0 and h["odds"] < 900:
             out.append(("B1", "単勝", (h["uma"],), h["odds"], h["p_b1"] * h["odds"]))
@@ -80,7 +97,10 @@ def settle(date):
             continue
         pay = R[x["race"]].get("pay") or {}
         key = "-".join(map(str, x["comb"]))
-        hit = [p["yen"] for p in pay.get(x["type"], []) if "-".join(map(str, sorted(map(int, str(p["comb"]).split("-"))))) == key]
+        if x["type"] in ("馬単", "3連単"):          # 着順どおりの券種は並べ替えずに比べる（2026-11-26）
+            hit = [p["yen"] for p in pay.get(x["type"], []) if "-".join(str(int(v)) for v in str(p["comb"]).replace("→", "-").split("-")) == key]
+        else:
+            hit = [p["yen"] for p in pay.get(x["type"], []) if "-".join(map(str, sorted(map(int, str(p["comb"]).split("-"))))) == key]
         x["payout"] = hit[0] if hit else 0; x["settled"] = True; n += 1
     save(L); print(f"精算 {date}: {n}点")
 

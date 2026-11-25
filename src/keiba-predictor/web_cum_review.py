@@ -26,9 +26,11 @@ def days():
 
 
 def main():
+    global AXIS
     ap = argparse.ArgumentParser()
     ap.add_argument("--dates", nargs="*")
-    a = ap.parse_args()
+    ap.add_argument("--axis", default="v53", help="v53＝割安さ1位を◎（既定）／p70＝確率がPの7割未満ならP（当たる頻度を上げる形）")
+    a = ap.parse_args(); AXIS = a.axis
     ds = a.dates or days()
     mk = {}                                   # 印 → [頭数, 勝, 3着内, 単勝払戻]
     st = {}                                   # 形 → [レース, 点, 的中レース, 払戻]
@@ -41,7 +43,7 @@ def main():
         for k, r in pr.items():
             if k not in rs or not r.get("horses"):
                 continue
-            hs, marks = WP.marks_of(r)
+            hs, marks = WP.marks_of(r, axis=AXIS)
             if not marks:
                 continue
             rows = rs[k]["rows"]

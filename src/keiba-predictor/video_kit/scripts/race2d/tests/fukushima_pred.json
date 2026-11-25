@@ -1,0 +1,324 @@
+{
+ "source": "prediction",
+ "mode": "prediction",
+ "race_id": "2026112103030511",
+ "race": {
+  "name": "福島記念",
+  "date": "2026-11-21",
+  "venue": "福島",
+  "surface": "芝",
+  "distance": 2000,
+  "track_cd": "17",
+  "course": "福島_芝",
+  "laps": [
+   12.5,
+   11.3,
+   11.7,
+   12.6,
+   12.8,
+   12.4,
+   12.1,
+   12.1,
+   12.0,
+   12.2
+  ],
+  "runners": 16
+ },
+ "forecast": {
+  "nige": 0,
+  "pace": "落ち着きそう",
+  "laps_from": "過去103レースのラップの中央値",
+  "unknown_style": []
+ },
+ "prediction": {
+  "order": [
+   13,
+   16,
+   11,
+   1,
+   8
+  ],
+  "margins": [
+   0.1,
+   0.1,
+   0.1,
+   0.1
+  ],
+  "lead_last3f": 36.3,
+  "note": "アスメシの印・脚質・前走の上がりから組んだ着順の予想（タイムは推定）"
+ },
+ "horses": [
+  {
+   "umaban": 1,
+   "waku": 1,
+   "name": "カラマティアノス",
+   "style": 3,
+   "mark": null,
+   "est_l3": 34.833333333333336,
+   "finish": 4,
+   "time": 122.0,
+   "last3f": 36.22,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 3,
+    "4c": 3
+   }
+  },
+  {
+   "umaban": 2,
+   "waku": 1,
+   "name": "ヴィスマール",
+   "style": 3,
+   "mark": null,
+   "est_l3": 35.03333333333333,
+   "finish": 9,
+   "time": 122.77,
+   "last3f": 36.88,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 4,
+    "4c": 4
+   }
+  },
+  {
+   "umaban": 3,
+   "waku": 2,
+   "name": "ゼンダンハヤブサ",
+   "style": 3,
+   "mark": null,
+   "est_l3": 34.9,
+   "finish": 8,
+   "time": 122.67,
+   "last3f": 36.67,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 5,
+    "4c": 5
+   }
+  },
+  {
+   "umaban": 4,
+   "waku": 2,
+   "name": "ボーンディスウェイ",
+   "style": 4,
+   "mark": null,
+   "est_l3": 34.6,
+   "finish": 10,
+   "time": 123.05,
+   "last3f": 36.45,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 9,
+    "4c": 9
+   }
+  },
+  {
+   "umaban": 5,
+   "waku": 3,
+   "name": "フィーリウス",
+   "style": 4,
+   "mark": null,
+   "est_l3": 34.93333333333333,
+   "finish": 11,
+   "time": 123.49,
+   "last3f": 36.78,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 10,
+    "4c": 10
+   }
+  },
+  {
+   "umaban": 6,
+   "waku": 3,
+   "name": "バルナバ",
+   "style": 2,
+   "mark": null,
+   "est_l3": 36.300000000000004,
+   "finish": 12,
+   "time": 123.59,
+   "last3f": 38.19,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 1,
+    "4c": 1
+   }
+  },
+  {
+   "umaban": 7,
+   "waku": 4,
+   "name": "シリウスコルト",
+   "style": 4,
+   "mark": null,
+   "est_l3": 36.233333333333334,
+   "finish": 16,
+   "time": 124.97,
+   "last3f": 38.15,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 11,
+    "4c": 11
+   }
+  },
+  {
+   "umaban": 8,
+   "waku": 4,
+   "name": "ヨヒーン",
+   "style": 2,
+   "mark": "穴",
+   "est_l3": 35.8,
+   "finish": 5,
+   "time": 122.1,
+   "last3f": 36.59,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 2,
+    "4c": 2
+   }
+  },
+  {
+   "umaban": 9,
+   "waku": 5,
+   "name": "バレエマスター",
+   "style": 4,
+   "mark": null,
+   "est_l3": 33.9,
+   "finish": 7,
+   "time": 122.57,
+   "last3f": 35.64,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 12,
+    "4c": 12
+   }
+  },
+  {
+   "umaban": 10,
+   "waku": 5,
+   "name": "カテリーナ",
+   "style": 3,
+   "mark": null,
+   "est_l3": 34.4,
+   "finish": 6,
+   "time": 122.25,
+   "last3f": 36.14,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 6,
+    "4c": 6
+   }
+  },
+  {
+   "umaban": 11,
+   "waku": 6,
+   "name": "フォルテアンジェロ",
+   "style": 4,
+   "mark": null,
+   "est_l3": 33.53333333333333,
+   "finish": 3,
+   "time": 121.9,
+   "last3f": 34.86,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 13,
+    "4c": 13
+   }
+  },
+  {
+   "umaban": 12,
+   "waku": 6,
+   "name": "アラタ",
+   "style": 4,
+   "mark": null,
+   "est_l3": 34.8,
+   "finish": 14,
+   "time": 123.91,
+   "last3f": 36.76,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 14,
+    "4c": 14
+   }
+  },
+  {
+   "umaban": 13,
+   "waku": 7,
+   "name": "マリアイリダータ",
+   "style": 4,
+   "mark": "軸",
+   "est_l3": 33.9,
+   "finish": 1,
+   "time": 121.7,
+   "last3f": 34.44,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 15,
+    "4c": 15
+   }
+  },
+  {
+   "umaban": 14,
+   "waku": 7,
+   "name": "サヴォーナ",
+   "style": 3,
+   "mark": null,
+   "est_l3": 35.7,
+   "finish": 13,
+   "time": 123.81,
+   "last3f": 37.59,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 7,
+    "4c": 7
+   }
+  },
+  {
+   "umaban": 15,
+   "waku": 8,
+   "name": "キャントウェイト",
+   "style": 3,
+   "mark": null,
+   "est_l3": 36.266666666666666,
+   "finish": 15,
+   "time": 124.51,
+   "last3f": 38.18,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 8,
+    "4c": 8
+   }
+  },
+  {
+   "umaban": 16,
+   "waku": 8,
+   "name": "レイニング",
+   "style": 4,
+   "mark": null,
+   "est_l3": 32.833333333333336,
+   "finish": 2,
+   "time": 121.8,
+   "last3f": 34.43,
+   "corners": {
+    "1c": null,
+    "2c": null,
+    "3c": 16,
+    "4c": 16
+   }
+  }
+ ]
+}

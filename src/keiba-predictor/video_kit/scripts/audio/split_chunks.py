@@ -86,3 +86,9 @@ for ci, ids in enumerate(CH, 1):
                                 "silenceremove=start_periods=1:start_threshold=-40dB,areverse,silenceremove=start_periods=1:start_threshold=-40dB,areverse"), str(out)], check=True)
     dev = [round((cand[j][0] + cand[j][1]) / 2 - e, 1) for j, e in zip(pick, exp)]
     print(f"c{ci} 場面{ids}  {T:.1f}秒  境目の無音{[round(cand[j][1]-cand[j][0],2) for j in pick]}  予想位置とのずれ{dev}")
+    # 2026-11-20 福島記念：Gemini が場面の文を読み終えたあと、ほかの場面の文を繰り返して読んだ（64字で36.5秒）→ 1秒あたりの字数が少ない場面を知らせる
+    for i in ids:
+        w = base / "_raw" / f"{tag}_{i:02d}.wav"
+        d = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(w)], capture_output=True, text=True).stdout.strip() or 0)
+        if d and len(nar.get(i, "")) / d < 2.8:
+            print(f"   ⚠ 場面{i}: {len(nar.get(i, ''))}字で {d:.1f}秒（1秒に {len(nar.get(i, '')) / d:.1f}字）＝ほかの場面の文を繰り返して読んだ疑い。kana_scenes.py で確かめ、文の終わりの無音で切る")

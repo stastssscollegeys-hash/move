@@ -63,6 +63,10 @@ def mark(pr, G, v):
         hon = max(c, key=lambda i: p[i] * ratio[i])
     else:
         hon = max(c, key=lambda i: ratio[i])
+    if v in ("K", "L", "M"):          # 2026-11-26 v5.4-A1: 割安さ1位の確率が P（確率1位）の th 未満なら ◎＝P（割安な馬は○▲に残る）
+        th = {"K": .70, "L": .80, "M": .60}[v]; P = int(np.argmax(p))
+        if p[hon] < th * p[P]:
+            hon = P
     lo2 = .08 if v == "F" else .05
     rest = [i for i in range(n) if i != hon and p[i] >= lo2]
     rest.sort(key=(lambda i: -p[i]) if v in ("E", "I", "J") else (lambda i: -ratio[i]))
@@ -77,9 +81,10 @@ def mark(pr, G, v):
 def main():
     preds, pay, G = C.predictions(), C.load_pay(), gaps()
     print(f"前向き予測 {len(preds):,}レース ／ 前走間隔 {len(G):,}頭ぶん")
-    V = "ABCDEFGHIJ"
+    V = (sys.argv[1] if len(sys.argv) > 1 else "ABCDEFGHIJKLM")      # 例: python mark_rule_test.py AGKLM
     names = dict(A="現行", B="◎から休み明け150日以上を外す", C="◎の下限10%", D="◎の下限12%", E="○▲を勝つ確率の高い順", F="○▲の下限8%",
-                 G="◎＝モデル確率1位", H="◎＝確率×割安さが最大", I="B＋E", J="B＋H＋E")
+                 G="◎＝モデル確率1位", H="◎＝確率×割安さが最大", I="B＋E", J="B＋H＋E",
+                 K="◎＝割安さ1位。確率がPの7割未満ならP（v5.4-A1）", L="同 8割未満ならP", M="同 6割未満ならP")
     S = {v: collections.defaultdict(lambda: [0, 0, 0, 0]) for v in V}      # (印,期) → [頭, 勝, 3着内, 単勝払戻]
     W = {v: collections.defaultdict(list) for v in V}                       # (形,期) → [(点, 払戻)]
     PP = {v: collections.Counter() for v in V}
@@ -123,6 +128,8 @@ def main():
                     lo, hi = C.ci(st, rt, n=1000); s += f"［{lo*100:.1f}〜{hi*100:.1f}］"
                 x.append(s); o[f"{nm}|{h}"] = [len(rt), sum(st), sum(rt)]
             print(f"  ワイド{nm} " + " ｜ ".join(x))
+    if len(V) < 13:
+        return          # 一部だけ回したときは保存しない
     OUT.write_text(json.dumps(dict(made="20261114", n=len(preds), results=out), ensure_ascii=False, indent=1), encoding="utf-8")
     print("\n保存:", OUT)
 

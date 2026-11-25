@@ -1,0 +1,12 @@
+horse.glb の出どころと使用条件
+
+作品名: Horse
+作者: Quaternius
+配布元: https://poly.pizza/m/qvTrSG9pZF
+ファイル: https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb
+使用条件: Public Domain（CC0 1.0）。配布元のページの表示「Public Domain (CC0)」「CC0 1.0」を確認した
+作者のパックのページ: https://quaternius.com/packs/ultimateanimatedanimals.html（「CC0」「free to use in personal and commercial projects」）
+取得日: 2026-11-20
+改変: なし（読み込んだあと、毛色だけをプログラムで塗り分けている）
+
+CC0 なので、表記の義務はありませんが、出どころとしてここに残しています。

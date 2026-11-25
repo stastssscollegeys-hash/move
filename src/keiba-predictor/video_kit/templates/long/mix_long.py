@@ -41,7 +41,10 @@ SES = dict(
  thunk   = cut("thunk", YA / "Cartoon Metal Thunk.mp3", 1.80, 1.40),
 )
 S = json.loads((D / "script_tospo_long.json").read_text(encoding="utf-8"))["scenes"]
+TJ = D / "tospo_long_timing.json"   # 2026-11-20 build_video.py が書き出した場面の秒数があれば、それを使う（対話は声の無音を詰めるので式が合わない）
+SECS = {x["id"]: x["sec"] for x in json.loads(TJ.read_text(encoding="utf-8"))["scenes"]} if TJ.exists() else {}
 def sec(i):
+    if i in SECS: return SECS[i]
     w = wave.open(str(D / "audio" / f"tospo_long_{i:02d}.wav")); return w.getnframes() / w.getframerate() + PAD
 PAD = float((D / "_pad.txt").read_text()) if (D / "_pad.txt").exists() else 0.45
 KIND = {"T01": "open", "T02": "info", "T03": "data", "T04": "data", "T05": "data", "T16": "news", "T06": "how", "T07": "table", "T09": "horse", "T10": "horse",
@@ -51,7 +54,7 @@ for k, s in enumerate(S):
     img = s["image"][:3]; kind = KIND[img]; first = img != prev; n_in = 0 if first else n_in + 1
     if first and k > 0:            # 章の切り替え（画像が変わる）: 種類ごとに別の音
         ev.append((SES["whoosh2"], max(t - 0.15, 0), 0.9))
-        ev.append((dict(data=SES["ding"], news=SES["twotone"], how=SES["ding2"], table=SES["xylo"], horse=SES["rise"], warn=SES["low"], rank=SES["rise"], top3=SES["fanfare"], end=SES["ding2"], info=SES["ding2"])[kind], t + 0.25, 0.75))
+        ev.append((dict(data=SES["ding"], news=SES["twotone"], how=SES["ding2"], table=SES["xylo"], horse=SES["rise"], warn=SES["low"], rank=SES["rise"], top3=SES["fanfare"], end=SES["ding2"], info=SES["ding2"]).get(kind, SES["ding2"]), t + 0.25, 0.75))   # 2026-11-19 冒頭の画像をまとめで使い直すと「open」に音が無くて止まった → 無い種類は ding2
     elif not first:                # 同じ画像の中の切り替え: 種類と順番で音を変える
         if kind == "rank":   ev.append((SES["blip"] if n_in % 2 else SES["pop"], t + 0.05, 0.6))
         elif kind == "top3": ev.append((SES["xylo"], t + 0.05, 0.8))
@@ -78,7 +81,10 @@ for n, (f, at, v) in enumerate(ev):
 fc.append("".join(labels) + f"amix=inputs={len(labels)}:duration=first:normalize=0,alimiter=limit=0.95[a]")
 (TMP / "mix_fc.txt").write_text(";\n".join(fc), encoding="utf-8")
 out = TMP / "tospo_long_mix.mp4"
-run(["ffmpeg", "-y", "-loglevel", "error"] + ins + ["-filter_complex_script", str(TMP / "mix_fc.txt"), "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", str(out)])
+# 2026-11-19 ffmpeg 7 からは -/filter_complex（ファイルから読む）。古い ffmpeg は -filter_complex_script（9.0 で消えた）。新しい方を先に試す
+tail_args = ["-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", str(out)]
+r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error"] + ins + ["-/filter_complex", str(TMP / "mix_fc.txt")] + tail_args, capture_output=True)
+if r.returncode: run(["ffmpeg", "-y", "-loglevel", "error"] + ins + ["-filter_complex_script", str(TMP / "mix_fc.txt")] + tail_args)
 shutil.move(str(out), str(mp4))
 import collections
 print(f"✅ {mp4.name} {total:.1f}秒  声×{vg:.2f}（→{VOICE_LUFS}LUFS） BGM×{bg:.3f}（→{BGM_LUFS}LUFS）  効果音 {len(ev)}個・{len(uniq)}種類", dict(collections.Counter(f.stem for f, _, _ in ev)))
